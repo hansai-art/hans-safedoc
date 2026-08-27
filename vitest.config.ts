@@ -3,8 +3,7 @@ import { resolve } from 'node:path';
 
 export default defineConfig({
   test: {
-    include: ['**/*.test.ts', '**/*.test.mjs'],
-    exclude: ['reference/legacy-seed/**', 'node_modules/**', 'dist/**'],
+    include: ['tests/**/*.test.ts'],
     environment: 'node',
   },
   resolve: {
