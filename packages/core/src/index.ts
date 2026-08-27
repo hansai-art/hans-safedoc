@@ -17,7 +17,15 @@ export {
   type SourceAdapter,
 } from './inventory.js';
 export { detectAll, type DetectedCandidate, type CandidateType } from './detection.js';
-export { DICTIONARY_LIMITS, matchDictionary, mergeDictionaries, validateDictionaryImport, type Dictionary, type DictionaryEntry } from './resolution.js';
+export {
+  DICTIONARY_LIMITS,
+  matchDictionary,
+  mergeDictionaries,
+  validateDictionaryImport,
+  type Dictionary,
+  type DictionaryEntry,
+} from './resolution.js';
+export { appendAudit, verifyAudit, type AuditEvent } from './audit.js';
 
 /** Pure, platform-independent Privacy Bridge core. */
 export const CORE_PACKAGE_ID = 'privacy-bridge-core';
