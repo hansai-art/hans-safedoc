@@ -2,7 +2,6 @@ import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import {
   aesGcmDecrypt,
   aesGcmEncrypt,
-  decodeCrockfordBase32,
   deriveScryptKey,
   encodeBase64Url,
   err,

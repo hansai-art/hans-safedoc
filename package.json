@@ -21,6 +21,8 @@
     "verify:lockfile": "pnpm install --frozen-lockfile --ignore-scripts",
     "sbom": "node scripts/generate-sbom.mjs",
     "release:artifact": "node scripts/release-artifact.mjs",
+    "clean:machine": "node scripts/clean-machine-check.mjs",
+    "performance:fixture": "node scripts/generate-performance-fixture.mjs",
     "ci": "pnpm verify:lockfile && pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm build && pnpm validate:schemas && pnpm scan:network && pnpm scan:secrets && pnpm scan:licenses && pnpm sbom && pnpm release:artifact"
   },
   "devDependencies": {

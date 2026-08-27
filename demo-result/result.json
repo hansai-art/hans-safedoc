@@ -1,0 +1,8 @@
+{
+  "schemaVersion": "1.0.0",
+  "jobId": "PB-20260825-0123456789",
+  "sourcePackageHash": "9999999999999999999999999999999999999999999999999999999999999999",
+  "createdAt": "2026-08-25T08:10:00Z",
+  "producer": "Synthetic Analyzer",
+  "findings": []
+}

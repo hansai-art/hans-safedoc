@@ -8,7 +8,9 @@ interface HTMLElement {
   ): HTMLElementTagNameMap[K];
 }
 declare module 'obsidian' {
-  export interface WorkspaceLeaf {}
+  export interface WorkspaceLeaf {
+    view?: ItemView;
+  }
   export class ItemView {
     containerEl: HTMLElement;
     constructor(leaf: WorkspaceLeaf);
