@@ -43,6 +43,13 @@ export {
   type Residual,
   type ResidualDecision,
 } from './export-guard.js';
+export {
+  escapeResultMarkdown,
+  resultHash,
+  restoreText,
+  validateResultBytes,
+  type RestoreEntity,
+} from './result-restore.js';
 
 /** Pure, platform-independent Privacy Bridge core. */
 export const CORE_PACKAGE_ID = 'privacy-bridge-core';
