@@ -35,6 +35,14 @@ export {
   type PathMapEntry,
 } from './path-map.js';
 export { buildShadowVault, type ShadowBuild, type ShadowDocument } from './shadow-vault.js';
+export {
+  evaluateExportGuard,
+  residualsResolved,
+  scanResidualAll,
+  type ExportGateInput,
+  type Residual,
+  type ResidualDecision,
+} from './export-guard.js';
 
 /** Pure, platform-independent Privacy Bridge core. */
 export const CORE_PACKAGE_ID = 'privacy-bridge-core';
