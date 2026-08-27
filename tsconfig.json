@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["node", "vitest/globals"],
+    "baseUrl": ".",
+    "paths": {
+      "@privacy-bridge/core": ["packages/core/src/index.ts"],
+      "@privacy-bridge/obsidian-plugin": ["packages/obsidian-plugin/src/index.ts"]
+    }
+  },
+  "include": ["packages/**/*.ts", "tests/**/*.ts", "scripts/**/*.mjs"]
+}

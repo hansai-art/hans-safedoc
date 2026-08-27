@@ -1,0 +1,42 @@
+{
+  "name": "privacy-bridge",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "pnpm@10.16.1",
+  "engines": {
+    "node": ">=22.0.0 <23"
+  },
+  "scripts": {
+    "lint": "eslint . --max-warnings=0",
+    "format:check": "prettier --check package.json pnpm-workspace.yaml tsconfig.json tsconfig.base.json vitest.config.ts eslint.config.mjs .prettierrc.json .github/workflows/ci.yml 'packages/**/*.ts' 'packages/**/*.json' 'packages/**/*.mjs' 'scripts/*.mjs' 'tests/**/*.ts'",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "build": "pnpm --filter @privacy-bridge/obsidian-plugin build",
+    "validate:schemas": "pnpm --filter @privacy-bridge/schemas validate",
+    "scan:network": "node scripts/network-scan.mjs",
+    "scan:secrets": "node scripts/secret-scan.mjs",
+    "scan:licenses": "license-checker-rseidelsohn --production --excludePrivatePackages --onlyAllow 'MIT;ISC;BSD-2-Clause;BSD-3-Clause;Apache-2.0'",
+    "verify:lockfile": "pnpm install --frozen-lockfile --ignore-scripts",
+    "sbom": "env -u npm_execpath -u npm_command npm_config_user_agent='npm/10.0.0 node/v22.0.0 darwin arm64' node node_modules/@cyclonedx/cyclonedx-npm/bin/cyclonedx-npm-cli.js --ignore-npm-errors --output-file artifacts/sbom.cdx.json",
+    "release:artifact": "node scripts/release-artifact.mjs",
+    "ci": "pnpm verify:lockfile && pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm build && pnpm validate:schemas && pnpm scan:network && pnpm scan:secrets && pnpm scan:licenses && pnpm sbom && pnpm release:artifact"
+  },
+  "devDependencies": {
+    "@cyclonedx/cyclonedx-npm": "^4.1.1",
+    "@eslint/js": "^9.34.0",
+    "@types/node": "^22.18.0",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "esbuild": "^0.25.9",
+    "eslint": "^9.34.0",
+    "fast-check": "^4.2.0",
+    "globals": "^16.3.0",
+    "license-checker-rseidelsohn": "^4.4.2",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.41.0",
+    "vitest": "^3.2.4"
+  }
+}
