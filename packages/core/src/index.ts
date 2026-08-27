@@ -62,9 +62,15 @@ export {
 } from './safe-package.js';
 export {
   copyOnWriteMigrate,
+  createPbJobBackup,
   decideRecovery,
+  importPbJobBackup,
   isStaleLock,
   type JournalPhase,
+  type PbJobBackup,
+  type PbJobBackupInput,
+  type PbJobRecord,
+  type ImportedPbJob,
   type RecoveryAction,
 } from './recovery.js';
 
