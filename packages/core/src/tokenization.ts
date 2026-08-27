@@ -1,12 +1,5 @@
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
-import {
-  encodeCrockfordBase32,
-  err,
-  error,
-  ok,
-  tokenFor,
-  type Result,
-} from './index.js';
+import { encodeCrockfordBase32, err, error, ok, tokenFor, type Result } from './index.js';
 import type { CandidateType } from './detection.js';
 export const canonicalize = (type: CandidateType, value: string) =>
   type === 'TW_ID' || type === 'TW_ARC'

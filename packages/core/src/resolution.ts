@@ -94,7 +94,8 @@ export function matchDictionary(
     }
   return matches
     .sort((a, b) => a.start - b.start || b.end - a.end)
-    .filter((match, index, all) =>
-      !all.slice(0, index).some((kept) => match.start < kept.end && kept.start < match.end),
+    .filter(
+      (match, index, all) =>
+        !all.slice(0, index).some((kept) => match.start < kept.end && kept.start < match.end),
     );
 }
