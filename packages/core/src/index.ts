@@ -34,6 +34,7 @@ export {
   rewriteWikilinks,
   type PathMapEntry,
 } from './path-map.js';
+export { buildShadowVault, type ShadowBuild, type ShadowDocument } from './shadow-vault.js';
 
 /** Pure, platform-independent Privacy Bridge core. */
 export const CORE_PACKAGE_ID = 'privacy-bridge-core';
