@@ -407,7 +407,7 @@ export function detectAll(source: string): Result<readonly DetectedCandidate[]> 
     'TW_BANK_ACCOUNT',
     'tw-bank-account',
     0.55,
-    { hints: ['帳號', '匯款', '銀行'] },
+    { hints: ['帳號', '匯款', '銀行'], validate: (value) => !value.includes(' ') },
   );
   addRegex(found, source, address, 'TW_ADDRESS', 'tw-address', 0.88);
   addRegex(

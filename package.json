@@ -13,6 +13,7 @@
     "format:check": "prettier --check package.json pnpm-workspace.yaml tsconfig.json tsconfig.base.json vitest.config.ts eslint.config.mjs .prettierrc.json .github/workflows/ci.yml 'packages/**/*.ts' 'packages/**/*.json' 'packages/**/*.mjs' 'scripts/*.mjs' 'tests/**/*.ts'",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
+    "acceptance": "node scripts/run-acceptance.mjs",
     "build": "pnpm --filter @privacy-bridge/obsidian-plugin build",
     "validate:schemas": "pnpm --filter @privacy-bridge/schemas validate",
     "scan:network": "node scripts/network-scan.mjs",

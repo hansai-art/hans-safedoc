@@ -39,3 +39,33 @@ describe('E09 Shadow Vault', () =>
       await readFile(join(built.value.root, 'path-map.enc')).catch(() => undefined),
     ).toBeUndefined();
   }));
+
+describe('ACC-EXP-003 ACC-EXP-005 Shadow edge boundaries', () =>
+  it('rejects non-Markdown and .obsidian targets without leaving a final Shadow', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'pb-shadow-'));
+    roots.push(root);
+    const source = join(root, 'source'),
+      output = join(root, 'output');
+    await mkdir(source);
+    await mkdir(output);
+    const documentId = randomUUID(),
+      content = new TextEncoder().encode('safe');
+    const map = createPathMap([{ documentId, relativePath: '.obsidian/plugin.json' }]);
+    expect(map.ok).toBe(true);
+    if (!map.ok) return;
+    const built = await buildShadowVault({
+      jobId: 'PB-20260828-0123456789',
+      sourceRoot: source,
+      outputParent: output,
+      pathMap: map.value,
+      documents: [
+        {
+          documentId,
+          sourceRelativePath: '.obsidian/plugin.json',
+          sourceSha256: digest(content),
+          content,
+        },
+      ],
+    });
+    expect(built.ok).toBe(false);
+  }));

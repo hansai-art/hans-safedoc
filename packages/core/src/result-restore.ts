@@ -33,11 +33,28 @@ export function validateResultBytes(
     ids.add(finding.findingId as string);
     for (const id of finding.sourceDocumentIds as string[])
       if (!expected.documentIds.has(id)) return err(error('PB-IMPORT-003'));
+    for (const evidence of (finding.evidence ?? []) as Record<string, unknown>[])
+      if (!expected.documentIds.has(evidence.documentId as string))
+        return err(error('PB-IMPORT-003'));
     for (const token of finding.entityRefs as string[])
       if (!verifyToken(token, expected.tokenKey, expected.jobId).ok)
         return err(error('PB-IMPORT-003'));
+    for (const text of [
+      finding.summary,
+      ...((finding.evidence ?? []) as Record<string, unknown>[]).map((item) => item.excerpt),
+    ]) {
+      if (typeof text !== 'string' || !tokensBelongToJob(text, expected.tokenKey, expected.jobId))
+        return err(error('PB-IMPORT-003'));
+    }
   }
   return ok(result);
+}
+function tokensBelongToJob(value: string, key: Uint8Array, jobId: string): boolean {
+  const starts = value.match(/⟦PB:/gu) ?? [];
+  const tokens = value.match(/⟦PB:[^⟧]*⟧/gu) ?? [];
+  return (
+    starts.length === tokens.length && tokens.every((token) => verifyToken(token, key, jobId).ok)
+  );
 }
 export function escapeResultMarkdown(value: string): string {
   return value

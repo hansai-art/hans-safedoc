@@ -60,7 +60,13 @@ export async function buildShadowVault(input: {
     for (const document of input.documents) {
       const entry = map.get(document.documentId),
         path = entry && normalizeRelativePath(entry.sanitizedRelativePath);
-      if (!entry || !path?.ok || hash(document.content) !== document.sourceSha256)
+      if (
+        !entry ||
+        !path?.ok ||
+        !path.value.endsWith('.md') ||
+        path.value.split('/').some((segment) => segment.toLowerCase() === '.obsidian') ||
+        hash(document.content) !== document.sourceSha256
+      )
         return err(error('PB-FILE-004'));
       const target = resolve(staging, path.value);
       if (!inside(staging, target)) return err(error('PB-FILE-005'));

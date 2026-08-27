@@ -80,4 +80,50 @@ describe('E04 detection safety defaults', () => {
     expect(secrets.every((candidate) => candidate.handling === 'BLOCK_EXPORT')).toBe(true);
     expect(secrets.some((candidate) => candidate.surfaceText.startsWith('api_key'))).toBe(false);
   });
+  it('ACC-DET-009 retains ambiguous ARC/invoice alternatives and blocks export', () => {
+    const result = detectAll('編號：AB12345677');
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value).toContainEqual(
+      expect.objectContaining({
+        primaryType: 'AMBIGUOUS_IDENTIFIER',
+        alternativeTypes: ['TW_ARC', 'TW_INVOICE'],
+        handling: 'BLOCK_EXPORT',
+      }),
+    );
+  });
+  it('ACC-DET-011 ACC-DET-012 classifies service/mobile/landline values without treating mobile prefixes as landlines', () => {
+    const result = detectAll('0900-123-456 0987-123-456 099-123-4567 0809-123-456 02-2712-3456');
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.map((candidate) => candidate.primaryType)).toEqual([
+      'TW_MOBILE',
+      'TW_MOBILE',
+      'TW_PHONE_SERVICE',
+      'TW_PHONE_SERVICE',
+      'TW_LANDLINE',
+    ]);
+    expect(result.value.filter((candidate) => candidate.primaryType === 'TW_MOBILE')).toHaveLength(
+      2,
+    );
+    expect(
+      result.value.filter((candidate) => candidate.primaryType === 'TW_PHONE_SERVICE'),
+    ).toHaveLength(2);
+    expect(result.value.some((candidate) => candidate.primaryType === 'TW_LANDLINE')).toBe(true);
+  });
+  it('ACC-DET-013 ACC-DET-015 captures known and contextual passports plus complete address doorplates', () => {
+    const result = detectAll('護照：D12345678，備用：A12345678。臺北市信義區松仁路2之2號5樓');
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ primaryType: 'TW_PASSPORT', surfaceText: 'D12345678' }),
+        expect.objectContaining({ primaryType: 'PASSPORT_CANDIDATE', surfaceText: 'A12345678' }),
+        expect.objectContaining({
+          primaryType: 'TW_ADDRESS',
+          surfaceText: '臺北市信義區松仁路2之2號5樓',
+        }),
+      ]),
+    );
+  });
 });
