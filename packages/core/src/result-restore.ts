@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { err, error, ok, parseResultPackage, type Result } from './index.js';
 import { verifyToken } from './tokenization.js';
 export const RESULT_LIMIT = 25 * 1024 * 1024;
+const RESULT_MAX_JSON_DEPTH = 64;
 export interface RestoreEntity {
   readonly token: string;
   readonly preferredDisplay: string;
@@ -16,6 +17,7 @@ export function validateResultBytes(
   },
 ): Result<Record<string, unknown>> {
   if (bytes.byteLength > RESULT_LIMIT) return err(error('PB-IMPORT-005'));
+  if (!withinJsonDepth(bytes)) return err(error('PB-IMPORT-005'));
   let value: unknown;
   try {
     value = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
@@ -48,6 +50,29 @@ export function validateResultBytes(
     }
   }
   return ok(result);
+}
+/** Reject structurally hostile JSON before JSON.parse allocates a deeply nested object graph. */
+function withinJsonDepth(bytes: Uint8Array): boolean {
+  let depth = 0;
+  let quoted = false;
+  let escaped = false;
+  for (const byte of bytes) {
+    if (quoted) {
+      if (escaped) escaped = false;
+      else if (byte === 0x5c) escaped = true;
+      else if (byte === 0x22) quoted = false;
+      continue;
+    }
+    if (byte === 0x22) quoted = true;
+    else if (byte === 0x7b || byte === 0x5b) {
+      depth += 1;
+      if (depth > RESULT_MAX_JSON_DEPTH) return false;
+    } else if (byte === 0x7d || byte === 0x5d) {
+      depth -= 1;
+      if (depth < 0) return false;
+    }
+  }
+  return !quoted && !escaped && depth === 0;
 }
 function tokensBelongToJob(value: string, key: Uint8Array, jobId: string): boolean {
   const starts = value.match(/⟦PB:/gu) ?? [];

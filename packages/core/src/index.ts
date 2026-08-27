@@ -93,6 +93,7 @@ export {
 } from './export-guard.js';
 export {
   escapeResultMarkdown,
+  RESULT_LIMIT,
   resultHash,
   restoreText,
   validateResultBytes,

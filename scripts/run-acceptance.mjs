@@ -82,6 +82,32 @@ const acceptanceTests = Object.freeze({
   'ACC-TOK-013': 'mapping/persistence-roundtrip.test.ts',
   'ACC-TOK-014': 'handling/no-reversible-secret.test.ts',
   'ACC-TOK-015': 'mapping/no-silent-recreate.test.ts',
+  'ACC-EXP-001': 'golden/markdown-preservation.test.ts',
+  'ACC-EXP-002': 'golden/frontmatter-code.test.ts',
+  'ACC-EXP-003': 'recovery/shadow-atomic.test.ts',
+  'ACC-EXP-004': 'golden/wikilink-pathmap.test.ts',
+  'ACC-EXP-005': 'security/shadow-content-allowlist.test.ts',
+  'ACC-EXP-006': 'export/residual-all.test.ts',
+  'ACC-EXP-007': 'export/residual-review-gate.test.ts',
+  'ACC-EXP-008': 'export/guard-matrix.test.ts',
+  'ACC-EXP-009': 'security/safe-zip.test.ts',
+  'ACC-EXP-010': 'security/package-content.test.ts',
+  'ACC-EXP-011': 'export/package-self-validate.test.ts',
+  'ACC-EXP-012': 'export/package-size-limit.test.ts',
+  'ACC-IMP-001': 'import/valid-result.test.ts',
+  'ACC-IMP-002': 'import/malformed-token-strict.test.ts',
+  'ACC-IMP-003': 'import/unknown-forged-token.test.ts',
+  'ACC-IMP-004': 'import/cross-job-package.test.ts',
+  'ACC-IMP-005': 'import/references-paths.test.ts',
+  'ACC-IMP-006': 'security/result-rendering.test.ts',
+  'ACC-IMP-007': 'restore/end-to-end.test.ts',
+  'ACC-IMP-008': 'fuzz/result-dos.test.ts',
+  'ACC-OPS-001': 'audit/no-raw-values.test.ts',
+  'ACC-OPS-002': 'audit/hash-chain.test.ts',
+  'ACC-OPS-003': 'recovery/journal-phase-matrix.test.ts',
+  'ACC-OPS-004': 'migration/copy-on-write.test.ts',
+  'ACC-OPS-005': 'backup/job-backup.test.ts',
+  'ACC-OPS-006': 'release/reproducible-artifacts.test.mjs',
 });
 
 function productCalls(source) {
@@ -116,4 +142,4 @@ const result = spawnSync('pnpm', ['exec', 'vitest', 'run', ...Object.values(acce
   shell: process.platform === 'win32',
 });
 if (result.status !== 0) process.exit(result.status ?? 1);
-console.log(`REAL ACCEPTANCE PASS ${Object.keys(acceptanceTests).length}/79`);
+console.log(`REAL ACCEPTANCE PASS ${Object.keys(acceptanceTests).length}/105`);
