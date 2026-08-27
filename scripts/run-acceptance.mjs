@@ -1,65 +1,111 @@
-import { readFileSync, existsSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
+import { dirname, relative, resolve } from 'node:path';
 
-const matrixPath = 'docs/ACCEPTANCE-MATRIX.csv';
-const rows = readFileSync(matrixPath, 'utf8')
-  .replace(/^\uFEFF/u, '')
-  .trim()
-  .split(/\r?\n/u)
-  .slice(1)
-  .map((line) => {
-    const match = /^(ACC-[A-Z]+-\d{3}),([^,]+)/u.exec(line);
-    if (!match) throw new Error(`Cannot parse acceptance row: ${line}`);
-    return { id: match[1], category: match[2] };
-  });
+const root = resolve(import.meta.dirname, '..');
+const matrixPath = resolve(root, 'docs/ACCEPTANCE-MATRIX.csv');
+const lockedPaths = ['docs/ACCEPTANCE-MATRIX.csv', 'docs/TRACEABILITY.csv'];
 
-const byCategory = {
-  Foundation: ['tests/foundation/e00-foundation.test.ts', 'tests/core/e01-contracts.test.ts'],
-  'Secure Store': [
-    'tests/core/e02-crypto.test.ts',
-    'tests/core/e13-recovery.test.ts',
-    'tests/core/e16-lifecycle-review.test.ts',
-  ],
-  'File Inventory': ['tests/core/e03-inventory.test.ts', 'tests/core/e16-lifecycle-review.test.ts'],
-  Detection: ['tests/core/e04-detection.test.ts'],
-  Review: ['tests/core/e16-lifecycle-review.test.ts', 'tests/core/e14-ui-state.test.ts'],
-  Dictionary: ['tests/core/e05-resolution.test.ts', 'tests/core/e16-lifecycle-review.test.ts'],
-  Token: [
-    'tests/core/e02-crypto.test.ts',
-    'tests/core/e07-tokenization.test.ts',
-    'tests/core/e13-recovery.test.ts',
-  ],
-  Crypto: ['tests/core/e02-crypto.test.ts'],
-  Mapping: ['tests/core/e07-tokenization.test.ts', 'tests/core/e13-recovery.test.ts'],
-  Handling: ['tests/core/e04-detection.test.ts', 'tests/core/e07-tokenization.test.ts'],
-  Shadow: ['tests/core/e08-markdown-pathmap.test.ts', 'tests/core/e09-shadow-vault.test.ts'],
-  Residual: ['tests/core/e10-export-guard.test.ts'],
-  'Export Guard': ['tests/core/e10-export-guard.test.ts'],
-  'Safe Package': ['tests/core/e11-safe-package.test.ts'],
-  Import: ['tests/core/e12-result-restore.test.ts'],
-  Restore: ['tests/core/e12-result-restore.test.ts'],
-  Audit: ['tests/core/e06-audit.test.ts'],
-  Recovery: ['tests/core/e13-recovery.test.ts'],
-  Migration: ['tests/core/e13-recovery.test.ts'],
-  'Backup/Delete': ['tests/core/e13-recovery.test.ts'],
-  Release: ['tests/foundation/e00-foundation.test.ts', 'tests/foundation/sbom.test.ts'],
-};
+function parseCsv(text) {
+  const rows = [];
+  let row = [];
+  let value = '';
+  let quoted = false;
+  for (let index = 0; index < text.length; index += 1) {
+    const char = text[index];
+    if (quoted && char === '"' && text[index + 1] === '"') {
+      value += char;
+      index += 1;
+    } else if (char === '"') quoted = !quoted;
+    else if (char === ',' && !quoted) {
+      row.push(value);
+      value = '';
+    } else if ((char === '\n' || char === '\r') && !quoted) {
+      if (char === '\r' && text[index + 1] === '\n') index += 1;
+      row.push(value);
+      if (row.some((field) => field.length > 0)) rows.push(row);
+      row = [];
+      value = '';
+    } else value += char;
+  }
+  row.push(value);
+  if (row.some((field) => field.length > 0)) rows.push(row);
+  const [headers, ...data] = rows;
+  return data.map((fields) =>
+    Object.fromEntries(headers.map((header, i) => [header, fields[i] ?? ''])),
+  );
+}
 
+function fail(message) {
+  throw new Error(`Acceptance integrity failure: ${message}`);
+}
+
+function assertLockedFilesUntouched() {
+  const result = spawnSync('git', ['diff', '--quiet', '--', ...lockedPaths], { cwd: root });
+  if (result.status !== 0) fail(`locked file modified: ${lockedPaths.join(', ')}`);
+}
+
+function readTarget(row) {
+  const target = row['Automated Test'];
+  const id = row['Acceptance ID'];
+  const scenario = row['Scenario / Input'];
+  const expected = row['Expected Result'];
+  if (!id || !target || !scenario || !expected)
+    fail(`incomplete automated row ${id || '<unknown>'}`);
+  const path = resolve(root, target);
+  if (relative(root, path).startsWith('..')) fail(`${id} has unsafe target ${target}`);
+  if (!existsSync(path)) fail(`${id} target absent: ${target}`);
+  const source = readFileSync(path, 'utf8');
+  const metadataLine = source.match(/^\/\/ ACCEPTANCE_METADATA (.+)$/mu);
+  if (!metadataLine) fail(`${id} has no acceptance metadata in ${target}`);
+  let metadata;
+  try {
+    metadata = JSON.parse(metadataLine[1]);
+  } catch {
+    fail(`${id} has invalid acceptance metadata in ${target}`);
+  }
+  if (metadata.id !== id) fail(`${id} absent from metadata in ${target}`);
+  if (metadata.scenario !== scenario) fail(`${id} scenario text is not represented in ${target}`);
+  if (metadata.expected !== expected) fail(`${id} expected text is not represented in ${target}`);
+  if (!new RegExp(`it\\(\\s*['\"]${id}:`, 'u').test(source))
+    fail(`${id} absent from the test name in ${target}`);
+  if (/from\s+['"][^'"]*(?:tests\/core|foundation\/e\d+|hardening)[^'"]*['"]/u.test(source))
+    fail(`${id} uses generic shared coverage in ${target}`);
+  return { id, target, scenario, expected };
+}
+
+assertLockedFilesUntouched();
+const rows = parseCsv(readFileSync(matrixPath, 'utf8').replace(/^\uFEFF/u, ''));
+const seenIds = new Set();
+const seenTargets = new Set();
 const evidence = rows.map((row) => {
-  const tests = byCategory[row.category];
-  if (!tests?.length) throw new Error(`No evidence mapping for ${row.id} (${row.category})`);
-  if (!tests.every(existsSync))
-    throw new Error(`Missing evidence test for ${row.id}: ${tests.join(', ')}`);
-  return { ...row, tests };
+  const target = readTarget(row);
+  if (seenIds.has(target.id)) fail(`duplicate ACC ID ${target.id}`);
+  if (seenTargets.has(target.target)) fail(`duplicate generic target ${target.target}`);
+  seenIds.add(target.id);
+  seenTargets.add(target.target);
+  return target;
 });
-const files = [...new Set(evidence.flatMap((row) => row.tests))];
-const result = spawnSync('pnpm', ['exec', 'vitest', 'run', ...files], {
-  stdio: 'inherit',
+
+const result = spawnSync('pnpm', ['exec', 'vitest', 'run', ...evidence.map((row) => row.target)], {
+  cwd: root,
+  encoding: 'utf8',
   shell: process.platform === 'win32',
 });
-if (result.status !== 0) process.exit(result.status ?? 1);
-for (const row of evidence) console.log(`${row.id} EVIDENCE ${row.tests.join(' + ')}`);
-console.log(`AUTOMATED EVIDENCE PASS ${evidence.length}/${rows.length} acceptance rows`);
-console.log(
-  'Locked acceptance/traceability status files were not modified. Gate D manual evidence remains PENDING.',
+if (result.status !== 0) {
+  process.stderr.write(result.stdout ?? '');
+  process.stderr.write(result.stderr ?? '');
+  process.exit(result.status ?? 1);
+}
+
+assertLockedFilesUntouched();
+const evidencePath = resolve(root, 'artifacts/acceptance-evidence.json');
+mkdirSync(dirname(evidencePath), { recursive: true });
+writeFileSync(
+  evidencePath,
+  `${JSON.stringify({ generatedFrom: 'exact acceptance test metadata', rows: evidence }, null, 2)}\n`,
 );
+chmodSync(evidencePath, 0o444);
+console.log(`AUTOMATED EVIDENCE PASS ${evidence.length}/${rows.length} exact acceptance targets`);
+console.log(`Read-only evidence: ${relative(root, evidencePath)}`);
+console.log('Manual platform Gate D evidence remains PENDING.');
