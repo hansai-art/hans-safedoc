@@ -17,11 +17,17 @@ describe('E13 recovery and migration', () => {
 
   it('migrates copy-on-write, retaining a recovery snapshot when staging fails', () => {
     const before = new Map([['job.enc', new Uint8Array([1])]]);
-    const failed = copyOnWriteMigrate(before, () => { throw new Error('bad'); });
+    const failed = copyOnWriteMigrate(before, () => {
+      throw new Error('bad');
+    });
     expect(failed.ok).toBe(false);
     expect(before.get('job.enc')).toEqual(new Uint8Array([1]));
-    const migrated = copyOnWriteMigrate(before, (staging) => staging.set('job.enc', new Uint8Array([2])));
+    const migrated = copyOnWriteMigrate(before, (staging) =>
+      staging.set('job.enc', new Uint8Array([2])),
+    );
     expect(migrated.ok && migrated.value.active.get('job.enc')).toEqual(new Uint8Array([2]));
-    expect(migrated.ok && migrated.value.recoverySnapshot.get('job.enc')).toEqual(new Uint8Array([1]));
+    expect(migrated.ok && migrated.value.recoverySnapshot.get('job.enc')).toEqual(
+      new Uint8Array([1]),
+    );
   });
 });

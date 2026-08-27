@@ -60,7 +60,13 @@ export {
   type SafePackageEntity,
   type SafePackageInput,
 } from './safe-package.js';
-export { copyOnWriteMigrate, decideRecovery, isStaleLock, type JournalPhase, type RecoveryAction } from './recovery.js';
+export {
+  copyOnWriteMigrate,
+  decideRecovery,
+  isStaleLock,
+  type JournalPhase,
+  type RecoveryAction,
+} from './recovery.js';
 
 /** Pure, platform-independent Privacy Bridge core. */
 export const CORE_PACKAGE_ID = 'privacy-bridge-core';
