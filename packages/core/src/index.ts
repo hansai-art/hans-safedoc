@@ -16,6 +16,7 @@ export {
   type FileInventory,
   type SourceAdapter,
 } from './inventory.js';
+export { detectAll, type DetectedCandidate, type CandidateType } from './detection.js';
 
 /** Pure, platform-independent Privacy Bridge core. */
 export const CORE_PACKAGE_ID = 'privacy-bridge-core';
