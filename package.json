@@ -19,7 +19,7 @@
     "scan:secrets": "node scripts/secret-scan.mjs",
     "scan:licenses": "license-checker-rseidelsohn --production --excludePrivatePackages --onlyAllow 'MIT;ISC;BSD-2-Clause;BSD-3-Clause;Apache-2.0'",
     "verify:lockfile": "pnpm install --frozen-lockfile --ignore-scripts",
-    "sbom": "env -u npm_execpath -u npm_command npm_config_user_agent='npm/10.0.0 node/v22.0.0 darwin arm64' node node_modules/@cyclonedx/cyclonedx-npm/bin/cyclonedx-npm-cli.js --ignore-npm-errors --output-file artifacts/sbom.cdx.json",
+    "sbom": "node scripts/generate-sbom.mjs",
     "release:artifact": "node scripts/release-artifact.mjs",
     "ci": "pnpm verify:lockfile && pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm build && pnpm validate:schemas && pnpm scan:network && pnpm scan:secrets && pnpm scan:licenses && pnpm sbom && pnpm release:artifact"
   },

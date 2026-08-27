@@ -1,8 +1,0 @@
-{
-  "sourceCommit": "22caeed9b25136fb11138f74995db466f799696f",
-  "files": {
-    "main.js": "c56f7dbd98387c8968a2d6867d8a5de85997060fd0768939f5f2ed652f581bfc",
-    "manifest.json": "b14f4e7cdf982a58167e7aad2ae92af04bcbf91fb9b87bb721cc46db368563aa"
-  },
-  "sbom": "../../artifacts/sbom.cdx.json"
-}

@@ -1,9 +1,0 @@
-{
-  "id": "privacy-bridge",
-  "name": "Privacy Bridge",
-  "version": "0.1.0",
-  "minAppVersion": "1.8.0",
-  "description": "Local pseudonymization and secure data transfer for Markdown.",
-  "author": "Privacy Bridge contributors",
-  "isDesktopOnly": true
-}
