@@ -50,6 +50,16 @@ export {
   validateResultBytes,
   type RestoreEntity,
 } from './result-restore.js';
+export {
+  SAFE_PACKAGE_LIMIT,
+  buildSafePackage,
+  normalizeSafeEntryPath,
+  validateSafePackage,
+  type SafePackage,
+  type SafePackageDocument,
+  type SafePackageEntity,
+  type SafePackageInput,
+} from './safe-package.js';
 
 /** Pure, platform-independent Privacy Bridge core. */
 export const CORE_PACKAGE_ID = 'privacy-bridge-core';
