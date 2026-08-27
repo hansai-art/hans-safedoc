@@ -67,7 +67,7 @@ function readTarget(row) {
   if (metadata.id !== id) fail(`${id} absent from metadata in ${target}`);
   if (metadata.scenario !== scenario) fail(`${id} scenario text is not represented in ${target}`);
   if (metadata.expected !== expected) fail(`${id} expected text is not represented in ${target}`);
-  if (!new RegExp(`it\\(\\s*['"]${id}:`, 'u').test(source))
+  if (!new RegExp(`it\\(\\s*['\"]${id}:`, 'u').test(source))
     fail(`${id} absent from the test name in ${target}`);
   if (/from\s+['"][^'"]*(?:tests\/core|foundation\/e\d+|hardening)[^'"]*['"]/u.test(source))
     fail(`${id} uses generic shared coverage in ${target}`);
