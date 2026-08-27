@@ -13,10 +13,18 @@ import { schemaCatalog } from './schema-catalog.js';
 export {
   createInventory,
   createNodeSourceAdapter,
+  createScopedInventory,
   type FileInventory,
+  type InventoryScope,
   type SourceAdapter,
 } from './inventory.js';
-export { detectAll, type DetectedCandidate, type CandidateType } from './detection.js';
+export {
+  detectAll,
+  isValidTwId,
+  isValidTwTaxId,
+  type DetectedCandidate,
+  type CandidateType,
+} from './detection.js';
 export {
   DICTIONARY_LIMITS,
   matchDictionary,

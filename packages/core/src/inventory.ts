@@ -27,8 +27,15 @@ export interface InventoryDocument {
 export interface FileInventory {
   readonly documents: readonly InventoryDocument[];
   readonly unsupported: readonly string[];
+  /** Fixed system paths excluded from scanning, reported only as relative names. */
+  readonly excluded: readonly string[];
   readonly blockers: readonly string[];
 }
+export type InventoryScope =
+  | { readonly kind: 'ACTIVE_NOTE'; readonly path: string }
+  | { readonly kind: 'FOLDER'; readonly path: string }
+  | { readonly kind: 'WHOLE_VAULT' }
+  | { readonly kind: 'EXTERNAL_FOLDER'; readonly path: string };
 const SYSTEM = new Set(['.obsidian', '.trash', '.git', 'privacy-bridge staging']);
 export function createNodeSourceAdapter(root: string): SourceAdapter {
   const resolved = resolve(root);
@@ -52,6 +59,7 @@ export async function createInventory(adapter: SourceAdapter): Promise<Result<Fi
   const root = await adapter.realpath(adapter.root);
   const documents: InventoryDocument[] = [];
   const unsupported: string[] = [];
+  const excluded: string[] = [];
   const blockers = new Set<string>();
   async function walk(current: string): Promise<void> {
     for (const name of await adapter.list(current)) {
@@ -63,7 +71,12 @@ export async function createInventory(adapter: SourceAdapter): Promise<Result<Fi
         continue;
       }
       if (entry.isDirectory) {
-        if (!SYSTEM.has(basename(absolute))) await walk(absolute);
+        if (SYSTEM.has(basename(absolute))) excluded.push(rel);
+        else if ((await adapter.list(absolute)).includes('.obsidian')) {
+          // A nested Obsidian configuration marks a separate Vault boundary.
+          excluded.push(rel);
+          blockers.add('PB-FILE-005');
+        } else await walk(absolute);
         continue;
       }
       if (!absolute.toLowerCase().endsWith('.md')) {
@@ -96,6 +109,42 @@ export async function createInventory(adapter: SourceAdapter): Promise<Result<Fi
       a.relativePath < b.relativePath ? -1 : a.relativePath > b.relativePath ? 1 : 0,
     ),
     unsupported: unsupported.sort(),
+    excluded: excluded.sort(),
     blockers: [...blockers].sort(),
   });
+}
+
+/** Resolves a user-selected source mode to a real inventory root without following it outside scope. */
+export async function createScopedInventory(
+  vaultRoot: string,
+  scope: InventoryScope,
+): Promise<Result<FileInventory>> {
+  try {
+    const vault = await realpath(vaultRoot);
+    const selected = scope.kind === 'WHOLE_VAULT' ? vault : await realpath(resolve(scope.path));
+    if (
+      scope.kind !== 'EXTERNAL_FOLDER' &&
+      selected !== vault &&
+      !selected.startsWith(`${vault}${sep}`)
+    )
+      return err(error('PB-FILE-005'));
+    const entry = await lstat(selected);
+    if (entry.isSymbolicLink()) return err(error('PB-FILE-003'));
+    if (scope.kind === 'ACTIVE_NOTE') {
+      if (!entry.isFile() || !selected.toLowerCase().endsWith('.md'))
+        return err(error('PB-FILE-002'));
+      const parent = resolve(selected, '..');
+      const inventory = await createInventory(createNodeSourceAdapter(parent));
+      if (!inventory.ok) return inventory;
+      const name = basename(selected);
+      return ok({
+        ...inventory.value,
+        documents: inventory.value.documents.filter((doc) => doc.relativePath === name),
+      });
+    }
+    if (!entry.isDirectory()) return err(error('PB-FILE-002'));
+    return createInventory(createNodeSourceAdapter(selected));
+  } catch {
+    return err(error('PB-FILE-002'));
+  }
 }

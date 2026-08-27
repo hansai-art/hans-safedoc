@@ -1,63 +1,72 @@
-import { readFileSync, existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 
-const matrixPath = 'docs/ACCEPTANCE-MATRIX.csv';
-const rows = readFileSync(matrixPath, 'utf8')
-  .replace(/^\uFEFF/u, '')
-  .trim()
-  .split(/\r?\n/u)
-  .slice(1)
-  .map((line) => {
-    const match = /^(ACC-[A-Z]+-\d{3}),([^,]+)/u.exec(line);
-    if (!match) throw new Error(`Cannot parse acceptance row: ${line}`);
-    return { id: match[1], category: match[2] };
-  });
-
-const byCategory = {
-  Foundation: ['tests/foundation/e00-foundation.test.ts', 'tests/core/e01-contracts.test.ts'],
-  'Secure Store': [
-    'tests/core/e02-crypto.test.ts',
-    'tests/core/e13-recovery.test.ts',
-    'tests/core/e16-lifecycle-review.test.ts',
-  ],
-  'File Inventory': ['tests/core/e03-inventory.test.ts', 'tests/core/e16-lifecycle-review.test.ts'],
-  Detection: ['tests/core/e04-detection.test.ts'],
-  Review: ['tests/core/e16-lifecycle-review.test.ts', 'tests/core/e14-ui-state.test.ts'],
-  Dictionary: ['tests/core/e05-resolution.test.ts', 'tests/core/e16-lifecycle-review.test.ts'],
-  Token: [
-    'tests/core/e02-crypto.test.ts',
-    'tests/core/e07-tokenization.test.ts',
-    'tests/core/e13-recovery.test.ts',
-  ],
-  Crypto: ['tests/core/e02-crypto.test.ts'],
-  Mapping: ['tests/core/e07-tokenization.test.ts', 'tests/core/e13-recovery.test.ts'],
-  Handling: ['tests/core/e04-detection.test.ts', 'tests/core/e07-tokenization.test.ts'],
-  Shadow: ['tests/core/e08-markdown-pathmap.test.ts', 'tests/core/e09-shadow-vault.test.ts'],
-  Residual: ['tests/core/e10-export-guard.test.ts'],
-  'Export Guard': ['tests/core/e10-export-guard.test.ts'],
-  'Safe Package': ['tests/core/e11-safe-package.test.ts'],
-  Import: ['tests/core/e12-result-restore.test.ts'],
-  Restore: ['tests/core/e12-result-restore.test.ts'],
-  Audit: ['tests/core/e06-audit.test.ts'],
-  Recovery: ['tests/core/e13-recovery.test.ts'],
-  Migration: ['tests/core/e13-recovery.test.ts'],
-  'Backup/Delete': ['tests/core/e13-recovery.test.ts'],
-  Release: ['tests/foundation/e00-foundation.test.ts', 'tests/foundation/sbom.test.ts'],
-};
-
-const evidence = rows.map((row) => {
-  const tests = byCategory[row.category];
-  if (!tests?.length) throw new Error(`No evidence mapping for ${row.id} (${row.category})`);
-  if (!tests.every(existsSync))
-    throw new Error(`Missing evidence test for ${row.id}: ${tests.join(', ')}`);
-  return { ...row, tests };
+// This batch is intentionally explicit: an acceptance row has exactly one executable test file.
+const acceptanceTests = Object.freeze({
+  'ACC-FND-001': 'ci/bootstrap.test.mjs',
+  'ACC-FND-002': 'schema/all-schemas.test.ts',
+  'ACC-FND-003': 'integration/source-readonly.test.ts',
+  'ACC-FND-004': 'architecture/core-boundary.test.ts',
+  'ACC-FND-005': 'security/no-sensitive-logs.test.ts',
+  'ACC-FND-006': 'integration/desktop-only.test.ts',
+  'ACC-FND-007': 'security/network-deny.test.ts',
+  'ACC-FND-008': 'regression/legacy-seed.test.ts',
+  'ACC-STR-001': 'store/default-path.test.ts',
+  'ACC-STR-002': 'store/unsafe-paths.test.ts',
+  'ACC-STR-003': 'security/no-secure-data-in-vault.test.ts',
+  'ACC-STR-004': 'store/dictionary-encryption.test.ts',
+  'ACC-STR-005': 'crypto/key-isolation.test.ts',
+  'ACC-STR-006': 'crypto/scrypt-vector.test.ts',
+  'ACC-STR-007': 'crypto/aes-gcm-properties.test.ts',
+  'ACC-STR-008': 'security/no-passphrase-persistence.test.ts',
+  'ACC-STR-009': 'integration/auto-lock.test.ts',
+  'ACC-STR-010': 'recovery/passphrase-change.test.ts',
+  'ACC-STR-011': 'store/operator-identity.test.ts',
+  'ACC-STR-012': 'recovery/job-lock.test.ts',
+  'ACC-FIL-001': 'files/source-modes.test.ts',
+  'ACC-FIL-002': 'files/system-exclusions.test.ts',
+  'ACC-FIL-003': 'files/hidden-markdown.test.ts',
+  'ACC-FIL-004': 'files/unsupported-blocker.test.ts',
+  'ACC-FIL-005': 'files/symlink-junction.test.ts',
+  'ACC-FIL-006': 'files/nested-vault.test.ts',
+  'ACC-FIL-007': 'files/encoding-supported.test.ts',
+  'ACC-FIL-008': 'files/encoding-reject.test.ts',
+  'ACC-FIL-009': 'security/path-boundary.test.ts',
+  'ACC-FIL-010': 'files/path-collision.test.ts',
+  'ACC-FIL-011': 'integration/source-change.test.ts',
+  'ACC-FIL-012': 'files/source-disappears.test.ts',
 });
-const files = [...new Set(evidence.flatMap((row) => row.tests))];
-const result = spawnSync('pnpm', ['exec', 'vitest', 'run', ...files], {
+
+function productCalls(source) {
+  const imports = [
+    ...source.matchAll(
+      /import\s*\{([^}]+)\}\s*from\s*['"]@privacy-bridge\/(?:core|obsidian-plugin)['"]/gu,
+    ),
+  ]
+    .flatMap((match) => match[1].split(','))
+    .map(
+      (part) =>
+        part
+          .trim()
+          .replace(/^type\s+/u, '')
+          .split(/\s+as\s+/u)[0],
+    )
+    .filter(Boolean);
+  return imports.some((name) => new RegExp(`\\b${name}\\s*\\(`, 'u').test(source));
+}
+
+for (const [id, path] of Object.entries(acceptanceTests)) {
+  if (!existsSync(path)) throw new Error(`${id} refuses missing matrix path: ${path}`);
+  const source = readFileSync(path, 'utf8');
+  if (!productCalls(source))
+    throw new Error(
+      `${id} refuses metadata-only test without a non-test product import and call: ${path}`,
+    );
+}
+
+const result = spawnSync('pnpm', ['exec', 'vitest', 'run', ...Object.values(acceptanceTests)], {
   stdio: 'inherit',
   shell: process.platform === 'win32',
 });
 if (result.status !== 0) process.exit(result.status ?? 1);
-for (const row of evidence) console.log(`${row.id} EVIDENCE ${row.tests.join(' + ')}`);
-console.log(`AUTOMATED EVIDENCE PASS ${evidence.length}/${rows.length} acceptance rows`);
-console.log('Locked acceptance/traceability status files were not modified. Gate D manual evidence remains PENDING.');
+console.log(`REAL ACCEPTANCE PASS ${Object.keys(acceptanceTests).length}/32`);

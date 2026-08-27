@@ -10,7 +10,7 @@
   },
   "scripts": {
     "lint": "eslint . --max-warnings=0",
-    "format:check": "prettier --check package.json pnpm-workspace.yaml tsconfig.json tsconfig.base.json vitest.config.ts eslint.config.mjs .prettierrc.json .github/workflows/ci.yml 'packages/**/*.ts' 'packages/**/*.json' 'packages/**/*.mjs' 'scripts/*.mjs' 'tests/**/*.ts'",
+    "format:check": "prettier --check package.json pnpm-workspace.yaml tsconfig.json tsconfig.base.json vitest.config.ts eslint.config.mjs .prettierrc.json .github/workflows/ci.yml 'packages/**/*.ts' 'packages/**/*.json' 'packages/**/*.mjs' 'scripts/*.mjs' 'tests/**/*.ts' 'architecture/*.test.ts' 'ci/*.test.mjs' 'crypto/*.test.ts' 'files/*.test.ts' 'integration/*.test.ts' 'recovery/*.test.ts' 'regression/*.test.ts' 'schema/*.test.ts' 'security/*.test.ts' 'store/*.test.ts'",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "acceptance": "node scripts/run-acceptance.mjs",
