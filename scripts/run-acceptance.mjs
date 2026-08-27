@@ -101,6 +101,7 @@ if (result.status !== 0) {
 assertLockedFilesUntouched();
 const evidencePath = resolve(root, 'artifacts/acceptance-evidence.json');
 mkdirSync(dirname(evidencePath), { recursive: true });
+if (existsSync(evidencePath)) chmodSync(evidencePath, 0o644);
 writeFileSync(
   evidencePath,
   `${JSON.stringify({ generatedFrom: 'exact acceptance test metadata', rows: evidence }, null, 2)}\n`,
