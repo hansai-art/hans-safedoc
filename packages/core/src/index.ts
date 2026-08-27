@@ -10,6 +10,12 @@ import {
   scrypt,
 } from 'node:crypto';
 import { schemaCatalog } from './schema-catalog.js';
+export {
+  createInventory,
+  createNodeSourceAdapter,
+  type FileInventory,
+  type SourceAdapter,
+} from './inventory.js';
 
 /** Pure, platform-independent Privacy Bridge core. */
 export const CORE_PACKAGE_ID = 'privacy-bridge-core';
