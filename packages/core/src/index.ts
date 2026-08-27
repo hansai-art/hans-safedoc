@@ -1,5 +1,14 @@
 import Ajv2020Import from 'ajv/dist/2020.js';
 import addFormatsImport from 'ajv-formats';
+import {
+  createCipheriv,
+  createDecipheriv,
+  createHash,
+  createHmac,
+  hkdf,
+  randomBytes,
+  scrypt,
+} from 'node:crypto';
 import { schemaCatalog } from './schema-catalog.js';
 
 /** Pure, platform-independent Privacy Bridge core. */
@@ -103,34 +112,24 @@ export function canonicalStringify(value: unknown): string {
 }
 const CROCKFORD = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 export function encodeCrockfordBase32(bytes: Uint8Array): string {
-  let bits = 0;
-  let buffer = 0;
+  let value = 0n;
+  for (const byte of bytes) value = (value << 8n) | BigInt(byte);
+  const length = Math.ceil((bytes.length * 8) / 5);
   let output = '';
-  for (const byte of bytes) {
-    buffer = (buffer << 8) | byte;
-    bits += 8;
-    while (bits >= 5) {
-      bits -= 5;
-      output += CROCKFORD[(buffer >>> bits) & 31];
-    }
-  }
-  return bits === 0 ? output : output + CROCKFORD[(buffer << (5 - bits)) & 31];
+  for (let index = length - 1; index >= 0; index -= 1)
+    output += CROCKFORD[Number((value >> BigInt(index * 5)) & 31n)];
+  return output;
 }
 export function decodeCrockfordBase32(input: string): Uint8Array {
   if (!/^[0-9A-HJKMNP-TV-Z]+$/.test(input)) throw new TypeError('invalid Crockford Base32');
-  let bits = 0;
-  let buffer = 0;
-  const bytes: number[] = [];
-  for (const char of input) {
-    const index = CROCKFORD.indexOf(char);
-    buffer = (buffer << 5) | index;
-    bits += 5;
-    while (bits >= 8) {
-      bits -= 8;
-      bytes.push((buffer >>> bits) & 255);
-    }
+  let value = 0n;
+  for (const char of input) value = (value << 5n) | BigInt(CROCKFORD.indexOf(char));
+  const bytes = new Uint8Array(Math.floor((input.length * 5) / 8));
+  for (let index = bytes.length - 1; index >= 0; index -= 1) {
+    bytes[index] = Number(value & 255n);
+    value >>= 8n;
   }
-  return new Uint8Array(bytes);
+  return bytes;
 }
 export interface TextSpan {
   readonly start: number;
@@ -146,4 +145,93 @@ export function validateUtf16Span(text: string, span: TextSpan): Result<TextSpan
     (span.start > 0 && /[\uDC00-\uDFFF]/.test(text[span.start] ?? '')) ||
     (span.end < text.length && /[\uDC00-\uDFFF]/.test(text[span.end] ?? ''));
   return invalid ? err(error('PB-SCAN-001')) : ok(span);
+}
+
+const text = new TextEncoder();
+export function validatePassphrase(passphrase: string): Result<string> {
+  const count = [...passphrase].length;
+  return count >= 12 && count <= 256 ? ok(passphrase) : err(error('PB-CRYPTO-003'));
+}
+export async function deriveScryptKey(passphrase: string, salt: Uint8Array): Promise<Uint8Array> {
+  if (!validatePassphrase(passphrase).ok || salt.length !== 16)
+    throw new TypeError('invalid passphrase or salt');
+  return new Uint8Array(
+    await new Promise<Buffer>((resolve, reject) =>
+      scrypt(
+        Buffer.from(passphrase, 'utf8'),
+        Buffer.from(salt),
+        32,
+        { N: 131072, r: 8, p: 1, maxmem: 268435456 },
+        (cause, derived) => (cause ? reject(cause) : resolve(derived)),
+      ),
+    ),
+  );
+}
+export async function deriveJobKey(
+  rootKey: Uint8Array,
+  clientId: string,
+  jobId: string,
+  info: string,
+): Promise<Uint8Array> {
+  const salt = createHashBytes(`PrivacyBridge|1|${clientId}|${jobId}`);
+  return new Uint8Array(
+    await new Promise<ArrayBuffer>((resolve, reject) =>
+      hkdf('sha256', Buffer.from(rootKey), salt, text.encode(info), 32, (cause, derived) =>
+        cause ? reject(cause) : resolve(derived),
+      ),
+    ),
+  );
+}
+function createHashBytes(input: string): Uint8Array {
+  return new Uint8Array(createHash('sha256').update(input, 'utf8').digest());
+}
+export interface AesGcmEnvelope {
+  readonly iv: Uint8Array;
+  readonly ciphertext: Uint8Array;
+  readonly authTag: Uint8Array;
+}
+export function aesGcmEncrypt(
+  key: Uint8Array<ArrayBufferLike>,
+  plaintext: Uint8Array<ArrayBufferLike>,
+  aad: Uint8Array<ArrayBufferLike>,
+  iv: Uint8Array<ArrayBufferLike> = randomBytes(12),
+): AesGcmEnvelope {
+  if (key.length !== 32 || iv.length !== 12) throw new TypeError('invalid AES-256-GCM key or IV');
+  const cipher = createCipheriv('aes-256-gcm', key, iv);
+  cipher.setAAD(aad);
+  return {
+    iv: new Uint8Array(iv),
+    ciphertext: new Uint8Array(Buffer.concat([cipher.update(plaintext), cipher.final()])),
+    authTag: new Uint8Array(cipher.getAuthTag()),
+  };
+}
+export function aesGcmDecrypt(
+  key: Uint8Array<ArrayBufferLike>,
+  envelope: AesGcmEnvelope,
+  aad: Uint8Array<ArrayBufferLike>,
+): Uint8Array {
+  const decipher = createDecipheriv('aes-256-gcm', key, envelope.iv);
+  decipher.setAAD(aad);
+  decipher.setAuthTag(envelope.authTag);
+  return new Uint8Array(Buffer.concat([decipher.update(envelope.ciphertext), decipher.final()]));
+}
+export const encodeBase64Url = (value: Uint8Array): string =>
+  Buffer.from(value).toString('base64url');
+export function tokenFor(
+  tokenKey: Uint8Array,
+  jobId: string,
+  type: string,
+  entityId: string,
+): string {
+  if (!/^[A-Z][A-Z0-9_]{1,31}$/.test(type) || !/^[0-9A-HJKMNP-TV-Z]{16}$/.test(entityId))
+    throw new TypeError('invalid token fields');
+  const tag = encodeCrockfordBase32(
+    new Uint8Array(
+      createHmac('sha256', tokenKey)
+        .update(`PB|1|${jobId}|${type}|${entityId}`, 'utf8')
+        .digest()
+        .subarray(0, 12),
+    ),
+  );
+  return `⟦PB:${type}:${entityId}:${tag}⟧`;
 }
