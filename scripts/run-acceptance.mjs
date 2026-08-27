@@ -60,4 +60,6 @@ const result = spawnSync('pnpm', ['exec', 'vitest', 'run', ...files], {
 if (result.status !== 0) process.exit(result.status ?? 1);
 for (const row of evidence) console.log(`${row.id} EVIDENCE ${row.tests.join(' + ')}`);
 console.log(`AUTOMATED EVIDENCE PASS ${evidence.length}/${rows.length} acceptance rows`);
-console.log('Locked acceptance/traceability status files were not modified. Gate D manual evidence remains PENDING.');
+console.log(
+  'Locked acceptance/traceability status files were not modified. Gate D manual evidence remains PENDING.',
+);
