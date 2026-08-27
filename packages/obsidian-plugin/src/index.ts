@@ -18,3 +18,11 @@ export class PrivacyBridgePlugin {
 
   async onunload(): Promise<void> {}
 }
+export {
+  clearSensitiveUiState,
+  commandPresentation,
+  disabledReasons,
+  type ClientUiState,
+  type WorkflowBlockers,
+  type WorkspaceAction,
+} from './ui-state.js';
