@@ -460,6 +460,17 @@ export function detectAll(source: string): Result<readonly DetectedCandidate[]> 
     0.85,
     { capture: 1 },
   );
+  // A two-letter/eight-digit value can be an old ARC or an invoice number.
+  // Do not silently pick the invoice rule when the ARC checksum cannot decide it.
+  addRegex(
+    found,
+    source,
+    /(?<![0-9A-Za-z])[A-Z]{2}\d{8}(?![0-9A-Za-z])/giu,
+    'AMBIGUOUS_IDENTIFIER',
+    'arc-invoice-ambiguous',
+    0.91,
+    { block: true },
+  );
   const grouped: Raw[] = [];
   for (const item of found.sort(
     (a, b) => a.start - b.start || b.end - a.end || b.ruleScore - a.ruleScore,
@@ -496,7 +507,8 @@ export function detectAll(source: string): Result<readonly DetectedCandidate[]> 
         candidateId: hash(
           `${item.start}|${item.end}|${item.primaryType}|${item.matchedRules.join(',')}`,
         ).slice(0, 32),
-        alternativeTypes: [],
+        alternativeTypes:
+          item.primaryType === 'AMBIGUOUS_IDENTIFIER' ? ['TW_ARC', 'TW_INVOICE'] : [],
       })),
   );
 }

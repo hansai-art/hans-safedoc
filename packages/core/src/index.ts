@@ -26,6 +26,30 @@ export {
   type DictionaryEntry,
 } from './resolution.js';
 export { appendAudit, verifyAudit, type AuditEvent } from './audit.js';
+export {
+  ClientSession,
+  defaultSecureStorePath,
+  rotateClientKey,
+  validateSecureStorePath,
+  type DesktopPlatform,
+} from './store-lifecycle.js';
+export {
+  acquireJobMutationLock,
+  invalidateSourceSnapshot,
+  transitionJob,
+  type JobMutationLock,
+  type JobState,
+} from './job-lifecycle.js';
+export {
+  applyEntityDecision,
+  mergeReviewEntities,
+  previewBatchAction,
+  reviewReady,
+  splitReviewEntity,
+  type ReviewEntity,
+  type ReviewOccurrence,
+  type ReviewStatus,
+} from './review-state.js';
 export { canonicalize, createEntityId, tokenizeDocument, verifyToken } from './tokenization.js';
 export { parseMarkdownRegions, parseWikilinks, replaceMarkdownSpans } from './markdown.js';
 export {
