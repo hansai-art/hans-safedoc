@@ -20,6 +20,7 @@ export {
 } from './inventory.js';
 export {
   detectAll,
+  isValidTwLandline,
   isValidTwId,
   isValidTwTaxId,
   type DetectedCandidate,
@@ -58,7 +59,22 @@ export {
   type ReviewOccurrence,
   type ReviewStatus,
 } from './review-state.js';
+export {
+  confirmBatchDecision,
+  invalidateReviewForVersionChange,
+  visibleReviewEntities,
+  type BatchReviewResult,
+} from './review-workflow.js';
 export { canonicalize, createEntityId, tokenizeDocument, verifyToken } from './tokenization.js';
+export {
+  assignEntityTokens,
+  decryptMappingRecord,
+  encryptMappingRecord,
+  preferredDisplay,
+  validateCandidateHandling,
+  type EntityTokenAssignment,
+  type EntityTokenInput,
+} from './token-workflow.js';
 export { parseMarkdownRegions, parseWikilinks, replaceMarkdownSpans } from './markdown.js';
 export {
   createPathMap,
