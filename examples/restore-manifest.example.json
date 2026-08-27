@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "1.0.0",
+  "jobId": "PB-20260825-0123456789",
+  "pluginVersion": "0.1.0",
+  "resultPackageHash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "restoredAt": "2026-08-25T08:10:00Z",
+  "outputSequence": 1,
+  "restoredTokenCount": 1,
+  "unknownTokenCount": 0,
+  "files": [
+    {
+      "relativePath": "findings.md",
+      "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "size": 256
+    }
+  ],
+  "warnings": []
+}

@@ -1,0 +1,151 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://privacy-bridge.local/schemas/detection-run.schema.json",
+  "title": "Detection Run",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "runId",
+    "jobId",
+    "rulesVersion",
+    "dictionaryVersion",
+    "startedAt",
+    "completedAt",
+    "status",
+    "documents",
+    "candidates"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "runId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "jobId": {
+      "type": "string",
+      "pattern": "^PB-[0-9]{8}-[0-9A-HJKMNP-TV-Z]{10}$"
+    },
+    "rulesVersion": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+    },
+    "dictionaryVersion": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+    },
+    "startedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completedAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "status": {
+      "enum": [
+        "RUNNING",
+        "CANCELLED",
+        "COMPLETED",
+        "FAILED",
+        "STALE"
+      ]
+    },
+    "documents": {
+      "type": "array",
+      "maxItems": 100000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "documentId",
+          "relativePath",
+          "size",
+          "sha256",
+          "encoding",
+          "bom",
+          "lineEnding",
+          "status"
+        ],
+        "properties": {
+          "documentId": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "relativePath": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "encoding": {
+            "const": "UTF-8"
+          },
+          "bom": {
+            "type": "boolean"
+          },
+          "lineEnding": {
+            "enum": [
+              "LF",
+              "CRLF",
+              "NONE",
+              "MIXED"
+            ]
+          },
+          "status": {
+            "enum": [
+              "PENDING",
+              "SCANNED",
+              "FAILED",
+              "STALE"
+            ]
+          }
+        }
+      }
+    },
+    "candidates": {
+      "type": "array",
+      "maxItems": 1000000,
+      "items": {
+        "$ref": "candidate.schema.json"
+      }
+    },
+    "errors": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "documentId"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^PB-[A-Z]+-[0-9]{3}$"
+          },
+          "documentId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          }
+        }
+      }
+    }
+  }
+}

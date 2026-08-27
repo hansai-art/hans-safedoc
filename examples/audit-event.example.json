@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "1.0.0",
+  "eventId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+  "sequence": 1,
+  "previousHash": null,
+  "eventHash": "7777777777777777777777777777777777777777777777777777777777777777",
+  "jobId": "PB-20260825-0123456789",
+  "actor": {
+    "deviceId": "33333333-3333-4333-8333-333333333333",
+    "operatorAliasFingerprint": "QUJDREVGR0hJSktMTU5PUA"
+  },
+  "action": "JOB_CREATED",
+  "subjectIds": [
+    "PB-20260825-0123456789"
+  ],
+  "timestamp": "2026-08-25T08:00:00Z",
+  "pluginVersion": "0.1.0",
+  "details": {
+    "candidateCount": 0,
+    "fileCount": 1,
+    "batchSize": 0,
+    "errorCode": null,
+    "decisionAction": null,
+    "artifactHash": null,
+    "requirementId": "PB-JOB-001"
+  }
+}

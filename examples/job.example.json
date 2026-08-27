@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "1.0.0",
+  "jobId": "PB-20260825-0123456789",
+  "clientId": "11111111-1111-4111-8111-111111111111",
+  "displayName": "Synthetic Meeting Review",
+  "projectLabel": "Project Atlas",
+  "state": "REVIEW_REQUIRED",
+  "sourceScope": {
+    "kind": "FOLDER",
+    "rootPath": "/synthetic/vault",
+    "selectedRelativePath": "Meetings"
+  },
+  "versions": {
+    "plugin": "0.1.0",
+    "rules": "2.0.0",
+    "dictionary": "1.0.0",
+    "exportSchema": "1.0.0",
+    "resultSchema": "1.0.0"
+  },
+  "createdAt": "2026-08-25T08:00:00Z",
+  "updatedAt": "2026-08-25T08:10:00Z",
+  "lastOperationAt": "2026-08-25T08:10:00Z",
+  "sourceSnapshotHash": "1111111111111111111111111111111111111111111111111111111111111111",
+  "lastExportPackageHash": null,
+  "blockReasonCodes": [],
+  "counts": {
+    "documents": 1,
+    "candidates": 1,
+    "pending": 1,
+    "blocked": 0,
+    "unsupported": 0
+  }
+}

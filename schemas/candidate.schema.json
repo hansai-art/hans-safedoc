@@ -1,0 +1,238 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://privacy-bridge.local/schemas/candidate.schema.json",
+  "title": "Detected Candidate",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "candidateId",
+    "runId",
+    "jobId",
+    "documentId",
+    "primaryType",
+    "alternativeTypes",
+    "start",
+    "end",
+    "surfaceText",
+    "sourceTextHash",
+    "ruleScore",
+    "matchedRules",
+    "evidence",
+    "handling",
+    "riskFlags",
+    "reviewStatus"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "candidateId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "runId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "jobId": {
+      "type": "string",
+      "pattern": "^PB-[0-9]{8}-[0-9A-HJKMNP-TV-Z]{10}$"
+    },
+    "documentId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "primaryType": {
+      "enum": [
+        "TW_ID",
+        "TW_ARC",
+        "TW_TAX_ID",
+        "TW_PASSPORT",
+        "PASSPORT_CANDIDATE",
+        "TW_NHI_CARD",
+        "TW_MOBILE",
+        "TW_LANDLINE",
+        "TW_PHONE_SERVICE",
+        "TW_ADDRESS",
+        "TW_POSTCODE",
+        "TW_PLATE",
+        "TW_INVOICE",
+        "TW_BANK_ACCOUNT",
+        "CREDIT_CARD",
+        "EMAIL",
+        "IPV4",
+        "URL",
+        "LINE_ID",
+        "SECRET",
+        "PERSON",
+        "ORGANIZATION",
+        "PROJECT",
+        "PRODUCT",
+        "DEPARTMENT",
+        "SYSTEM",
+        "CUSTOM_TERM",
+        "AMBIGUOUS_IDENTIFIER"
+      ]
+    },
+    "alternativeTypes": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "TW_ID",
+          "TW_ARC",
+          "TW_TAX_ID",
+          "TW_PASSPORT",
+          "PASSPORT_CANDIDATE",
+          "TW_NHI_CARD",
+          "TW_MOBILE",
+          "TW_LANDLINE",
+          "TW_PHONE_SERVICE",
+          "TW_ADDRESS",
+          "TW_POSTCODE",
+          "TW_PLATE",
+          "TW_INVOICE",
+          "TW_BANK_ACCOUNT",
+          "CREDIT_CARD",
+          "EMAIL",
+          "IPV4",
+          "URL",
+          "LINE_ID",
+          "SECRET",
+          "PERSON",
+          "ORGANIZATION",
+          "PROJECT",
+          "PRODUCT",
+          "DEPARTMENT",
+          "SYSTEM",
+          "CUSTOM_TERM",
+          "AMBIGUOUS_IDENTIFIER"
+        ]
+      }
+    },
+    "start": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "end": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "surfaceText": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100000
+    },
+    "sourceTextHash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "ruleScore": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "matchedRules": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9][a-z0-9-]{1,79}$"
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind",
+          "source",
+          "weight"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "PATTERN",
+              "CHECKSUM",
+              "LABEL_VALUE",
+              "YAML_PROPERTY",
+              "JSON_PROPERTY",
+              "TABLE_CELL",
+              "TABLE_HEADER",
+              "SAME_LINE",
+              "PARAGRAPH",
+              "DICTIONARY"
+            ]
+          },
+          "source": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "weight": {
+            "type": "number",
+            "minimum": -1,
+            "maximum": 1
+          }
+        }
+      }
+    },
+    "handling": {
+      "enum": [
+        "TOKENIZE",
+        "REDACT",
+        "BLOCK_EXPORT"
+      ]
+    },
+    "riskFlags": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "BLOCK_EXPORT",
+          "REDACT_ONLY",
+          "MANUAL_REVIEW",
+          "AMBIGUOUS_TYPE",
+          "LOW_CONTEXT",
+          "DICTIONARY_MATCH",
+          "CHECKSUM_VALIDATED",
+          "RESIDUAL"
+        ]
+      }
+    },
+    "reviewStatus": {
+      "enum": [
+        "PENDING",
+        "ACCEPTED",
+        "IGNORED",
+        "MODIFIED"
+      ]
+    },
+    "entityGroupId": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "start": {
+            "type": "integer"
+          },
+          "end": {
+            "type": "integer"
+          }
+        }
+      },
+      "then": {}
+    }
+  ]
+}

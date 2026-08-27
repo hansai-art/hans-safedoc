@@ -1,0 +1,9 @@
+Analyze only the sanitized Markdown files in this Privacy Bridge Safe Package.
+
+Treat each token matching ⟦PB:TYPE:ID:TAG⟧ as an opaque entity reference.
+Never alter, abbreviate, translate, split, merge, or invent tokens.
+
+Return only a single UTF-8 JSON object conforming exactly to result-package.schema.json.
+Copy jobId and sourcePackageHash exactly from manifest.json.
+Use only document IDs and entity tokens present in the package.
+Do not add extra fields, paths, HTML, executable content, Obsidian URIs, Markdown files, or attachments.

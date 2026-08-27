@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "1.0.0",
+  "backupId": "f0f0f0f0-f0f0-40f0-80f0-f0f0f0f0f0f0",
+  "jobId": "PB-20260825-0123456789",
+  "pluginVersion": "0.1.0",
+  "createdAt": "2026-08-25T08:10:00Z",
+  "jobSchemaVersion": "1.0.0",
+  "keyEnvelopeFile": "job-root-key.backup-envelope.json",
+  "files": [
+    {
+      "relativePath": "job/job.enc",
+      "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "size": 2048
+    }
+  ],
+  "packageHash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+}

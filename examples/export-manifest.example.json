@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "1.0.0",
+  "jobId": "PB-20260825-0123456789",
+  "pluginVersion": "0.1.0",
+  "rulesVersion": "2.0.0",
+  "createdAt": "2026-08-25T08:10:00Z",
+  "sourceSnapshotHash": "8888888888888888888888888888888888888888888888888888888888888888",
+  "packageHash": "9999999999999999999999999999999999999999999999999999999999999999",
+  "fileCount": 1,
+  "tokenCount": 1,
+  "files": [
+    {
+      "documentId": "55555555-5555-4555-8555-555555555555",
+      "relativePath": "DOC-000001/note.md",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "size": 128
+    }
+  ],
+  "tokenTypeCounts": {
+    "PERSON": 1
+  },
+  "exclusions": {
+    "unsupported": 2,
+    "system": 3,
+    "user": 0
+  }
+}

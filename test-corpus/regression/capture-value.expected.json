@@ -1,0 +1,25 @@
+{
+  "values": [
+    {
+      "rule": "line-id",
+      "surfaceText": "LINE",
+      "occurrence": 2
+    },
+    {
+      "rule": "secret-assignment",
+      "surfaceText": "password",
+      "occurrence": 2
+    },
+    {
+      "rule": "secret-assignment",
+      "surfaceText": "secret",
+      "occurrence": 2
+    }
+  ],
+  "requirements": [
+    "PB-MD-007"
+  ],
+  "acceptance": [
+    "ACC-DET-005"
+  ]
+}

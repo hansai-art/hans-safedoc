@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "1.0.0",
+  "jobId": "PB-20260825-0123456789",
+  "sourcePackageHash": "9999999999999999999999999999999999999999999999999999999999999999",
+  "createdAt": "2026-08-25T08:10:00Z",
+  "producer": "Adversarial Synthetic",
+  "findings": [
+    {
+      "findingId": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+      "entityRefs": [
+        "⟦PB:PERSON:M2GT58X4MPKAFA59:0TRN0FRDEKEV9AZ32JGA⟧"
+      ],
+      "category": "injection",
+      "summary": "<script>alert(1)</script> obsidian://open?vault=x ⟦PB:PERSON:M2GT58X4MPKAFA59:0TRN0FRDEKEV9AZ32JGA⟧",
+      "sourceDocumentIds": [
+        "55555555-5555-4555-8555-555555555555"
+      ]
+    }
+  ]
+}

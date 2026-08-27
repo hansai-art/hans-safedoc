@@ -1,0 +1,15 @@
+{
+  "entries": [
+    "../mapping.enc",
+    "/absolute.txt",
+    "C:\\evil.txt",
+    "notes/good.md",
+    "notes/../../evil.md"
+  ],
+  "expectedRejected": [
+    "../mapping.enc",
+    "/absolute.txt",
+    "C:\\evil.txt",
+    "notes/../../evil.md"
+  ]
+}

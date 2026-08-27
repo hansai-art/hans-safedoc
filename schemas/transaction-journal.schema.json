@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://privacy-bridge.local/schemas/transaction-journal.schema.json",
+  "title": "Decrypted Transaction Journal",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "transactionId",
+    "jobId",
+    "operation",
+    "phase",
+    "steps",
+    "startedAt",
+    "updatedAt"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "transactionId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "jobId": {
+      "type": "string",
+      "pattern": "^PB-[0-9]{8}-[0-9A-HJKMNP-TV-Z]{10}$"
+    },
+    "operation": {
+      "enum": [
+        "CREATE_CLIENT",
+        "CREATE_JOB",
+        "WRITE_RECORD",
+        "CHANGE_PASSPHRASE",
+        "BUILD_SHADOW",
+        "BUILD_PACKAGE",
+        "IMPORT_RESULT",
+        "RESTORE_RESULT",
+        "MIGRATE",
+        "BACKUP",
+        "DELETE_JOB",
+        "DELETE_CLIENT"
+      ]
+    },
+    "phase": {
+      "enum": [
+        "PREPARED",
+        "WRITING_TEMP",
+        "TEMP_VALIDATED",
+        "SWAP_PENDING",
+        "SWAPPED",
+        "POST_VALIDATION",
+        "COMMITTED",
+        "ROLLBACK_PENDING",
+        "ROLLED_BACK",
+        "FAILED"
+      ]
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "stepId",
+          "state",
+          "targetId",
+          "priorHash",
+          "expectedHash",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "stepId": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "state": {
+            "enum": [
+              "PENDING",
+              "WRITTEN",
+              "VALIDATED",
+              "SWAPPED",
+              "ROLLED_BACK",
+              "FAILED"
+            ]
+          },
+          "targetId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "tempId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 200
+          },
+          "priorHash": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "expectedHash": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "errorCode": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^PB-[A-Z]+-[0-9]{3}$"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "startedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

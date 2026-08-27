@@ -1,0 +1,16 @@
+{
+  "seed": 20260825,
+  "documents": 1000,
+  "totalTargetBytes": 50000000,
+  "candidateDensityPer1000Chars": 3,
+  "lineEndingDistribution": {
+    "LF": 0.7,
+    "CRLF": 0.3
+  },
+  "unicode": {
+    "emoji": true,
+    "combiningMarks": true,
+    "cjk": true
+  },
+  "note": "Generate at test time; do not commit a 50 MB corpus."
+}

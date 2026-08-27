@@ -1,0 +1,115 @@
+# Acceptance Matrix
+
+**版本：** 1.0.0 LOCKED  
+**項目數：** 105  
+**Release blocker：** 105  
+
+每一列都必須連結到實際 test。不得用人工聲明取代標記為 Release Blocker 的自動化或明確手動驗收。
+
+| Acceptance ID | Category | Requirement IDs | Scenario / Input | Expected Result | Automated Test | Blocker | Gate |
+|---|---|---|---|---|---|---|---|
+| ACC-FND-001 | Foundation | PB-ENG-001 | Fresh clone; run install, lint, typecheck, test, build | All commands succeed with locked dependencies; production bundle produced | ci/bootstrap.test.mjs | YES | A |
+| ACC-FND-002 | Foundation | PB-GOV-001,PB-TEST-003 | Validate all schema files and examples | Exactly 18 Draft 2020-12 schemas validate; all examples conform | schema/all-schemas.test.ts | YES | A |
+| ACC-FND-003 | Foundation | PB-PRD-003,PB-SHADOW-001 | Run end-to-end job against fixture vault and hash source before/after | Every source byte and metadata hash remains unchanged | integration/source-readonly.test.ts | YES | B |
+| ACC-FND-004 | Foundation | PB-ENG-003 | Import core package in a Node test without Obsidian mocks | Core has no Obsidian/Electron import or global app dependency | architecture/core-boundary.test.ts | YES | A |
+| ACC-FND-005 | Foundation | PB-AUDIT-003,PB-ERR-001 | Run production workflow with canary PII/secret and capture stdout/stderr | No canary value appears in console, error, audit-safe export or crash summary | security/no-sensitive-logs.test.ts | YES | B |
+| ACC-FND-006 | Foundation | PB-ENG-004 | Load manifest and production plugin on desktop runtime | Manifest is desktop-only; plugin refuses unsupported mobile/runtime with PB-PLATFORM-001 | integration/desktop-only.test.ts | YES | D |
+| ACC-FND-007 | Foundation | PB-NET-001,PB-NET-002 | Execute all integration paths under denied network and scan bundle | Zero socket attempts; bundle/source dependency scan passes | security/network-deny.test.ts | YES | B |
+| ACC-FND-008 | Foundation | PB-GOV-002,PB-TEST-002 | Run legacy regression seed through compatibility harness | All non-superseded assertions pass; superseded cases cite new Requirement IDs | regression/legacy-seed.test.ts | YES | A |
+| ACC-STR-001 | Secure Store | PB-STORE-001 | Initialize on macOS/Windows defaults | Store is created under OS Application Data, never under Vault | store/default-path.test.ts | YES | B |
+| ACC-STR-002 | Secure Store | PB-STORE-001 | Choose Vault, Shadow, Result, sync or network-mounted path | Selection is rejected with PB-STORE-001; no files written | store/unsafe-paths.test.ts | YES | B |
+| ACC-STR-003 | Secure Store | PB-STORE-002 | Create client/job and search source Vault and Safe Package | No mapping, key envelope, review, occurrence or client metadata exists there | security/no-secure-data-in-vault.test.ts | YES | B |
+| ACC-STR-004 | Secure Store | PB-DICT-001 | Create/import client dictionary | Dictionary exists only as authenticated encrypted file outside Vault | store/dictionary-encryption.test.ts | YES | B |
+| ACC-STR-005 | Secure Store | PB-CRYPTO-001,PB-CRYPTO-003 | Create two clients and two jobs per client | CRKs differ; JRKs differ; wrapped keys decrypt only under correct client | crypto/key-isolation.test.ts | YES | B |
+| ACC-STR-006 | Secure Store | PB-CRYPTO-002 | Run fixed passphrase/salt test vector | scrypt output matches examples/crypto-test-vectors.json on macOS/Windows | crypto/scrypt-vector.test.ts | YES | B |
+| ACC-STR-007 | Secure Store | PB-CRYPTO-004 | Encrypt same plaintext 10,000 times | Every IV unique; all decrypt; tampered AAD/tag/ciphertext rejects | crypto/aes-gcm-properties.test.ts | YES | B |
+| ACC-STR-008 | Secure Store | PB-CRYPTO-002,PB-ENG-005 | Unlock/lock client; inspect data.json, store and logs | Passphrase and derived keys are never persisted or logged | security/no-passphrase-persistence.test.ts | YES | B |
+| ACC-STR-009 | Secure Store | PB-STORE-005 | Simulate 15-min idle, OS sleep, client switch and app close | Keys are cleared; sensitive views mask; operation requires unlock | integration/auto-lock.test.ts | YES | B |
+| ACC-STR-010 | Secure Store | PB-CRYPTO-006,PB-TXN-001 | Wrong passphrase, corrupt key, and crash during passphrase change | Old client.key remains usable; no empty/new key overwrites it | recovery/passphrase-change.test.ts | YES | B |
+| ACC-STR-011 | Secure Store | PB-STORE-004,PB-AUDIT-002 | Initialize operator and inspect persisted data | Only encrypted alias and opaque deviceId/fingerprint exist; no OS identity read | store/operator-identity.test.ts | YES | B |
+| ACC-STR-012 | Secure Store | PB-JOB-005,PB-TXN-002 | Start two mutation operations on same job | Second operation is denied; stale lock requires journal-based recovery | recovery/job-lock.test.ts | YES | B |
+| ACC-FIL-001 | File Inventory | PB-FILE-001 | Inventory active note, folder, whole vault and external folder | Each mode yields deterministic included/excluded document inventory | files/source-modes.test.ts | YES | C |
+| ACC-FIL-002 | File Inventory | PB-FILE-002 | Scope contains .obsidian, .trash, .git and output/store dirs | Fixed system paths are excluded and audited without exposing absolute paths | files/system-exclusions.test.ts | YES | C |
+| ACC-FIL-003 | File Inventory | PB-FILE-003 | Hidden user folder contains supported .md | Markdown is included unless path is a fixed system exclusion | files/hidden-markdown.test.ts | YES | C |
+| ACC-FIL-004 | File Inventory | PB-SCOPE-003,PB-FILE-006 | Scope contains PDF/image/office/binary files | All appear as UNSUPPORTED_PENDING_EXCLUSION; scan cannot start until confirmed | files/unsupported-blocker.test.ts | YES | C |
+| ACC-FIL-005 | File Inventory | PB-FILE-004 | Scope contains symlink/junction escaping root | Target is never followed; item blocks until excluded | files/symlink-junction.test.ts | YES | B |
+| ACC-FIL-006 | File Inventory | PB-FILE-005 | Folder contains nested .obsidian | Nested vault boundary is detected and not traversed | files/nested-vault.test.ts | YES | C |
+| ACC-FIL-007 | File Inventory | PB-FILE-007 | UTF-8, UTF-8 BOM, LF and CRLF fixtures | Supported files inventory correct encoding/BOM/line ending metadata | files/encoding-supported.test.ts | YES | C |
+| ACC-FIL-008 | File Inventory | PB-FILE-007 | Big5/UTF-16/invalid UTF-8 fixture | File blocks with PB-FILE-002; no automatic conversion | files/encoding-reject.test.ts | YES | C |
+| ACC-FIL-009 | File Inventory | PB-FILE-008 | Paths with .., absolute names, device names and separators | All normalized paths remain within approved root or reject | security/path-boundary.test.ts | YES | B |
+| ACC-FIL-010 | File Inventory | PB-FILE-008 | Source has paths differing only by case/normalization | Collision is detected before Shadow build and blocks | files/path-collision.test.ts | YES | C |
+| ACC-FIL-011 | File Inventory | PB-JOB-004 | Modify one source after review before build | Changed file decisions become stale; job returns SCANNING; no Shadow published | integration/source-change.test.ts | YES | C |
+| ACC-FIL-012 | File Inventory | PB-JOB-004 | Delete or permission-deny source during scan | Job records safe error and cannot export; no partial plaintext remains | files/source-disappears.test.ts | YES | C |
+| ACC-DET-001 | Detection | PB-DET-001 | Run detectAll on mixed Taiwan fixture | All validator-approved candidates returned with evidence; input unchanged | detection/detect-all.test.ts | YES | A |
+| ACC-DET-002 | Detection | PB-DET-002,PB-EXPORT-001 | Candidates at ruleScore 0.35/0.55 with UI threshold 0.7 | UI may collapse them; Core, residual and export guard still see them | detection/threshold-separation.test.ts | YES | B |
+| ACC-DET-003 | Detection | PB-DET-002 | Inspect public API and UI labels | Only ruleScore/規則分數 used; no confidence/accuracy percentage claim | detection/rule-score-naming.test.ts | YES | A |
+| ACC-DET-004 | Detection | PB-MD-001 | Fixtures with emoji, surrogate pairs and combining marks | All candidate spans slice exact intended text using UTF-16 offsets | detection/unicode-offset.test.ts | YES | A |
+| ACC-DET-005 | Detection | PB-MD-007 | LINE ID: LINE; password: password; secret: secret | Only right-side values are captured and replaced | detection/capture-indices.test.ts | YES | A |
+| ACC-DET-006 | Detection | PB-DET-005 | 護照：無 newline 訂單號：123456789 | Order number receives no passport context from prior line | detection/context-no-cross-line.test.ts | YES | A |
+| ACC-DET-007 | Detection | PB-DET-005 | YAML, table column, label-value and same-line context fixtures | Evidence source and score adjustment match structural context rules | detection/structured-context.test.ts | YES | A |
+| ACC-DET-008 | Detection | PB-CAND-002 | Overlapping credit card/bank account and ID/secret matches | Longer/stronger primary retained; all risk flags and matched rules preserved | detection/overlap-risk-union.test.ts | YES | A |
+| ACC-DET-009 | Detection | PB-CAND-003 | AB12345677 without decisive context | ARC and invoice alternatives retained; AMBIGUOUS_TYPE; export blocked | detection/ambiguous-identifier.test.ts | YES | A |
+| ACC-DET-010 | Detection | PB-CAND-002 | 密碼：A123456789 | Primary type remains TW_ID; that occurrence handling is BLOCK_EXPORT and both rules are recorded; unrelated occurrences are not automatically blocked | detection/block-handling-merge.test.ts | YES | A |
+| ACC-DET-011 | Detection | PB-DET-006 | 090–098, 099, 0800, 0809, normal landline, +886 fixtures | Numbers classified as MOBILE, PHONE_SERVICE or LANDLINE exactly as spec | detection/tw-phone-types.test.ts | YES | A |
+| ACC-DET-012 | Detection | PB-DET-006 | 0900/0910/0911-like values | Landline validator never accepts them as landline | detection/no-mobile-as-landline.test.ts | YES | A |
+| ACC-DET-013 | Detection | PB-DET-007 | 3/D/F/G passport and contextual 1/2/A formats | Known formats TW_PASSPORT; broad contextual values PASSPORT_CANDIDATE | detection/passport-tiering.test.ts | YES | A |
+| ACC-DET-014 | Detection | PB-DET-007 | Nine-digit order number without passport context | No passport candidate produced | detection/passport-no-context-drop.test.ts | YES | A |
+| ACC-DET-015 | Detection | PB-DET-008 | Addresses with 2之2號, 2號之2, rural doorplate, floors | Entire address span captured without trailing fragment leak | detection/tw-address.test.ts | YES | A |
+| ACC-DET-016 | Detection | PB-DET-009 | 106409 臺北市..., 110臺北市..., labeled 3/5/6 digits | Postal code candidate and context evidence correct | detection/tw-postcode.test.ts | YES | A |
+| ACC-DET-017 | Detection | PB-DET-010 | Private key/JWT/API key/password/connection string fixtures | Handling is BLOCK_EXPORT; no reversible entity/token may be created | detection/secret-block.test.ts | YES | B |
+| ACC-DET-018 | Detection | PB-DET-003 | Valid/invalid Taiwan ID, ARC, tax ID, NHI, invoice, plate fixtures | Checksums and formats match locked rule behavior, including negative cases | detection/taiwan-regression.test.ts | YES | A |
+| ACC-DET-019 | Detection | PB-DET-003 | Email, IPv4, URL, LINE value-only fixtures | Exact value span and type returned; labels excluded | detection/common-identifiers.test.ts | YES | A |
+| ACC-DET-020 | Detection | PB-DET-001,PB-TEST-001 | Fuzz random Unicode and adversarial long lines | Detector terminates within limits, never throws, spans remain valid/non-negative | fuzz/detector-fuzz.test.ts | YES | A |
+| ACC-REV-001 | Review | PB-CAND-004 | Same canonical entity occurs in 20 documents | One entity-level decision applies to all occurrences; occurrences expandable | review/entity-level.test.ts | YES | C |
+| ACC-REV-002 | Review | PB-CAND-004 | Split one occurrence from accepted entity | Both resulting entities return PENDING and require explicit decisions | review/split-invalidates.test.ts | YES | C |
+| ACC-REV-003 | Review | PB-CAND-004 | Merge two entities whose occurrences have different effective handling | Entity default is resolved safely; every occurrence keeps stricter effective handling; Block cannot be downgraded | review/merge-severity.test.ts | YES | C |
+| ACC-REV-004 | Review | PB-UX-002 | Low-score candidates with default UI threshold | Count remains visible; show-all exposes every pending candidate | ui/low-score-visibility.test.ts | YES | C |
+| ACC-REV-005 | Review | PB-UX-003 | Batch accept/ignore 100 filtered candidates | Shows count and examples, requires confirmation, writes audit, supports pre-build undo | review/batch-action.test.ts | YES | C |
+| ACC-REV-006 | Dictionary | PB-DICT-002 | 星河, 星河科技, 星河科技股份有限公司 overlap | Longest exact NFC match wins; no fuzzy or cross-script inference | dictionary/longest-exact.test.ts | YES | C |
+| ACC-REV-007 | Dictionary | PB-DICT-002 | English case-sensitive/insensitive and explicit aliases | Behavior follows entry setting; unlisted fuzzy spelling does not match | dictionary/case-alias.test.ts | YES | C |
+| ACC-REV-008 | Dictionary | PB-DICT-003 | Dictionary match overlaps secret/checksum rules | Dictionary may set primary type; BLOCK risk and matched rules remain | dictionary/priority-risk.test.ts | YES | C |
+| ACC-REV-009 | Dictionary | PB-DICT-004 | Client dictionary plus job override conflict | Job override wins only in that job; other jobs use client entry | dictionary/scope-override.test.ts | YES | C |
+| ACC-REV-010 | Review | PB-UX-002,PB-CAND-003 | Ambiguous candidate remains undecided | Job cannot reach READY_TO_BUILD; UI explains ambiguity | review/ambiguous-gate.test.ts | YES | C |
+| ACC-REV-011 | Dictionary | PB-SEC-004 | Import >25MB, >50k entries, too-long term or >20 aliases | Entire dictionary import rejects before persistence; existing dictionary unchanged | dictionary/import-limits.test.ts | YES | B |
+| ACC-REV-012 | Review | PB-JOB-004 | Dictionary/rules version changes after review | Run and affected decisions become stale; rescan required | review/version-stale.test.ts | YES | C |
+| ACC-TOK-001 | Token | PB-TOKEN-001 | Generate 100k entity tokens | Every token matches exact grammar; IDs unique; no source/job/client text embedded | token/format-uniqueness.test.ts | YES | B |
+| ACC-TOK-002 | Token | PB-TOKEN-002 | Same canonical value repeated with aliases in one job | Same Entity token used according to explicit alias/canonicalization rules | token/same-job-consistency.test.ts | YES | C |
+| ACC-TOK-003 | Token | PB-TOKEN-003 | Same source values in two jobs | Tokens and canonical fingerprints differ across jobs | token/cross-job-unlinkability.test.ts | YES | B |
+| ACC-TOK-004 | Token | PB-TOKEN-005 | Phone appears in multiple surface formats | One entity token; encrypted occurrences preserve surface and effective handling; result restore uses preferred display | token/surface-preferred-display.test.ts | YES | C |
+| ACC-TOK-005 | Token | PB-TOKEN-006 | Multiple adjacent and nested accepted spans | Replacement from end yields exact sanitized output with valid offsets | token/reverse-replacement.test.ts | YES | C |
+| ACC-TOK-006 | Token | PB-TOKEN-006 | Source span text/hash altered before tokenization | Operation fails PB-FILE-004; no output or mapping mutation | token/span-hash-guard.test.ts | YES | B |
+| ACC-TOK-007 | Token | PB-IMPORT-003 | Flip one token ID/tag/type character | Verifier rejects token without revealing whether ID exists | token/forgery.test.ts | YES | B |
+| ACC-TOK-008 | Token | PB-IMPORT-003 | Use valid token from another job | Verifier rejects whole result package | token/cross-job-reject.test.ts | YES | B |
+| ACC-TOK-009 | Crypto | PB-CRYPTO-003 | Derive domain keys from fixed JRK/client/job | All keys match vector and differ from each other | crypto/hkdf-domain.test.ts | YES | B |
+| ACC-TOK-010 | Crypto | PB-CRYPTO-004 | Generate many envelopes and inspect IVs | No IV reuse; each envelope authenticates exact AAD | crypto/iv-uniqueness.test.ts | YES | B |
+| ACC-TOK-011 | Crypto | PB-CRYPTO-004 | Tamper ciphertext, tag, IV and each AAD component | Every mutation fails authentication and leaves target unchanged | crypto/envelope-tamper.test.ts | YES | B |
+| ACC-TOK-012 | Crypto | PB-CRYPTO-002 | Passphrase length 11,12,256,257 code points and no normalization pairs | Only 12–256 accepted; visually equivalent Unicode remains byte-distinct | crypto/passphrase-policy.test.ts | YES | B |
+| ACC-TOK-013 | Mapping | PB-TOKEN-002,PB-STORE-002 | Persist/reload mapping and occurrence data | Authenticated encrypted records reproduce tokens/decisions exactly | mapping/persistence-roundtrip.test.ts | YES | C |
+| ACC-TOK-014 | Handling | PB-DET-010 | Accepted SECRET or credit card attempts TOKENIZE | API rejects action; only REDACT, EXCLUDE or BLOCK permitted | handling/no-reversible-secret.test.ts | YES | B |
+| ACC-TOK-015 | Mapping | PB-BACKUP-002 | Delete/missing mapping or job key | System never creates replacement key/map under same job; restore blocked with precise safe error | mapping/no-silent-recreate.test.ts | YES | B |
+| ACC-EXP-001 | Shadow | PB-MD-002 | Golden Markdown with spacing, comments, YAML, CRLF/BOM | Output differs only at approved spans/path references; byte properties preserved | golden/markdown-preservation.test.ts | YES | C |
+| ACC-EXP-002 | Shadow | PB-MD-003,PB-MD-004 | Frontmatter/code candidates with accepted policies | Values change per decision; keys/variables not auto-renamed; secrets block/redact | golden/frontmatter-code.test.ts | YES | C |
+| ACC-EXP-003 | Shadow | PB-SHADOW-003 | Crash/cancel at each build phase | No partial final Shadow appears; staging cleaned or recoverable | recovery/shadow-atomic.test.ts | YES | C |
+| ACC-EXP-004 | Shadow | PB-MD-005,PB-MD-006 | Rename sensitive paths with wikilinks/headings/block refs | All links resolve inside Shadow; original paths absent from export | golden/wikilink-pathmap.test.ts | YES | C |
+| ACC-EXP-005 | Shadow | PB-SHADOW-002 | Scan built Shadow for secure filenames/canary raw values | No mapping/dictionary/key/audit/original canary or .obsidian metadata exists | security/shadow-content-allowlist.test.ts | YES | B |
+| ACC-EXP-006 | Residual | PB-EXPORT-001 | Sanitized file contains a 0.35 residual candidate | scanResidualAll returns it regardless of UI threshold | export/residual-all.test.ts | YES | B |
+| ACC-EXP-007 | Residual | PB-EXPORT-002 | Residual pending or accepted without reason | Export disabled; only reviewed reasoned residual can proceed | export/residual-review-gate.test.ts | YES | B |
+| ACC-EXP-008 | Export Guard | PB-EXPORT-003 | Each precondition independently fails | Export disabled and lists every failure reason with error code | export/guard-matrix.test.ts | YES | C |
+| ACC-EXP-009 | Safe Package | PB-EXPORT-004,PB-EXPORT-005 | Build package with malicious/odd paths | All ZIP entries normalized relative; zip-slip/symlink entries impossible | security/safe-zip.test.ts | YES | B |
+| ACC-EXP-010 | Safe Package | PB-EXPORT-004 | Inspect package manifest/index/notes | No Mapping, dictionary, original path/value, key or audit content | security/package-content.test.ts | YES | B |
+| ACC-EXP-011 | Safe Package | PB-EXPORT-005 | Corrupt one file after package build | Self-validation or checksum validation fails; job not marked EXPORTED | export/package-self-validate.test.ts | YES | C |
+| ACC-EXP-012 | Safe Package | PB-EXPORT-005 | Package exceeds 2GB estimate/actual | Build stops safely with explicit error; no partial final package | export/package-size-limit.test.ts | YES | C |
+| ACC-IMP-001 | Import | PB-IMPORT-001,PB-IMPORT-002 | Valid UTF-8 JSON matching exact supported schema | Package validates and enters RESULT_IMPORTED | import/valid-result.test.ts | YES | C |
+| ACC-IMP-002 | Import | PB-IMPORT-003 | Malformed token-like delimiters or unsupported schema fields | Whole package rejects; no partial findings persisted | import/malformed-token-strict.test.ts | YES | B |
+| ACC-IMP-003 | Import | PB-IMPORT-003 | Unknown or forged token in one finding | Whole package rejects with generic PB-IMPORT-003 | import/unknown-forged-token.test.ts | YES | B |
+| ACC-IMP-004 | Import | PB-IMPORT-003 | Valid token from another job or source package hash mismatch | Whole package rejects | import/cross-job-package.test.ts | YES | B |
+| ACC-IMP-005 | Import | PB-IMPORT-003 | Unknown document ID, path traversal strings, duplicate finding IDs | Whole package rejects before restore | import/references-paths.test.ts | YES | B |
+| ACC-IMP-006 | Import | PB-IMPORT-004 | Summary includes script, HTML event, obsidian URI and markdown link | UI renders inert plain text; generated Markdown escapes unsafe constructs | security/result-rendering.test.ts | YES | B |
+| ACC-IMP-007 | Restore | PB-RESTORE-001,PB-RESTORE-002 | Restore valid findings with repeated tokens | Preferred display restored; new sequence Result Vault created; original/Shadow unchanged | restore/end-to-end.test.ts | YES | C |
+| ACC-IMP-008 | Import | PB-IMPORT-003 | Oversized/deep/huge-count JSON | Rejected within resource limits before dangerous allocation; store unchanged | fuzz/result-dos.test.ts | YES | B |
+| ACC-OPS-001 | Audit | PB-AUDIT-001,PB-AUDIT-003 | Run complete workflow with canary raw values | Encrypted audit contains allowed metadata only; no raw canary after decrypting audit structure | audit/no-raw-values.test.ts | YES | B |
+| ACC-OPS-002 | Audit | PB-AUDIT-002 | Delete/reorder/modify an audit event | Chain verification fails and job enters BLOCKED | audit/hash-chain.test.ts | YES | B |
+| ACC-OPS-003 | Recovery | PB-TXN-002,PB-TXN-003 | Crash at every journal phase and stale lock conditions | Default rollback restores last committed state; verified roll-forward only where allowed | recovery/journal-phase-matrix.test.ts | YES | C |
+| ACC-OPS-004 | Migration | PB-MIG-001,PB-MIG-002 | Fail migration before/after swap and try downgrade | Old data remains readable; recovery snapshot works; unsupported downgrade never overwrites | migration/copy-on-write.test.ts | YES | B |
+| ACC-OPS-005 | Backup/Delete | PB-BACKUP-001,PB-DELETE-001 | Create/import backup, wrong password, corrupt ZIP, delete job secrets | Valid backup roundtrips; invalid writes nothing; deletion never touches source; no silent key recreation | backup/job-backup.test.ts | YES | C |
+| ACC-OPS-006 | Release | PB-NET-002,PB-TEST-004 | Build release from tagged commit on clean runner | Bundle, manifest, styles, source commit, checksum and SBOM correspond; all 105 acceptance pass | release/reproducible-artifacts.test.mjs | YES | D |

@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "1.0.0",
+  "decisionId": "99999999-9999-4999-8999-999999999999",
+  "jobId": "PB-20260825-0123456789",
+  "candidateIds": [
+    "66666666-6666-4666-8666-666666666666"
+  ],
+  "entityGroupId": "77777777-7777-4777-8777-777777777777",
+  "action": "TOKENIZE",
+  "newType": null,
+  "newStart": null,
+  "newEnd": null,
+  "reasonCode": null,
+  "reasonNote": null,
+  "actor": {
+    "deviceId": "33333333-3333-4333-8333-333333333333",
+    "operatorAliasFingerprint": "QUJDREVGR0hJSktMTU5PUA"
+  },
+  "timestamp": "2026-08-25T08:10:00Z",
+  "batchId": null
+}

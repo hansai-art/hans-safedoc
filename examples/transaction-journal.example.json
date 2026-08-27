@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "1.0.0",
+  "transactionId": "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+  "jobId": "PB-20260825-0123456789",
+  "operation": "BUILD_SHADOW",
+  "phase": "TEMP_VALIDATED",
+  "steps": [
+    {
+      "stepId": "abababab-abab-4bab-8bab-abababababab",
+      "state": "VALIDATED",
+      "targetId": "shadow-output",
+      "tempId": "shadow-staging",
+      "priorHash": null,
+      "expectedHash": "6666666666666666666666666666666666666666666666666666666666666666",
+      "errorCode": null,
+      "createdAt": "2026-08-25T08:00:00Z",
+      "updatedAt": "2026-08-25T08:10:00Z"
+    }
+  ],
+  "startedAt": "2026-08-25T08:00:00Z",
+  "updatedAt": "2026-08-25T08:10:00Z"
+}

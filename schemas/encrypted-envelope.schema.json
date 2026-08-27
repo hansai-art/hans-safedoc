@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://privacy-bridge.local/schemas/encrypted-envelope.schema.json",
+  "title": "Authenticated Encrypted Envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "envelopeVersion",
+    "contentSchema",
+    "contentVersion",
+    "keyId",
+    "recordType",
+    "cipher",
+    "aad",
+    "createdAt"
+  ],
+  "properties": {
+    "envelopeVersion": {
+      "const": "PBENC1"
+    },
+    "contentSchema": {
+      "type": "string",
+      "format": "uri",
+      "maxLength": 512
+    },
+    "contentVersion": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+    },
+    "keyId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "recordType": {
+      "enum": [
+        "CLIENT_PROFILE",
+        "CLIENT_DICTIONARY",
+        "CLIENT_AUDIT",
+        "JOB_STATE",
+        "DETECTION_RUN",
+        "REVIEW_STATE",
+        "ENTITY_MAP",
+        "OCCURRENCE_MAP",
+        "PATH_MAP",
+        "TRANSACTION_JOURNAL",
+        "RECOVERY_MANIFEST"
+      ]
+    },
+    "cipher": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "algorithm",
+        "iv",
+        "ciphertext",
+        "authTag"
+      ],
+      "properties": {
+        "algorithm": {
+          "const": "AES-256-GCM"
+        },
+        "iv": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "minLength": 16,
+          "maxLength": 16
+        },
+        "ciphertext": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "minLength": 1
+        },
+        "authTag": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "minLength": 22,
+          "maxLength": 22
+        }
+      }
+    },
+    "aad": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "storeId",
+        "clientId",
+        "jobId",
+        "recordType",
+        "canonical"
+      ],
+      "properties": {
+        "storeId": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "clientId": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "jobId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^PB-[0-9]{8}-[0-9A-HJKMNP-TV-Z]{10}$"
+        },
+        "recordType": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "canonical": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        }
+      }
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

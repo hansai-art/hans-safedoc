@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "1.0.0",
+  "candidateId": "66666666-6666-4666-8666-666666666666",
+  "runId": "44444444-4444-4444-8444-444444444444",
+  "jobId": "PB-20260825-0123456789",
+  "documentId": "55555555-5555-4555-8555-555555555555",
+  "primaryType": "EMAIL",
+  "alternativeTypes": [],
+  "start": 10,
+  "end": 33,
+  "surfaceText": "test@example.com.tw",
+  "sourceTextHash": "2222222222222222222222222222222222222222222222222222222222222222",
+  "ruleScore": 0.97,
+  "matchedRules": [
+    "email-address"
+  ],
+  "evidence": [
+    {
+      "kind": "PATTERN",
+      "source": "email-address",
+      "weight": 0.97
+    }
+  ],
+  "handling": "TOKENIZE",
+  "riskFlags": [],
+  "reviewStatus": "PENDING",
+  "entityGroupId": "77777777-7777-4777-8777-777777777777"
+}

@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://privacy-bridge.local/schemas/dictionary.schema.json",
+  "title": "Decrypted Client and Job Dictionary",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "clientId",
+    "version",
+    "scope",
+    "entries",
+    "createdAt",
+    "updatedAt"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "clientId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "jobId": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^PB-[0-9]{8}-[0-9A-HJKMNP-TV-Z]{10}$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+    },
+    "scope": {
+      "enum": [
+        "CLIENT",
+        "JOB_OVERRIDE"
+      ]
+    },
+    "entries": {
+      "type": "array",
+      "maxItems": 50000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "entryId",
+          "term",
+          "aliases",
+          "entityType",
+          "caseMode",
+          "matchMode",
+          "handling",
+          "enabled",
+          "createdAt"
+        ],
+        "properties": {
+          "entryId": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "term": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "aliases": {
+            "type": "array",
+            "maxItems": 20,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          "entityType": {
+            "enum": [
+              "TW_ID",
+              "TW_ARC",
+              "TW_TAX_ID",
+              "TW_PASSPORT",
+              "PASSPORT_CANDIDATE",
+              "TW_NHI_CARD",
+              "TW_MOBILE",
+              "TW_LANDLINE",
+              "TW_PHONE_SERVICE",
+              "TW_ADDRESS",
+              "TW_POSTCODE",
+              "TW_PLATE",
+              "TW_INVOICE",
+              "TW_BANK_ACCOUNT",
+              "CREDIT_CARD",
+              "EMAIL",
+              "IPV4",
+              "URL",
+              "LINE_ID",
+              "SECRET",
+              "PERSON",
+              "ORGANIZATION",
+              "PROJECT",
+              "PRODUCT",
+              "DEPARTMENT",
+              "SYSTEM",
+              "CUSTOM_TERM",
+              "AMBIGUOUS_IDENTIFIER"
+            ]
+          },
+          "caseMode": {
+            "enum": [
+              "SENSITIVE",
+              "INSENSITIVE"
+            ]
+          },
+          "matchMode": {
+            "const": "EXACT"
+          },
+          "handling": {
+            "enum": [
+              "TOKENIZE",
+              "REDACT",
+              "BLOCK_EXPORT"
+            ]
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

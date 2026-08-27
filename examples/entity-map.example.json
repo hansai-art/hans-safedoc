@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "1.0.0",
+  "jobId": "PB-20260825-0123456789",
+  "entities": [
+    {
+      "entityId": "77777777-7777-4777-8777-777777777777",
+      "primaryType": "PERSON",
+      "alternativeTypes": [],
+      "canonicalFingerprint": "QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVo",
+      "preferredDisplay": "測試人物",
+      "aliases": [
+        "測試人員"
+      ],
+      "token": "⟦PB:PERSON:M2GT58X4MPKAFA59:0TRN0FRDEKEV9AZ32JGA⟧",
+      "riskFlags": [],
+      "createdAt": "2026-08-25T08:00:00Z",
+      "defaultHandling": "TOKENIZE"
+    }
+  ],
+  "createdAt": "2026-08-25T08:00:00Z",
+  "updatedAt": "2026-08-25T08:10:00Z"
+}

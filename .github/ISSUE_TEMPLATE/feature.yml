@@ -1,0 +1,43 @@
+name: Feature task
+description: Implement a task already defined by the locked specification
+title: "[E##] "
+labels: ["feature"]
+body:
+  - type: input
+    id: requirements
+    attributes:
+      label: Requirement IDs
+      placeholder: PB-...
+    validations:
+      required: true
+  - type: input
+    id: acceptance
+    attributes:
+      label: Acceptance IDs
+      placeholder: ACC-...
+    validations:
+      required: true
+  - type: textarea
+    id: input
+    attributes:
+      label: Input and preconditions
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Expected output
+    validations:
+      required: true
+  - type: textarea
+    id: tests
+    attributes:
+      label: Tests
+    validations:
+      required: true
+  - type: textarea
+    id: security
+    attributes:
+      label: Security and data-contract impact
+    validations:
+      required: true

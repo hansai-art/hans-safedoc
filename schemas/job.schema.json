@@ -1,0 +1,198 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://privacy-bridge.local/schemas/job.schema.json",
+  "title": "Decrypted Job State",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "jobId",
+    "clientId",
+    "displayName",
+    "state",
+    "sourceScope",
+    "versions",
+    "createdAt",
+    "updatedAt",
+    "counts"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "jobId": {
+      "type": "string",
+      "pattern": "^PB-[0-9]{8}-[0-9A-HJKMNP-TV-Z]{10}$"
+    },
+    "clientId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "displayName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "projectLabel": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 100
+    },
+    "state": {
+      "enum": [
+        "DRAFT",
+        "INVENTORY_REQUIRED",
+        "SCANNING",
+        "REVIEW_REQUIRED",
+        "READY_TO_BUILD",
+        "BUILDING_SHADOW",
+        "RESIDUAL_REVIEW",
+        "READY_TO_EXPORT",
+        "EXPORTED",
+        "RESULT_IMPORTED",
+        "READY_TO_RESTORE",
+        "RESTORING",
+        "RESTORED",
+        "ARCHIVED",
+        "BLOCKED",
+        "FAILED"
+      ]
+    },
+    "sourceScope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "rootPath",
+        "selectedRelativePath"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "ACTIVE_NOTE",
+            "FOLDER",
+            "WHOLE_VAULT",
+            "EXTERNAL_FOLDER"
+          ]
+        },
+        "rootPath": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "selectedRelativePath": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4096
+        }
+      }
+    },
+    "versions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "plugin",
+        "rules",
+        "dictionary",
+        "exportSchema",
+        "resultSchema"
+      ],
+      "properties": {
+        "plugin": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+        },
+        "rules": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+        },
+        "dictionary": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+        },
+        "exportSchema": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+        },
+        "resultSchema": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+        }
+      }
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "lastOperationAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "sourceSnapshotHash": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "lastExportPackageHash": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "blockReasonCodes": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^PB-[A-Z]+-[0-9]{3}$"
+      }
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "documents",
+        "candidates",
+        "pending",
+        "blocked",
+        "unsupported"
+      ],
+      "properties": {
+        "documents": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "candidates": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pending": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "blocked": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unsupported": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "note": "Token values other than the real crypto vector are placeholder grammar fixtures and should be replaced by deterministic injected test tokens.",
+  "lineEnding": "LF",
+  "bom": false,
+  "requirements": [
+    "PB-MD-002",
+    "PB-MD-003",
+    "PB-MD-004",
+    "PB-MD-005",
+    "PB-TOKEN-006"
+  ]
+}

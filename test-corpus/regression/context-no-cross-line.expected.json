@@ -1,0 +1,18 @@
+{
+  "mustNotContain": [
+    {
+      "type": "TW_PASSPORT",
+      "surfaceText": "123456789"
+    },
+    {
+      "type": "PASSPORT_CANDIDATE",
+      "surfaceText": "123456789"
+    }
+  ],
+  "requirements": [
+    "PB-DET-005"
+  ],
+  "acceptance": [
+    "ACC-DET-006"
+  ]
+}

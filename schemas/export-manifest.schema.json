@@ -1,0 +1,158 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://privacy-bridge.local/schemas/export-manifest.schema.json",
+  "title": "Safe Package Export Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "jobId",
+    "pluginVersion",
+    "rulesVersion",
+    "createdAt",
+    "sourceSnapshotHash",
+    "packageHash",
+    "fileCount",
+    "tokenCount",
+    "files",
+    "tokenTypeCounts",
+    "exclusions"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "jobId": {
+      "type": "string",
+      "pattern": "^PB-[0-9]{8}-[0-9A-HJKMNP-TV-Z]{10}$"
+    },
+    "pluginVersion": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+    },
+    "rulesVersion": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sourceSnapshotHash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "packageHash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "fileCount": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100000
+    },
+    "tokenCount": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10000000
+    },
+    "files": {
+      "type": "array",
+      "maxItems": 100000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "documentId",
+          "relativePath",
+          "sha256",
+          "size"
+        ],
+        "properties": {
+          "documentId": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "relativePath": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "not": {
+              "pattern": "(^/|^[A-Za-z]:|(^|/)\\.\\.(/|$))"
+            }
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "tokenTypeCounts": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "propertyNames": {
+        "enum": [
+          "TW_ID",
+          "TW_ARC",
+          "TW_TAX_ID",
+          "TW_PASSPORT",
+          "PASSPORT_CANDIDATE",
+          "TW_NHI_CARD",
+          "TW_MOBILE",
+          "TW_LANDLINE",
+          "TW_PHONE_SERVICE",
+          "TW_ADDRESS",
+          "TW_POSTCODE",
+          "TW_PLATE",
+          "TW_INVOICE",
+          "TW_BANK_ACCOUNT",
+          "CREDIT_CARD",
+          "EMAIL",
+          "IPV4",
+          "URL",
+          "LINE_ID",
+          "SECRET",
+          "PERSON",
+          "ORGANIZATION",
+          "PROJECT",
+          "PRODUCT",
+          "DEPARTMENT",
+          "SYSTEM",
+          "CUSTOM_TERM",
+          "AMBIGUOUS_IDENTIFIER"
+        ]
+      }
+    },
+    "exclusions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unsupported",
+        "system",
+        "user"
+      ],
+      "properties": {
+        "unsupported": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "system": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "user": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

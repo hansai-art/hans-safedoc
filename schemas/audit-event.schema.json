@@ -1,0 +1,164 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://privacy-bridge.local/schemas/audit-event.schema.json",
+  "title": "Decrypted Audit Event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "eventId",
+    "sequence",
+    "previousHash",
+    "eventHash",
+    "jobId",
+    "actor",
+    "action",
+    "timestamp",
+    "pluginVersion",
+    "details"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "eventId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "previousHash": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "eventHash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "jobId": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^PB-[0-9]{8}-[0-9A-HJKMNP-TV-Z]{10}$"
+    },
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "deviceId",
+        "operatorAliasFingerprint"
+      ],
+      "properties": {
+        "deviceId": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "operatorAliasFingerprint": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "minLength": 16,
+          "maxLength": 64
+        }
+      }
+    },
+    "action": {
+      "enum": [
+        "CLIENT_CREATED",
+        "CLIENT_UNLOCKED",
+        "CLIENT_LOCKED",
+        "JOB_CREATED",
+        "INVENTORY_RESOLVED",
+        "SCAN_STARTED",
+        "SCAN_CANCELLED",
+        "SCAN_COMPLETED",
+        "DECISION_APPLIED",
+        "BATCH_DECISION",
+        "ENTITY_MERGED",
+        "ENTITY_SPLIT",
+        "SHADOW_BUILT",
+        "RESIDUAL_DECIDED",
+        "PACKAGE_EXPORTED",
+        "RESULT_IMPORTED",
+        "RESULT_RESTORED",
+        "BACKUP_CREATED",
+        "BACKUP_IMPORTED",
+        "MIGRATION_STARTED",
+        "MIGRATION_COMMITTED",
+        "RECOVERY_ROLLBACK",
+        "RECOVERY_ROLLFORWARD",
+        "JOB_ARCHIVED",
+        "JOB_DELETED",
+        "CLIENT_DELETED",
+        "ERROR"
+      ]
+    },
+    "subjectIds": {
+      "type": "array",
+      "maxItems": 100000,
+      "items": {
+        "type": "string",
+        "maxLength": 100
+      }
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "pluginVersion": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+    },
+    "details": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "candidateCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "fileCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "batchSize": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "errorCode": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^PB-[A-Z]+-[0-9]{3}$"
+        },
+        "decisionAction": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 40
+        },
+        "artifactHash": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "requirementId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^PB-[A-Z]+-[0-9]{3}$"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://privacy-bridge.local/schemas/occurrence-map.schema.json",
+  "title": "Decrypted Occurrence Map",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "jobId",
+    "occurrences",
+    "createdAt",
+    "updatedAt"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "jobId": {
+      "type": "string",
+      "pattern": "^PB-[0-9]{8}-[0-9A-HJKMNP-TV-Z]{10}$"
+    },
+    "occurrences": {
+      "type": "array",
+      "maxItems": 5000000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "occurrenceId",
+          "entityId",
+          "documentId",
+          "start",
+          "end",
+          "surfaceText",
+          "sourceTextHash",
+          "handling",
+          "riskFlags",
+          "tokenApplied"
+        ],
+        "properties": {
+          "occurrenceId": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "entityId": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "documentId": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "start": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "end": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "surfaceText": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100000
+          },
+          "sourceTextHash": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "handling": {
+            "enum": [
+              "TOKENIZE",
+              "REDACT",
+              "BLOCK_EXPORT"
+            ]
+          },
+          "riskFlags": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "BLOCK_EXPORT",
+                "REDACT_ONLY",
+                "MANUAL_REVIEW",
+                "AMBIGUOUS_TYPE",
+                "LOW_CONTEXT",
+                "DICTIONARY_MATCH",
+                "CHECKSUM_VALIDATED",
+                "RESIDUAL"
+              ]
+            }
+          },
+          "tokenApplied": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

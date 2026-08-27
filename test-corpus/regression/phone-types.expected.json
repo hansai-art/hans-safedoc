@@ -1,0 +1,30 @@
+{
+  "expected": [
+    {
+      "text": "0912-345-678",
+      "type": "TW_MOBILE"
+    },
+    {
+      "text": "099-123-4567",
+      "type": "TW_PHONE_SERVICE"
+    },
+    {
+      "text": "0800-123-456",
+      "type": "TW_PHONE_SERVICE"
+    },
+    {
+      "text": "(02) 4128-1234 分機 205",
+      "type": "TW_LANDLINE"
+    },
+    {
+      "text": "+886 2 2712 3456",
+      "type": "TW_LANDLINE"
+    }
+  ],
+  "requirements": [
+    "PB-DET-006"
+  ],
+  "acceptance": [
+    "ACC-DET-011"
+  ]
+}

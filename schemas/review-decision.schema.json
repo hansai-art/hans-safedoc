@@ -1,0 +1,165 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://privacy-bridge.local/schemas/review-decision.schema.json",
+  "title": "Review Decision",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "decisionId",
+    "jobId",
+    "candidateIds",
+    "action",
+    "actor",
+    "timestamp"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "decisionId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "jobId": {
+      "type": "string",
+      "pattern": "^PB-[0-9]{8}-[0-9A-HJKMNP-TV-Z]{10}$"
+    },
+    "candidateIds": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100000,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      }
+    },
+    "entityGroupId": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "action": {
+      "enum": [
+        "ACCEPT",
+        "IGNORE",
+        "CHANGE_TYPE",
+        "CHANGE_RANGE",
+        "TOKENIZE",
+        "REDACT",
+        "BLOCK_EXPORT",
+        "MERGE_ENTITY",
+        "SPLIT_ENTITY",
+        "ACCEPT_RESIDUAL",
+        "EXCLUDE_DOCUMENT"
+      ]
+    },
+    "newType": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "TW_ID",
+        "TW_ARC",
+        "TW_TAX_ID",
+        "TW_PASSPORT",
+        "PASSPORT_CANDIDATE",
+        "TW_NHI_CARD",
+        "TW_MOBILE",
+        "TW_LANDLINE",
+        "TW_PHONE_SERVICE",
+        "TW_ADDRESS",
+        "TW_POSTCODE",
+        "TW_PLATE",
+        "TW_INVOICE",
+        "TW_BANK_ACCOUNT",
+        "CREDIT_CARD",
+        "EMAIL",
+        "IPV4",
+        "URL",
+        "LINE_ID",
+        "SECRET",
+        "PERSON",
+        "ORGANIZATION",
+        "PROJECT",
+        "PRODUCT",
+        "DEPARTMENT",
+        "SYSTEM",
+        "CUSTOM_TERM",
+        "AMBIGUOUS_IDENTIFIER",
+        null
+      ]
+    },
+    "newStart": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "newEnd": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1
+    },
+    "reasonCode": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "FALSE_POSITIVE",
+        "NOT_SENSITIVE_FOR_JOB",
+        "PUBLIC_INFORMATION",
+        "TEST_PLACEHOLDER",
+        "OTHER",
+        "RESIDUAL_ACCEPTED",
+        null
+      ]
+    },
+    "reasonNote": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 200
+    },
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "deviceId",
+        "operatorAliasFingerprint"
+      ],
+      "properties": {
+        "deviceId": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "operatorAliasFingerprint": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "minLength": 16,
+          "maxLength": 64
+        }
+      }
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "batchId": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    }
+  }
+}

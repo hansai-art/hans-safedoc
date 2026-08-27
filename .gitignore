@@ -1,0 +1,15 @@
+node_modules/
+dist/
+coverage/
+*.log
+.DS_Store
+Thumbs.db
+.env
+.env.*
+*.pbjob
+*.safe.zip
+*-sanitized/
+*-results/
+privacy-bridge-secure-store/
+.migration/
+*.tmp

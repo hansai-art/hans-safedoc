@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "1.0.0",
+  "jobId": "PB-20260825-0123456789",
+  "paths": [
+    {
+      "documentId": "55555555-5555-4555-8555-555555555555",
+      "sourceRelativePath": "客戶/會議.md",
+      "sanitizedRelativePath": "DOC-000001/note.md",
+      "sourcePathHash": "5555555555555555555555555555555555555555555555555555555555555555"
+    }
+  ],
+  "createdAt": "2026-08-25T08:00:00Z",
+  "updatedAt": "2026-08-25T08:10:00Z"
+}
