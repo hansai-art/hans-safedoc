@@ -6,7 +6,7 @@ import {
   type WorkflowBlockers,
 } from './ui-state.js';
 import type { DetectedCandidate } from '@privacy-bridge/core';
-import type { CandidateDecision } from './workflow.js';
+import type { CandidateDecision, PreviewChange } from './workflow.js';
 
 export const PRIVACY_BRIDGE_VIEW = 'privacy-bridge-workspace';
 
@@ -28,6 +28,9 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
   private candidates: readonly DetectedCandidate[] = [];
   private decisions = new Map<string, CandidateDecision>();
   private preview: string | undefined;
+  private previewSource: string | undefined;
+  private previewChanges: readonly PreviewChange[] = [];
+  private previewMode: 'BEFORE' | 'AFTER' = 'AFTER';
   private outputFile: string | undefined;
   private statusMessage: string | undefined;
   private batchConfirmation = false;
@@ -54,7 +57,7 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
       this.sourcePath = undefined;
       this.candidates = [];
       this.decisions.clear();
-      this.preview = undefined;
+      this.clearPreview();
       this.outputFile = undefined;
     }
     this.render();
@@ -64,14 +67,14 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
     this.sourcePath = sourcePath;
     this.candidates = candidates;
     this.decisions.clear();
-    this.preview = undefined;
+    this.clearPreview();
     this.outputFile = undefined;
     this.statusMessage = `找到 ${candidates.length} 個候選項目。`;
     this.render();
   }
   setReviewDecision(candidateId: string, decision: CandidateDecision): void {
     this.decisions.set(candidateId, decision);
-    this.preview = undefined;
+    this.clearPreview();
     const pending = this.candidates.filter(
       (candidate) =>
         candidate.handling !== 'BLOCK_EXPORT' && !this.decisions.has(candidate.candidateId),
@@ -83,12 +86,15 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
   setAllReviewDecisions(candidateIds: readonly string[]): void {
     for (const candidateId of candidateIds) this.decisions.set(candidateId, 'ACCEPTED');
     this.batchConfirmation = false;
-    this.preview = undefined;
+    this.clearPreview();
     this.statusMessage = '所有可處理候選均已接受，正在建立預覽。';
     this.render();
   }
-  setPreview(preview: string): void {
+  setPreview(source: string, preview: string, changes: readonly PreviewChange[]): void {
+    this.previewSource = source;
     this.preview = preview;
+    this.previewChanges = changes;
+    this.previewMode = 'AFTER';
     this.statusMessage = '預覽已建立；確認後可輸出到 Vault 外。';
     this.render();
   }
@@ -111,7 +117,13 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
   override async onClose(): Promise<void> {
     this.sensitive = clearSensitiveUiState();
     this.decisions.clear();
+    this.clearPreview();
+  }
+  private clearPreview(): void {
     this.preview = undefined;
+    this.previewSource = undefined;
+    this.previewChanges = [];
+    this.previewMode = 'AFTER';
   }
   private render(): void {
     const reasons = disabledReasons(this.blockers);
@@ -136,7 +148,7 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
     scanButton.addEventListener('click', () => void this.actions.scanCurrentNote());
     if (this.statusMessage) section.createEl('p', { text: this.statusMessage });
     if (this.sourcePath) section.createEl('p', { text: `來源：${this.sourcePath}` });
-    if (this.candidates.length > 0) {
+    if (this.candidates.length > 0 && !this.preview) {
       section.createEl('h3', { text: '偵測結果' });
       section.createEl(
         'ul',
@@ -215,19 +227,83 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
         });
       }
     }
-    const previewButton = section.createEl('button', {
-      text: '建立轉換預覽',
-      attr: { 'aria-label': 'Privacy Bridge: preview sanitized output' },
-    });
-    previewButton.disabled =
-      this.clientState === 'LOCKED' || this.candidates.length === 0 || pending > 0 || hasBlocked;
-    previewButton.addEventListener('click', () => void this.actions.previewCurrentNote());
+    if (!this.preview) {
+      const previewButton = section.createEl('button', {
+        text: '建立轉換預覽',
+        attr: { 'aria-label': 'Privacy Bridge: preview sanitized output' },
+      });
+      previewButton.disabled =
+        this.clientState === 'LOCKED' || this.candidates.length === 0 || pending > 0 || hasBlocked;
+      previewButton.addEventListener('click', () => void this.actions.previewCurrentNote());
+    }
     if (this.preview) {
-      section.createEl('h3', { text: '轉換預覽' });
+      section.createDiv({ cls: 'privacy-bridge-review-summary' }, (summary) => {
+        summary.createEl('strong', { text: `審核完成：${this.previewChanges.length} 項` });
+        const revise = summary.createEl('button', {
+          text: '返回修改審核',
+          attr: { 'aria-label': '返回候選審核' },
+        });
+        revise.addEventListener('click', () => {
+          this.clearPreview();
+          this.statusMessage = '可修改候選處理方式，再重新建立預覽。';
+          this.render();
+        });
+      });
+      section.createEl('h3', { text: '轉換前後對照' });
+      section.createDiv({ cls: 'privacy-bridge-change-list' }, (list) =>
+        this.previewChanges.forEach((change) =>
+          list.createDiv({ cls: 'privacy-bridge-change-card' }, (card) => {
+            card.createEl('h4', {
+              text: `${change.type}${change.decision === 'IGNORED' ? '（保留原文）' : ''}`,
+            });
+            card.createDiv({ cls: 'privacy-bridge-change-box privacy-bridge-before' }, (box) => {
+              box.createEl('span', { cls: 'privacy-bridge-change-label', text: '轉換前' });
+              box.createEl('code', { text: change.before });
+            });
+            card.createEl('div', {
+              cls: 'privacy-bridge-change-arrow',
+              text: '↓',
+              attr: { 'aria-hidden': 'true' },
+            });
+            card.createDiv({ cls: 'privacy-bridge-change-box privacy-bridge-after' }, (box) => {
+              box.createEl('span', { cls: 'privacy-bridge-change-label', text: '轉換後' });
+              box.createEl('code', { text: change.after });
+            });
+          }),
+        ),
+      );
+      section.createEl('h3', { text: '完整文件' });
+      section.createDiv({ cls: 'privacy-bridge-preview-switch' }, (controls) => {
+        const before = controls.createEl('button', {
+          text: '查看完整原文',
+          attr: {
+            'aria-pressed': String(this.previewMode === 'BEFORE'),
+            'aria-label': '查看完整轉換前原文',
+          },
+        });
+        before.addEventListener('click', () => {
+          this.previewMode = 'BEFORE';
+          this.render();
+        });
+        const after = controls.createEl('button', {
+          text: '查看完整轉換後',
+          attr: {
+            'aria-pressed': String(this.previewMode === 'AFTER'),
+            'aria-label': '查看完整去識別化結果',
+          },
+        });
+        after.addEventListener('click', () => {
+          this.previewMode = 'AFTER';
+          this.render();
+        });
+      });
       section.createEl('pre', {
         cls: 'privacy-bridge-preview',
-        text: this.preview,
-        attr: { 'aria-label': '去識別化 Markdown 純文字預覽' },
+        text: this.previewMode === 'BEFORE' ? (this.previewSource ?? '') : this.preview,
+        attr: {
+          'aria-label':
+            this.previewMode === 'BEFORE' ? '完整轉換前 Markdown' : '完整去識別化 Markdown',
+        },
       });
     }
     const button = section.createEl('button', {

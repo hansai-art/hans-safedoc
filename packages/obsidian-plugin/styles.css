@@ -59,6 +59,92 @@
   overflow-wrap: anywhere;
 }
 
+.privacy-bridge-change-list {
+  display: grid;
+  gap: 12px;
+}
+
+.privacy-bridge-review-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 16px 0;
+  padding: 12px;
+  border-radius: var(--radius-s);
+  background: var(--background-secondary);
+}
+
+.privacy-bridge-review-summary button {
+  min-height: 44px;
+  margin: 0;
+}
+
+.privacy-bridge-change-card {
+  padding: 12px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+  background: var(--background-secondary);
+}
+
+.privacy-bridge-change-card h4 {
+  margin: 0 0 10px;
+}
+
+.privacy-bridge-change-box {
+  min-width: 0;
+  padding: 10px;
+  border-radius: var(--radius-s);
+  background: var(--background-primary);
+}
+
+.privacy-bridge-before {
+  border-left: 3px solid var(--text-muted);
+}
+
+.privacy-bridge-after {
+  border-left: 3px solid var(--interactive-accent);
+}
+
+.privacy-bridge-change-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  font-weight: var(--font-semibold);
+}
+
+.privacy-bridge-change-box code {
+  display: block;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.privacy-bridge-change-arrow {
+  padding: 4px 0;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.privacy-bridge-preview-switch {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.privacy-bridge-preview-switch button {
+  min-width: 0;
+  min-height: 44px;
+  margin: 0;
+  white-space: normal;
+}
+
+.privacy-bridge-preview-switch button[aria-pressed='true'] {
+  color: var(--text-on-accent);
+  background: var(--interactive-accent);
+}
+
 .privacy-bridge-document-preview {
   box-sizing: border-box;
   width: min(760px, 100%);

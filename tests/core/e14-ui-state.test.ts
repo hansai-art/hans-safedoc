@@ -78,6 +78,12 @@ describe('E14 Obsidian workflow integration', () => {
     expect(workspace).toContain('接受並去識別化');
     expect(workspace).toContain('忽略並保留原文');
     expect(workspace).toContain('建立轉換預覽');
+    expect(workspace).toContain('轉換前後對照');
+    expect(workspace).toContain('查看完整原文');
+    expect(workspace).toContain('查看完整轉換後');
+    expect(workspace).toContain("'aria-pressed'");
+    expect(workspace).toContain('審核完成：');
+    expect(workspace).toContain('返回修改審核');
     expect(workspace).toContain('全部去識別化並預覽');
     expect(workspace).toContain('確認全部去識別化');
     expect(workspace).toContain('在 Finder 顯示輸出檔');

@@ -107,6 +107,21 @@ describe('Obsidian current-note vertical workflow', () => {
       if (!prepared.ok) return;
       expect(prepared.value.sanitizedContent).not.toContain('0912-345-678');
       expect(prepared.value.sanitizedContent).toContain('demo@example.invalid');
+      expect(prepared.value.sourceContent).toBe(source);
+      expect(prepared.value.previewChanges).toEqual([
+        expect.objectContaining({
+          type: 'TW_MOBILE',
+          before: '0912-345-678',
+          after: expect.stringMatching(/^⟦PB:TW_MOBILE:/u),
+          decision: 'ACCEPTED',
+        }),
+        expect.objectContaining({
+          type: 'EMAIL',
+          before: 'demo@example.invalid',
+          after: 'demo@example.invalid',
+          decision: 'IGNORED',
+        }),
+      ]);
 
       const published = await publishPreparedDocument({
         vaultRoot,

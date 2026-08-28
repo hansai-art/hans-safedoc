@@ -20,9 +20,19 @@ export type CandidateDecisions = Readonly<Record<string, CandidateDecision | und
 export interface PreparedReviewedDocument {
   readonly jobId: string;
   readonly candidates: readonly DetectedCandidate[];
+  readonly sourceContent: string;
   readonly sanitizedContent: string;
+  readonly previewChanges: readonly PreviewChange[];
   readonly sourceSha256: string;
   readonly documentId: string;
+}
+
+export interface PreviewChange {
+  readonly candidateId: string;
+  readonly type: string;
+  readonly before: string;
+  readonly after: string;
+  readonly decision: CandidateDecision;
 }
 
 export interface PublishPreparedDocumentInput {
@@ -86,10 +96,21 @@ export function prepareReviewedDocument(
     })),
   );
   if (!sanitized.ok) return sanitized;
+  const tokens = new Map(
+    accepted.map((candidate, index) => [candidate.candidateId, assignments[index]!.token]),
+  );
   return ok({
     jobId,
     candidates,
+    sourceContent: source,
     sanitizedContent: sanitized.value,
+    previewChanges: candidates.map((candidate) => ({
+      candidateId: candidate.candidateId,
+      type: candidate.primaryType,
+      before: candidate.surfaceText,
+      after: tokens.get(candidate.candidateId) ?? candidate.surfaceText,
+      decision: decisions[candidate.candidateId]!,
+    })),
     sourceSha256: sha256(source),
     documentId: assignments[0]?.entityId ?? sha256(source).slice(0, 16),
   });

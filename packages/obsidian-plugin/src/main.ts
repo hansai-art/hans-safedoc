@@ -158,7 +158,11 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
       return;
     }
     session.prepared = prepared.value;
-    view.setPreview(prepared.value.sanitizedContent);
+    view.setPreview(
+      prepared.value.sourceContent,
+      prepared.value.sanitizedContent,
+      prepared.value.previewChanges,
+    );
   }
   private async exportCurrentNote(): Promise<void> {
     const session = this.reviewSession;
