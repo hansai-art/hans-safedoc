@@ -13,8 +13,10 @@ export const PRIVACY_BRIDGE_VIEW = 'privacy-bridge-workspace';
 export interface PrivacyBridgeWorkspaceActions {
   scanCurrentNote(): Promise<void>;
   reviewCandidate(candidateId: string, decision: CandidateDecision): Promise<void>;
+  reviewAllCandidates(): Promise<void>;
   previewCurrentNote(): Promise<void>;
   exportCurrentNote(): Promise<void>;
+  revealOutputFile(path: string): Promise<void>;
 }
 
 /** The view owns only display state. Keys and raw values stay in the secure workflow layer. */
@@ -28,6 +30,7 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
   private preview: string | undefined;
   private outputFile: string | undefined;
   private statusMessage: string | undefined;
+  private batchConfirmation = false;
 
   constructor(
     leaf: WorkspaceLeaf,
@@ -75,6 +78,13 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
     ).length;
     this.statusMessage =
       pending === 0 ? '所有候選均已審核，可建立預覽。' : `尚有 ${pending} 個候選未審核。`;
+    this.render();
+  }
+  setAllReviewDecisions(candidateIds: readonly string[]): void {
+    for (const candidateId of candidateIds) this.decisions.set(candidateId, 'ACCEPTED');
+    this.batchConfirmation = false;
+    this.preview = undefined;
+    this.statusMessage = '所有可處理候選均已接受，正在建立預覽。';
     this.render();
   }
   setPreview(preview: string): void {
@@ -128,36 +138,82 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
     if (this.sourcePath) section.createEl('p', { text: `來源：${this.sourcePath}` });
     if (this.candidates.length > 0) {
       section.createEl('h3', { text: '偵測結果' });
-      section.createEl('ul', { attr: { 'aria-label': '去識別化候選項目' } }, (list) =>
-        this.candidates.forEach((candidate) => {
-          list.createEl('li', {}, (item) => {
-            const decision = this.decisions.get(candidate.candidateId);
-            item.createEl('span', {
-              text: `${candidate.primaryType}：${candidate.surfaceText}（${
-                candidate.handling === 'BLOCK_EXPORT' ? '禁止輸出' : (decision ?? '待審核')
-              }）`,
+      section.createEl(
+        'ul',
+        { cls: 'privacy-bridge-candidates', attr: { 'aria-label': '去識別化候選項目' } },
+        (list) =>
+          this.candidates.forEach((candidate) => {
+            list.createEl('li', { cls: 'privacy-bridge-candidate' }, (item) => {
+              const decision = this.decisions.get(candidate.candidateId);
+              item.createEl('span', {
+                cls: 'privacy-bridge-candidate-label',
+                text: `${candidate.primaryType}：${candidate.surfaceText}（${
+                  candidate.handling === 'BLOCK_EXPORT' ? '禁止輸出' : (decision ?? '待審核')
+                }）`,
+              });
+              if (candidate.handling !== 'BLOCK_EXPORT') {
+                const accept = item.createEl('button', {
+                  text: '接受並去識別化',
+                  attr: { 'aria-label': `接受 ${candidate.primaryType}` },
+                });
+                accept.addEventListener(
+                  'click',
+                  () => void this.actions.reviewCandidate(candidate.candidateId, 'ACCEPTED'),
+                );
+                const ignore = item.createEl('button', {
+                  text: '忽略並保留原文',
+                  attr: { 'aria-label': `忽略 ${candidate.primaryType}` },
+                });
+                ignore.addEventListener(
+                  'click',
+                  () => void this.actions.reviewCandidate(candidate.candidateId, 'IGNORED'),
+                );
+              }
             });
-            if (candidate.handling !== 'BLOCK_EXPORT') {
-              const accept = item.createEl('button', {
-                text: '接受並去識別化',
-                attr: { 'aria-label': `接受 ${candidate.primaryType}` },
-              });
-              accept.addEventListener(
-                'click',
-                () => void this.actions.reviewCandidate(candidate.candidateId, 'ACCEPTED'),
-              );
-              const ignore = item.createEl('button', {
-                text: '忽略並保留原文',
-                attr: { 'aria-label': `忽略 ${candidate.primaryType}` },
-              });
-              ignore.addEventListener(
-                'click',
-                () => void this.actions.reviewCandidate(candidate.candidateId, 'IGNORED'),
-              );
-            }
-          });
-        }),
+          }),
       );
+      if (pending > 0 && !hasBlocked) {
+        const acceptAll = section.createEl('button', {
+          text: `全部去識別化並預覽（${pending} 項）`,
+          attr: { 'aria-label': `批次接受 ${pending} 個候選並建立預覽` },
+        });
+        acceptAll.addEventListener('click', () => {
+          this.batchConfirmation = true;
+          this.render();
+        });
+      }
+      if (this.batchConfirmation) {
+        section.createDiv({ cls: 'privacy-bridge-batch-confirmation' }, (confirmation) => {
+          confirmation.createEl('p', {
+            text: `將接受並去識別化 ${pending} 個候選，範例如下：`,
+          });
+          confirmation.createEl('ul', {}, (examples) =>
+            this.candidates
+              .filter(
+                (candidate) =>
+                  candidate.handling !== 'BLOCK_EXPORT' &&
+                  !this.decisions.has(candidate.candidateId),
+              )
+              .slice(0, 3)
+              .forEach((candidate) =>
+                examples.createEl('li', {
+                  text: `${candidate.primaryType}：${candidate.surfaceText}`,
+                }),
+              ),
+          );
+          const cancel = confirmation.createEl('button', { text: '取消' });
+          cancel.addEventListener('click', () => {
+            this.batchConfirmation = false;
+            this.render();
+          });
+          const confirm = confirmation.createEl('button', {
+            text: '確認全部去識別化',
+            attr: { 'aria-label': '確認批次去識別化' },
+          });
+          confirm.addEventListener('click', () => void this.actions.reviewAllCandidates());
+          queueMicrotask(() => cancel.focus());
+        });
+      }
     }
     const previewButton = section.createEl('button', {
       text: '建立轉換預覽',
@@ -169,6 +225,7 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
     if (this.preview) {
       section.createEl('h3', { text: '轉換預覽' });
       section.createEl('pre', {
+        cls: 'privacy-bridge-preview',
         text: this.preview,
         attr: { 'aria-label': '去識別化 Markdown 純文字預覽' },
       });
@@ -201,6 +258,20 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
         allReasons.forEach((reason) => list.createEl('li', { text: reason })),
       );
     }
-    if (this.outputFile) section.createEl('p', { text: `輸出檔：${this.outputFile}` });
+    if (this.outputFile)
+      section.createDiv({ cls: 'privacy-bridge-output' }, (output) => {
+        output.createEl('p', {
+          cls: 'privacy-bridge-output-path',
+          text: `輸出檔：${this.outputFile}`,
+        });
+        const reveal = output.createEl('button', {
+          text: '在 Finder 顯示輸出檔',
+          attr: { 'aria-label': '在 Finder 顯示去識別化輸出檔' },
+        });
+        reveal.addEventListener(
+          'click',
+          () => void this.actions.revealOutputFile(this.outputFile!),
+        );
+      });
   }
 }

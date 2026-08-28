@@ -20,3 +20,4 @@ await build({
   legalComments: 'none',
 });
 await cp(resolve(root, 'manifest.json'), resolve(outdir, 'manifest.json'));
+await cp(resolve(root, 'styles.css'), resolve(outdir, 'styles.css'));

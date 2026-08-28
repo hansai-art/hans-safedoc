@@ -1,0 +1,60 @@
+.privacy-bridge-workspace {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  padding: 20px 20px 32px;
+  overflow-x: hidden;
+}
+
+.privacy-bridge-workspace h2,
+.privacy-bridge-workspace h3 {
+  margin-top: 0;
+}
+
+.privacy-bridge-workspace h3 {
+  margin-top: 24px;
+}
+
+.privacy-bridge-workspace button {
+  margin: 4px 8px 4px 0;
+}
+
+.privacy-bridge-candidates {
+  margin: 8px 0 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.privacy-bridge-candidate {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.privacy-bridge-candidate-label {
+  display: block;
+  margin-bottom: 6px;
+  overflow-wrap: anywhere;
+}
+
+.privacy-bridge-batch-confirmation,
+.privacy-bridge-output {
+  margin: 12px 0;
+  padding: 12px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+  background: var(--background-secondary);
+}
+
+.privacy-bridge-preview {
+  max-width: 100%;
+  padding: 12px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  border-radius: var(--radius-s);
+  background: var(--background-secondary);
+}
+
+.privacy-bridge-output-path {
+  overflow-wrap: anywhere;
+}

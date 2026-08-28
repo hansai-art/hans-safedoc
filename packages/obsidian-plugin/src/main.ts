@@ -31,8 +31,10 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
         new PrivacyBridgeWorkspaceView(leaf, {
           scanCurrentNote: () => this.scanCurrentNote(),
           reviewCandidate: (candidateId, decision) => this.reviewCandidate(candidateId, decision),
+          reviewAllCandidates: () => this.reviewAllCandidates(),
           previewCurrentNote: () => this.previewCurrentNote(),
           exportCurrentNote: () => this.exportCurrentNote(),
+          revealOutputFile: (path) => this.revealOutputFile(path),
         }),
     );
     this.addRibbonIcon('shield-check', 'Open Privacy Bridge dashboard', () =>
@@ -110,6 +112,25 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
     const view = await this.activateWorkspace();
     view?.setReviewDecision(candidateId, decision);
   }
+  private async reviewAllCandidates(): Promise<void> {
+    const session = this.reviewSession;
+    const view = await this.activateWorkspace();
+    if (!session || !view) return;
+    const accepted = session.candidates
+      .filter(
+        (candidate) =>
+          candidate.handling !== 'BLOCK_EXPORT' &&
+          session.decisions[candidate.candidateId] === undefined,
+      )
+      .map((candidate) => candidate.candidateId);
+    session.decisions = {
+      ...session.decisions,
+      ...Object.fromEntries(accepted.map((candidateId) => [candidateId, 'ACCEPTED' as const])),
+    };
+    session.prepared = undefined;
+    view.setAllReviewDecisions(accepted);
+    await this.previewCurrentNote();
+  }
   private async previewCurrentNote(): Promise<void> {
     const session = this.reviewSession;
     const view = await this.activateWorkspace();
@@ -181,5 +202,18 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
       (leaf as WorkspaceLeaf & { view?: PrivacyBridgeWorkspaceView }).view?.setClientState(
         'LOCKED',
       );
+  }
+  private async revealOutputFile(path: string): Promise<void> {
+    const desktopRequire = (
+      window as unknown as {
+        require?: (module: string) => { shell?: { showItemInFolder(target: string): void } };
+      }
+    ).require;
+    const shell = desktopRequire?.('electron').shell;
+    if (!shell) {
+      new Notice('無法開啟系統檔案管理器。');
+      return;
+    }
+    shell.showItemInFolder(path);
   }
 }

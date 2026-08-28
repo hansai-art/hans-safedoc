@@ -82,9 +82,9 @@ function buildReleaseZip(entries) {
 }
 await rm(outdir, { recursive: true, force: true });
 await mkdir(outdir, { recursive: true });
-for (const name of ['main.js', 'manifest.json'])
+for (const name of ['main.js', 'manifest.json', 'styles.css'])
   await cp(resolve(pluginDist, name), resolve(outdir, name));
-const files = ['main.js', 'manifest.json'];
+const files = ['main.js', 'manifest.json', 'styles.css'];
 const checksums = Object.fromEntries(
   await Promise.all(
     files.map(async (name) => [

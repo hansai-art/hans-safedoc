@@ -1,9 +1,9 @@
 interface HTMLElement {
   empty(): void;
-  createDiv(options?: { cls?: string }): HTMLElement;
+  createDiv(options?: { cls?: string }, callback?: (element: HTMLElement) => void): HTMLElement;
   createEl<K extends keyof HTMLElementTagNameMap>(
     tag: K,
-    options?: { text?: string; attr?: Record<string, string> },
+    options?: { text?: string; cls?: string; attr?: Record<string, string> },
     callback?: (element: HTMLElementTagNameMap[K]) => void,
   ): HTMLElementTagNameMap[K];
 }
