@@ -9,10 +9,10 @@
 1. 從 GitHub Releases 下載 `privacy-bridge-alpha.zip`。
 2. 解壓後將 `main.js`、`manifest.json`、`styles.css` 放到 `<Vault>/.obsidian/plugins/privacy-bridge/`。
 3. 在 Obsidian 的 Community Plugins 啟用 Privacy Bridge，或執行 `obsidian plugin:reload id=privacy-bridge`。
-4. 打開 `demo-vault/Project-Aurora.md`，執行 `Privacy Bridge: Scan current note`。
+4. 打開 `demo-vault/Project-Aurora.md`，點左側盾牌「處理目前文件」；外掛會直接掃描並開啟工作區。
 5. 可逐項選擇處理方式，或按「全部去識別化並預覽」；批次操作會先顯示數量、範例與確認畫面。
 6. 確認純文字 Markdown 預覽後，按「建立去識別化輸出」。
-7. 輸出位於來源 Vault 同層的 `Privacy Bridge Outputs/`；來源 Markdown 必須保持不變。完成後可按「在 Finder 顯示輸出檔」。
+7. 輸出位於來源 Vault 同層的 `Privacy Bridge Outputs/`；來源 Markdown 必須保持不變。完成後 Obsidian 會自動開啟安全閱讀預覽，也可按「在 Finder 顯示輸出檔」。
 
 這個 Alpha 垂直流程不使用 LLM、Ollama、遠端 API 或模型下載。偵測與 tokenization 全部在本機執行。
 

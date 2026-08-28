@@ -44,6 +44,11 @@ describe('E14 Obsidian workflow integration', () => {
       'utf8',
     );
     expect(main.match(/addRibbonIcon\(/g)).toHaveLength(1);
+    expect(main).toContain(
+      "addRibbonIcon('shield-check', '處理目前文件', () => this.scanCurrentNote())",
+    );
+    expect(main).toContain('openSanitizedPreview');
+    expect(main).toContain("getLeaf('tab')");
     for (const command of [
       'open-dashboard',
       'scan-current-note',
@@ -78,5 +83,12 @@ describe('E14 Obsidian workflow integration', () => {
     expect(workspace).toContain('在 Finder 顯示輸出檔');
     expect(workspace).toContain('queueMicrotask(() => cancel.focus())');
     expect(workspace).not.toContain('innerHTML');
+    const preview = readFileSync(
+      resolve(import.meta.dirname, '../../packages/obsidian-plugin/src/preview-view.ts'),
+      'utf8',
+    );
+    expect(preview).toContain('安全預覽');
+    expect(preview).not.toContain('innerHTML');
+    expect(preview).not.toContain('MarkdownRenderer');
   });
 });

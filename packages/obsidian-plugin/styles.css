@@ -58,3 +58,22 @@
 .privacy-bridge-output-path {
   overflow-wrap: anywhere;
 }
+
+.privacy-bridge-document-preview {
+  box-sizing: border-box;
+  width: min(760px, 100%);
+  margin: 0 auto;
+  padding: 32px 28px 64px;
+}
+
+.privacy-bridge-document-preview p {
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.privacy-bridge-preview-notice {
+  padding: 12px;
+  border-left: 3px solid var(--interactive-accent);
+  color: var(--text-muted);
+  background: var(--background-secondary);
+}

@@ -31,6 +31,7 @@ declare module 'obsidian' {
       workspace: {
         getLeavesOfType(type: string): WorkspaceLeaf[];
         getRightLeaf(split: boolean): WorkspaceLeaf | null;
+        getLeaf(mode: 'tab'): WorkspaceLeaf;
         getActiveFile(): TFile | null;
         revealLeaf(leaf: WorkspaceLeaf): Promise<void>;
       };

@@ -3,6 +3,7 @@ import { dirname, resolve } from 'node:path';
 import { Notice, Plugin, Platform, type TFile, type WorkspaceLeaf } from 'obsidian';
 import type { DetectedCandidate } from '@privacy-bridge/core';
 import { assertDesktopRuntime } from './index.js';
+import { PrivacyBridgePreviewView, PRIVACY_BRIDGE_PREVIEW_VIEW } from './preview-view.js';
 import { PrivacyBridgeWorkspaceView, PRIVACY_BRIDGE_VIEW } from './workspace.js';
 import {
   prepareReviewedDocument,
@@ -37,9 +38,8 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
           revealOutputFile: (path) => this.revealOutputFile(path),
         }),
     );
-    this.addRibbonIcon('shield-check', 'Open Privacy Bridge dashboard', () =>
-      this.activateWorkspace(),
-    );
+    this.registerView(PRIVACY_BRIDGE_PREVIEW_VIEW, (leaf) => new PrivacyBridgePreviewView(leaf));
+    this.addRibbonIcon('shield-check', '處理目前文件', () => this.scanCurrentNote());
     this.addCommand({
       id: 'open-dashboard',
       name: 'Privacy Bridge: Open dashboard',
@@ -194,7 +194,14 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
       return;
     }
     view.setOutputResult(result.value.outputFile);
+    await this.openSanitizedPreview(active.file.basename, session.prepared.sanitizedContent);
     new Notice('Privacy Bridge 去識別化輸出已完成。');
+  }
+  private async openSanitizedPreview(title: string, content: string): Promise<void> {
+    const leaf = this.app.workspace.getLeaf('tab');
+    await leaf.setViewState({ type: PRIVACY_BRIDGE_PREVIEW_VIEW, active: true });
+    if (leaf.view instanceof PrivacyBridgePreviewView) leaf.view.setDocument(title, content);
+    await this.app.workspace.revealLeaf(leaf);
   }
   private async lockWorkspace(): Promise<void> {
     this.reviewSession = undefined;
