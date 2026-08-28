@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   aesGcmDecrypt,
   aesGcmEncrypt,
+  deriveClientKey,
   deriveJobKey,
   deriveScryptKey,
   encodeBase64Url,
@@ -14,6 +15,17 @@ const bytes = (hex: string) => new Uint8Array(Buffer.from(hex, 'hex'));
 const utf8 = (value: string) => new TextEncoder().encode(value);
 
 describe('E02 cryptographic primitives', () => {
+  it('derives the locked client dictionary key from store and client identity', async () => {
+    const key = await deriveClientKey(
+      new Uint8Array(Array.from({ length: 32 }, (_, index) => index)),
+      '123e4567-e89b-42d3-a456-426614174000',
+      '123e4567-e89b-42d3-a456-426614174001',
+      'PB/v1/dictionary',
+    );
+    expect(Buffer.from(key).toString('hex')).toBe(
+      '12fbe9083c38debe60aaba309d3c469ff2446581fa88eb6723615321977c2f5b',
+    );
+  });
   it('matches the locked scrypt, HKDF, AES-GCM, and token vectors', async () => {
     const kek = await deriveScryptKey(vector.inputs.passphrase, bytes(vector.inputs.scryptSaltHex));
     expect(Buffer.from(kek).toString('hex')).toBe(vector.expected.scryptKekHex);

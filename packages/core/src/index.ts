@@ -34,6 +34,14 @@ export {
   type Dictionary,
   type DictionaryEntry,
 } from './resolution.js';
+export {
+  decryptClientDictionary,
+  encryptClientDictionary,
+  loadClientDictionary,
+  saveClientDictionary,
+  type ClientDictionaryContext,
+  type SaveClientDictionaryInput,
+} from './client-dictionary-store.js';
 export { appendAudit, verifyAudit, type AuditEvent } from './audit.js';
 export {
   ClientSession,
@@ -183,6 +191,8 @@ export type Job = JsonRecord;
 export type Candidate = JsonRecord;
 export type ExportManifest = JsonRecord;
 export type ResultPackage = JsonRecord;
+export type DictionaryRecord = JsonRecord;
+export type EncryptedEnvelopeRecord = JsonRecord;
 export const parseStore = (v: unknown) => parseSchema<Store>('store.schema.json', v);
 export const parseClientProfile = (v: unknown) =>
   parseSchema<ClientProfile>('client-profile.schema.json', v);
@@ -192,6 +202,10 @@ export const parseExportManifest = (v: unknown) =>
   parseSchema<ExportManifest>('export-manifest.schema.json', v);
 export const parseResultPackage = (v: unknown) =>
   parseSchema<ResultPackage>('result-package.schema.json', v);
+export const parseDictionaryRecord = (v: unknown) =>
+  parseSchema<DictionaryRecord>('dictionary.schema.json', v);
+export const parseEncryptedEnvelope = (v: unknown) =>
+  parseSchema<EncryptedEnvelopeRecord>('encrypted-envelope.schema.json', v);
 
 export interface SemVer {
   readonly major: number;
@@ -275,6 +289,24 @@ export async function deriveScryptKey(passphrase: string, salt: Uint8Array): Pro
         32,
         { N: 131072, r: 8, p: 1, maxmem: 268435456 },
         (cause, derived) => (cause ? reject(cause) : resolve(derived)),
+      ),
+    ),
+  );
+}
+const CLIENT_KEY_INFO = new Set(['PB/v1/client-profile', 'PB/v1/dictionary', 'PB/v1/client-audit']);
+export async function deriveClientKey(
+  rootKey: Uint8Array,
+  storeId: string,
+  clientId: string,
+  info: string,
+): Promise<Uint8Array> {
+  if (rootKey.length !== 32 || !CLIENT_KEY_INFO.has(info))
+    throw new TypeError('invalid client key derivation input');
+  const salt = createHashBytes(`PrivacyBridge|1|${storeId}|${clientId}`);
+  return new Uint8Array(
+    await new Promise<ArrayBuffer>((resolve, reject) =>
+      hkdf('sha256', Buffer.from(rootKey), salt, text.encode(info), 32, (cause, derived) =>
+        cause ? reject(cause) : resolve(derived),
       ),
     ),
   );
