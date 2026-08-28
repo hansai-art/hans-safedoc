@@ -8,8 +8,14 @@ interface HTMLElement {
   ): HTMLElementTagNameMap[K];
 }
 declare module 'obsidian' {
+  export class TFile {
+    path: string;
+    extension: string;
+    basename: string;
+  }
   export interface WorkspaceLeaf {
     view?: ItemView;
+    setViewState(state: { type: string; active?: boolean }): Promise<void>;
   }
   export class ItemView {
     containerEl: HTMLElement;
@@ -25,7 +31,12 @@ declare module 'obsidian' {
       workspace: {
         getLeavesOfType(type: string): WorkspaceLeaf[];
         getRightLeaf(split: boolean): WorkspaceLeaf | null;
+        getActiveFile(): TFile | null;
         revealLeaf(leaf: WorkspaceLeaf): Promise<void>;
+      };
+      vault: {
+        adapter: { getBasePath?: () => string };
+        read(file: TFile): Promise<string>;
       };
     };
     onload(): Promise<void> | void;
@@ -38,6 +49,9 @@ declare module 'obsidian' {
       checkCallback?: (checking: boolean) => boolean;
     }): void;
     registerView(type: string, creator: (leaf: WorkspaceLeaf) => ItemView): void;
+  }
+  export class Notice {
+    constructor(message: string, timeout?: number);
   }
   export const Platform: { isMobile: boolean };
 }

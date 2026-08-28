@@ -53,6 +53,17 @@ describe('E14 Obsidian workflow integration', () => {
     ])
       expect(main).toContain(`id: '${command}'`);
     expect(main).toContain('getRightLeaf(false)');
+    expect(main).toContain('setViewState({ type: PRIVACY_BRIDGE_VIEW');
+    expect(main).toContain('scanCurrentNote()');
+    expect(main).toContain('exportCurrentNote()');
+    expect(main).toContain('runSyntheticDocumentWorkflow');
+    expect(main).toContain('this.lastScannedFile = active.file');
+    expect(main).toContain('this.activeMarkdown(this.lastScannedFile)');
+    expect(main).toContain('this.lastScannedFile = undefined');
+    const scanMethod = main.slice(main.indexOf('private async scanCurrentNote'));
+    expect(scanMethod.indexOf('activeMarkdown()')).toBeLessThan(
+      scanMethod.indexOf('activateWorkspace()'),
+    );
     expect(main).toMatch(/setClientState\(\s*'LOCKED'/);
   });
 });

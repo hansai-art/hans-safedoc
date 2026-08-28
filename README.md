@@ -2,6 +2,19 @@
 
 這是一套可直接交給工程師或 AI Coding Agent 執行的產品與工程規格。產品端決策已鎖定，實作者不得以一般產品細節為由等待額外回覆。
 
+## Alpha 新手安裝與合成資料驗收
+
+> Alpha 只供合成資料測試，不得放入客戶、員工、憑證或正式資料。
+
+1. 從 GitHub Releases 下載 `privacy-bridge-alpha.zip`。
+2. 解壓後將 `main.js`、`manifest.json` 放到 `<Vault>/.obsidian/plugins/privacy-bridge/`。
+3. 在 Obsidian 的 Community Plugins 啟用 Privacy Bridge，或執行 `obsidian plugin:reload id=privacy-bridge`。
+4. 打開 `demo-vault/Project-Aurora.md`，執行 `Privacy Bridge: Scan current note`。
+5. 在右側 Privacy Bridge View 確認手機與 Email 候選，按「建立去識別化輸出」。
+6. 輸出位於來源 Vault 同層的 `Privacy Bridge Outputs/`；來源 Markdown 必須保持不變。
+
+這個 Alpha 垂直流程不使用 LLM、Ollama、遠端 API 或模型下載。偵測與 tokenization 全部在本機執行。
+
 ## 開始閱讀
 
 1. `docs/MASTER-SPEC.md`：唯一最高規格
