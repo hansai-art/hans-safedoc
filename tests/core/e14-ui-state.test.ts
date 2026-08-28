@@ -56,14 +56,23 @@ describe('E14 Obsidian workflow integration', () => {
     expect(main).toContain('setViewState({ type: PRIVACY_BRIDGE_VIEW');
     expect(main).toContain('scanCurrentNote()');
     expect(main).toContain('exportCurrentNote()');
-    expect(main).toContain('runSyntheticDocumentWorkflow');
-    expect(main).toContain('this.lastScannedFile = active.file');
-    expect(main).toContain('this.activeMarkdown(this.lastScannedFile)');
-    expect(main).toContain('this.lastScannedFile = undefined');
+    expect(main).toContain('prepareReviewedDocument');
+    expect(main).toContain('publishPreparedDocument');
+    expect(main).toContain('reviewCandidate(candidateId, decision)');
+    expect(main).toContain('previewCurrentNote()');
+    expect(main).toContain('this.reviewSession = undefined');
     const scanMethod = main.slice(main.indexOf('private async scanCurrentNote'));
     expect(scanMethod.indexOf('activeMarkdown()')).toBeLessThan(
       scanMethod.indexOf('activateWorkspace()'),
     );
     expect(main).toMatch(/setClientState\(\s*'LOCKED'/);
+    const workspace = readFileSync(
+      resolve(import.meta.dirname, '../../packages/obsidian-plugin/src/workspace.ts'),
+      'utf8',
+    );
+    expect(workspace).toContain('接受並去識別化');
+    expect(workspace).toContain('忽略並保留原文');
+    expect(workspace).toContain('建立轉換預覽');
+    expect(workspace).not.toContain('innerHTML');
   });
 });

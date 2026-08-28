@@ -14,11 +14,23 @@ import {
   type Result,
 } from '@privacy-bridge/core';
 
-export interface SyntheticDocumentWorkflowInput {
+export type CandidateDecision = 'ACCEPTED' | 'IGNORED';
+export type CandidateDecisions = Readonly<Record<string, CandidateDecision | undefined>>;
+
+export interface PreparedReviewedDocument {
+  readonly jobId: string;
+  readonly candidates: readonly DetectedCandidate[];
+  readonly sanitizedContent: string;
+  readonly sourceSha256: string;
+  readonly documentId: string;
+}
+
+export interface PublishPreparedDocumentInput {
   readonly vaultRoot: string;
   readonly outputParent: string;
   readonly relativePath: string;
-  readonly content: string;
+  readonly currentContent: string;
+  readonly prepared: PreparedReviewedDocument;
 }
 
 export interface SyntheticDocumentWorkflowOutput {
@@ -41,31 +53,31 @@ export function scanSyntheticDocument(content: string): Result<readonly Detected
   return detectAll(content);
 }
 
-/**
- * Alpha-only vertical slice for synthetic onboarding data.
- * It keeps the source Vault read-only and publishes only a sanitized Markdown copy outside it.
- */
-export async function runSyntheticDocumentWorkflow(
-  input: SyntheticDocumentWorkflowInput,
-): Promise<Result<SyntheticDocumentWorkflowOutput>> {
-  const detected = scanSyntheticDocument(input.content);
-  if (!detected.ok) return detected;
-  if (detected.value.some((candidate) => candidate.handling === 'BLOCK_EXPORT'))
+export function prepareReviewedDocument(
+  source: string,
+  candidates: readonly DetectedCandidate[],
+  decisions: CandidateDecisions,
+): Result<PreparedReviewedDocument> {
+  if (candidates.some((candidate) => candidate.handling === 'BLOCK_EXPORT'))
     return err(error('PB-DEMO-SECRET-BLOCK'));
-
-  const candidates = detected.value.filter((candidate) => candidate.handling === 'TOKENIZE');
+  if (candidates.some((candidate) => decisions[candidate.candidateId] === undefined))
+    return err(error('PB-REVIEW-001'));
+  const accepted = candidates.filter(
+    (candidate) =>
+      candidate.handling === 'TOKENIZE' && decisions[candidate.candidateId] === 'ACCEPTED',
+  );
   const jobId = createJobId();
   const assignments = assignEntityTokens(
     randomBytes(32),
     jobId,
-    candidates.map((candidate) => ({
+    accepted.map((candidate) => ({
       type: candidate.primaryType,
       value: candidate.surfaceText,
     })),
   );
   const sanitized = tokenizeDocument(
-    input.content,
-    candidates.map((candidate, index) => ({
+    source,
+    accepted.map((candidate, index) => ({
       start: candidate.start,
       end: candidate.end,
       sourceTextHash: candidate.sourceTextHash,
@@ -74,17 +86,29 @@ export async function runSyntheticDocumentWorkflow(
     })),
   );
   if (!sanitized.ok) return sanitized;
+  return ok({
+    jobId,
+    candidates,
+    sanitizedContent: sanitized.value,
+    sourceSha256: sha256(source),
+    documentId: assignments[0]?.entityId ?? sha256(source).slice(0, 16),
+  });
+}
 
-  const documentId =
-    assignments[0]?.entityId ??
-    createHash('sha256').update(input.relativePath).digest('hex').slice(0, 16);
+/** Publishes only a reviewed preview and checks the source snapshot before any disk write. */
+export async function publishPreparedDocument(
+  input: PublishPreparedDocumentInput,
+): Promise<Result<SyntheticDocumentWorkflowOutput>> {
+  if (sha256(input.currentContent) !== input.prepared.sourceSha256)
+    return err(error('PB-FILE-004'));
+  const { documentId } = input.prepared;
   const pathMap = createPathMap([{ documentId, relativePath: input.relativePath }]);
   if (!pathMap.ok) return pathMap;
 
   await mkdir(input.outputParent, { recursive: true, mode: 0o700 });
-  const content = new TextEncoder().encode(sanitized.value);
+  const content = new TextEncoder().encode(input.prepared.sanitizedContent);
   const shadow = await buildShadowVault({
-    jobId,
+    jobId: input.prepared.jobId,
     sourceRoot: input.vaultRoot,
     outputParent: input.outputParent,
     documents: [
@@ -102,10 +126,10 @@ export async function runSyntheticDocumentWorkflow(
   if (!file) return err(error('PB-EXPORT-003'));
 
   return ok({
-    jobId,
-    candidates,
+    jobId: input.prepared.jobId,
+    candidates: input.prepared.candidates,
     outputRoot: shadow.value.root,
     outputFile: join(shadow.value.root, file.relativePath),
-    sourceSha256: sha256(input.content),
+    sourceSha256: input.prepared.sourceSha256,
   });
 }

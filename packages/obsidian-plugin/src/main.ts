@@ -1,12 +1,28 @@
 import { createHash } from 'node:crypto';
 import { dirname, resolve } from 'node:path';
 import { Notice, Plugin, Platform, type TFile, type WorkspaceLeaf } from 'obsidian';
+import type { DetectedCandidate } from '@privacy-bridge/core';
 import { assertDesktopRuntime } from './index.js';
 import { PrivacyBridgeWorkspaceView, PRIVACY_BRIDGE_VIEW } from './workspace.js';
-import { runSyntheticDocumentWorkflow, scanSyntheticDocument } from './workflow.js';
+import {
+  prepareReviewedDocument,
+  publishPreparedDocument,
+  scanSyntheticDocument,
+  type CandidateDecision,
+  type CandidateDecisions,
+  type PreparedReviewedDocument,
+} from './workflow.js';
+
+interface ReviewSession {
+  readonly file: TFile;
+  readonly sourceContent: string;
+  readonly candidates: readonly DetectedCandidate[];
+  decisions: CandidateDecisions;
+  prepared: PreparedReviewedDocument | undefined;
+}
 
 export default class ObsidianPrivacyBridgePlugin extends Plugin {
-  private lastScannedFile: TFile | undefined;
+  private reviewSession: ReviewSession | undefined;
   override async onload(): Promise<void> {
     assertDesktopRuntime({ isMobile: Platform.isMobile });
     this.registerView(
@@ -14,6 +30,8 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
       (leaf) =>
         new PrivacyBridgeWorkspaceView(leaf, {
           scanCurrentNote: () => this.scanCurrentNote(),
+          reviewCandidate: (candidateId, decision) => this.reviewCandidate(candidateId, decision),
+          previewCurrentNote: () => this.previewCurrentNote(),
           exportCurrentNote: () => this.exportCurrentNote(),
         }),
     );
@@ -74,23 +92,69 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
       view.setError(`掃描失敗：${scanned.error.code}`);
       return;
     }
-    this.lastScannedFile = active.file;
+    this.reviewSession = {
+      file: active.file,
+      sourceContent: active.content,
+      candidates: scanned.value,
+      decisions: {},
+      prepared: undefined,
+    };
     view.setScanResult(active.file.path, scanned.value);
   }
-  private async exportCurrentNote(): Promise<void> {
-    const active = await this.activeMarkdown(this.lastScannedFile);
+  private async reviewCandidate(candidateId: string, decision: CandidateDecision): Promise<void> {
+    const session = this.reviewSession;
+    const candidate = session?.candidates.find((item) => item.candidateId === candidateId);
+    if (!session || !candidate || candidate.handling === 'BLOCK_EXPORT') return;
+    session.decisions = { ...session.decisions, [candidateId]: decision };
+    session.prepared = undefined;
     const view = await this.activateWorkspace();
-    const vaultRoot = this.app.vault.adapter.getBasePath?.();
-    if (!view || !active || !vaultRoot) {
-      new Notice('請先打開要測試的 Markdown 文件。');
-      view?.setError('無法取得目前 Markdown 或 Vault 路徑。');
+    view?.setReviewDecision(candidateId, decision);
+  }
+  private async previewCurrentNote(): Promise<void> {
+    const session = this.reviewSession;
+    const view = await this.activateWorkspace();
+    if (!session || !view) return;
+    const active = await this.activeMarkdown(session.file);
+    const sourceHash = createHash('sha256')
+      .update(active?.content ?? '', 'utf8')
+      .digest('hex');
+    const expectedHash = createHash('sha256').update(session.sourceContent, 'utf8').digest('hex');
+    if (!active || sourceHash !== expectedHash) {
+      view.setError('來源文件在審核期間已變更，請重新掃描。');
       return;
     }
-    const result = await runSyntheticDocumentWorkflow({
+    const prepared = prepareReviewedDocument(
+      session.sourceContent,
+      session.candidates,
+      session.decisions,
+    );
+    if (!prepared.ok) {
+      view.setError(
+        prepared.error.code === 'PB-REVIEW-001'
+          ? '仍有候選尚未審核。'
+          : `無法建立預覽：${prepared.error.code}`,
+      );
+      return;
+    }
+    session.prepared = prepared.value;
+    view.setPreview(prepared.value.sanitizedContent);
+  }
+  private async exportCurrentNote(): Promise<void> {
+    const session = this.reviewSession;
+    const active = await this.activeMarkdown(session?.file);
+    const view = await this.activateWorkspace();
+    const vaultRoot = this.app.vault.adapter.getBasePath?.();
+    if (!view || !session || !session.prepared || !active || !vaultRoot) {
+      new Notice('請先完成掃描、逐項審核與轉換預覽。');
+      view?.setError('請先完成掃描、逐項審核與轉換預覽。');
+      return;
+    }
+    const result = await publishPreparedDocument({
       vaultRoot,
       outputParent: resolve(dirname(vaultRoot), 'Privacy Bridge Outputs'),
       relativePath: active.file.path,
-      content: active.content,
+      currentContent: active.content,
+      prepared: session.prepared,
     });
     if (!result.ok) {
       const message =
@@ -108,12 +172,11 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
       new Notice('來源文件在處理期間已變更。');
       return;
     }
-    view.setScanResult(active.file.path, result.value.candidates);
     view.setOutputResult(result.value.outputFile);
     new Notice('Privacy Bridge 去識別化輸出已完成。');
   }
   private async lockWorkspace(): Promise<void> {
-    this.lastScannedFile = undefined;
+    this.reviewSession = undefined;
     for (const leaf of this.app.workspace.getLeavesOfType(PRIVACY_BRIDGE_VIEW))
       (leaf as WorkspaceLeaf & { view?: PrivacyBridgeWorkspaceView }).view?.setClientState(
         'LOCKED',

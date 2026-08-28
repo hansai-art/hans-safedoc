@@ -2,7 +2,11 @@ import { createHash } from 'node:crypto';
 import { readFile, rm } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { runSyntheticDocumentWorkflow } from '../../packages/obsidian-plugin/src/workflow.js';
+import {
+  prepareReviewedDocument,
+  publishPreparedDocument,
+  scanSyntheticDocument,
+} from '../../packages/obsidian-plugin/src/workflow.js';
 
 const configuredVault = process.env.PRIVACY_BRIDGE_SMOKE_VAULT;
 const run = configuredVault ? describe : describe.skip;
@@ -17,11 +21,25 @@ run('installed synthetic demo smoke test', () => {
     const beforeHash = createHash('sha256').update(before).digest('hex');
 
     try {
-      const result = await runSyntheticDocumentWorkflow({
+      const source = new TextDecoder().decode(before);
+      const scanned = scanSyntheticDocument(source);
+      expect(scanned.ok).toBe(true);
+      if (!scanned.ok) return;
+      const prepared = prepareReviewedDocument(
+        source,
+        scanned.value,
+        Object.fromEntries(
+          scanned.value.map((candidate) => [candidate.candidateId, 'ACCEPTED' as const]),
+        ),
+      );
+      expect(prepared.ok).toBe(true);
+      if (!prepared.ok) return;
+      const result = await publishPreparedDocument({
         vaultRoot,
         outputParent,
         relativePath,
-        content: new TextDecoder().decode(before),
+        currentContent: source,
+        prepared: prepared.value,
       });
       expect(result.ok).toBe(true);
       if (!result.ok) return;

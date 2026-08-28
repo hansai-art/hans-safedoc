@@ -3,7 +3,11 @@ import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { runSyntheticDocumentWorkflow } from '../../packages/obsidian-plugin/src/workflow.js';
+import {
+  prepareReviewedDocument,
+  publishPreparedDocument,
+  scanSyntheticDocument,
+} from '../../packages/obsidian-plugin/src/workflow.js';
 
 const sha256 = (value: Uint8Array | string) => createHash('sha256').update(value).digest('hex');
 
@@ -28,11 +32,22 @@ describe('Obsidian current-note vertical workflow', () => {
       await writeFile(sourcePath, source);
       const before = new Uint8Array(await readFile(sourcePath));
 
-      const result = await runSyntheticDocumentWorkflow({
+      const scanned = scanSyntheticDocument(source);
+      expect(scanned.ok).toBe(true);
+      if (!scanned.ok) return;
+      expect(prepareReviewedDocument(source, scanned.value, {}).ok).toBe(false);
+      const decisions = Object.fromEntries(
+        scanned.value.map((candidate) => [candidate.candidateId, 'ACCEPTED' as const]),
+      );
+      const prepared = prepareReviewedDocument(source, scanned.value, decisions);
+      expect(prepared.ok).toBe(true);
+      if (!prepared.ok) return;
+      const result = await publishPreparedDocument({
         vaultRoot,
         outputParent,
         relativePath,
-        content: source,
+        currentContent: source,
+        prepared: prepared.value,
       });
 
       expect(result.ok).toBe(true);
@@ -59,14 +74,50 @@ describe('Obsidian current-note vertical workflow', () => {
     try {
       await mkdir(vaultRoot);
       await mkdir(outputParent);
-      const result = await runSyntheticDocumentWorkflow({
+      const source = 'password: correct-horse-battery-staple';
+      const scanned = scanSyntheticDocument(source);
+      expect(scanned.ok).toBe(true);
+      if (!scanned.ok) return;
+      const prepared = prepareReviewedDocument(source, scanned.value, {});
+      expect(prepared.ok).toBe(false);
+      if (!prepared.ok) expect(prepared.error.code).toBe('PB-DEMO-SECRET-BLOCK');
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it('replaces only accepted candidates and fails before disk writes if the source changed', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'privacy-bridge-review-'));
+    const vaultRoot = join(root, 'Source Vault');
+    const outputParent = join(root, 'Privacy Bridge Outputs');
+    const source = '電話：0912-345-678\nEmail：demo@example.invalid\n';
+    try {
+      await mkdir(vaultRoot);
+      const scanned = scanSyntheticDocument(source);
+      expect(scanned.ok).toBe(true);
+      if (!scanned.ok) return;
+      const decisions = Object.fromEntries(
+        scanned.value.map((candidate) => [
+          candidate.candidateId,
+          candidate.primaryType === 'TW_MOBILE' ? 'ACCEPTED' : 'IGNORED',
+        ]),
+      ) as Record<string, 'ACCEPTED' | 'IGNORED'>;
+      const prepared = prepareReviewedDocument(source, scanned.value, decisions);
+      expect(prepared.ok).toBe(true);
+      if (!prepared.ok) return;
+      expect(prepared.value.sanitizedContent).not.toContain('0912-345-678');
+      expect(prepared.value.sanitizedContent).toContain('demo@example.invalid');
+
+      const published = await publishPreparedDocument({
         vaultRoot,
         outputParent,
-        relativePath: 'secret.md',
-        content: 'password: correct-horse-battery-staple',
+        relativePath: 'review.md',
+        currentContent: `${source}changed`,
+        prepared: prepared.value,
       });
-      expect(result.ok).toBe(false);
-      if (!result.ok) expect(result.error.code).toBe('PB-DEMO-SECRET-BLOCK');
+      expect(published.ok).toBe(false);
+      if (!published.ok) expect(published.error.code).toBe('PB-FILE-004');
+      await expect(readFile(outputParent)).rejects.toThrow();
     } finally {
       await rm(root, { recursive: true, force: true });
     }
