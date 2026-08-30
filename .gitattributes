@@ -1,0 +1,12 @@
+* text=auto eol=lf
+
+# Binary OOXML and release fixtures
+*.docx binary
+*.xlsx binary
+*.zip binary
+*.png binary
+*.pbjob binary
+
+# CSV/TXT fixtures and evidence may intentionally preserve BOM/CRLF bytes
+*.csv -text
+*.txt -text
