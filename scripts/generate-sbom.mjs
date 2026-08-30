@@ -8,6 +8,12 @@ import { promisify } from 'node:util';
 const execFileAsync = promisify(execFile);
 const require = createRequire(import.meta.url);
 
+function executePnpm(args, options) {
+  const pnpmCli = process.env.npm_execpath;
+  if (pnpmCli) return execFileAsync(process.execPath, [pnpmCli, ...args], options);
+  return execFileAsync(process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm', args, options);
+}
+
 function packageUrl(name, version) {
   const encodedName = name.startsWith('@') ? `%40${name.slice(1)}` : name;
   return `pkg:npm/${encodedName}@${encodeURIComponent(version)}`;
@@ -67,15 +73,11 @@ async function validateCycloneDxSchema(bom) {
 
 export async function generateSbom({ root, outputFile }) {
   // A frozen install is the dependency-resolution gate; no npm fallback or ignored errors.
-  await execFileAsync('pnpm', ['install', '--frozen-lockfile', '--ignore-scripts'], { cwd: root });
-  const { stdout } = await execFileAsync(
-    'pnpm',
-    ['list', '--recursive', '--json', '--depth', 'Infinity'],
-    {
-      cwd: root,
-      maxBuffer: 16 * 1024 * 1024,
-    },
-  );
+  await executePnpm(['install', '--frozen-lockfile', '--ignore-scripts'], { cwd: root });
+  const { stdout } = await executePnpm(['list', '--recursive', '--json', '--depth', 'Infinity'], {
+    cwd: root,
+    maxBuffer: 16 * 1024 * 1024,
+  });
   const workspaceTrees = JSON.parse(stdout);
   const packages = new Map();
   const edges = new Map();
