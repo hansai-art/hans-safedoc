@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import {
   explainExternalFileError,
@@ -9,9 +10,11 @@ const fixtures = new URL('../fixtures/document-formats/', import.meta.url);
 
 describe('Office Host release UI', () => {
   it('carries DOCX part and XLSX sheet/cell locations into the review document', async () => {
-    const docx = await openExternalReviewDocument(new URL('messy-minimal.docx', fixtures).pathname);
+    const docx = await openExternalReviewDocument(
+      fileURLToPath(new URL('messy-minimal.docx', fixtures)),
+    );
     const xlsx = await openExternalReviewDocument(
-      new URL('messy-formula-free.xlsx', fixtures).pathname,
+      fileURLToPath(new URL('messy-formula-free.xlsx', fixtures)),
     );
     expect(docx.status).toBe('READY');
     expect(xlsx.status).toBe('READY');

@@ -53,7 +53,9 @@ describe('E14 encrypted client dictionary store', () => {
     expect(saved.ok).toBe(true);
     if (!saved.ok) return;
     expect(saved.value).toBe(join(root, 'clients', context.clientId, 'dictionary.enc'));
-    expect((await stat(saved.value)).mode & 0o777).toBe(0o600);
+    if (process.platform !== 'win32') {
+      expect((await stat(saved.value)).mode & 0o777).toBe(0o600);
+    }
     expect(await readFile(saved.value, 'utf8')).not.toContain('星河科技');
     const loaded = await loadClientDictionary(saved.value, key, context);
     expect(loaded.ok).toBe(true);
