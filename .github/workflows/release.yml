@@ -27,7 +27,7 @@ jobs:
         run: |
           node --input-type=module -e "import fs from 'node:fs'; const version=JSON.parse(fs.readFileSync('manifest.json','utf8')).version; if (process.env.GITHUB_REF_NAME !== version) { throw new Error('Tag must exactly match manifest version'); }"
       - name: Run complete release gate
-        run: pnpm ci
+        run: pnpm run ci
       - name: Publish direct Community assets and provenance
         env:
           GH_TOKEN: ${{ github.token }}

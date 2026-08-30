@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.1 — 2026-08-31
+
+- 修正clean tag release workflow呼叫方式；產品功能與1.2.0相同。
+- 修正Windows checkout換行、Office fixture URL、POSIX mode斷言與SBOM pnpm啟動的跨平台Gate。
+
 ## 1.2.0 — 2026-08-31
 
 - 正式支援通過精確allowlist的DOCX與XLSX安全子集；未知OOXML、巨集、OLE、外部資料、修訂、公式、註解及其他未關閉surface一律fail closed。

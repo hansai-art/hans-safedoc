@@ -76,7 +76,7 @@ describe('Hans SafeDoc v1.2 Obsidian integration contract', () => {
     expect(workspace).toContain('this.actions.chooseFile()');
   });
 
-  it('keeps identifiers compatible while aligning 1.2.0 metadata', () => {
+  it('keeps identifiers compatible while aligning 1.2.1 metadata', () => {
     const packageJson = JSON.parse(read('package.json')) as { version: string };
     const pluginPackage = JSON.parse(read('packages/obsidian-plugin/package.json')) as {
       version: string;
@@ -90,16 +90,16 @@ describe('Hans SafeDoc v1.2 Obsidian integration contract', () => {
     };
     const rootManifest = JSON.parse(read('manifest.json')) as typeof pluginManifest;
     const versions = JSON.parse(read('versions.json')) as Record<string, string>;
-    expect(packageJson.version).toBe('1.2.0');
-    expect(pluginPackage.version).toBe('1.2.0');
+    expect(packageJson.version).toBe('1.2.1');
+    expect(pluginPackage.version).toBe('1.2.1');
     expect(pluginManifest).toMatchObject({
       id: 'privacy-bridge',
       name: 'Hans SafeDoc',
-      version: '1.2.0',
+      version: '1.2.1',
     });
     expect(rootManifest).toEqual(pluginManifest);
     expect(pluginManifest.description).toContain('MD, TXT, CSV, DOCX, and XLSX');
-    expect(versions['1.2.0']).toBe(pluginManifest.minAppVersion);
+    expect(versions['1.2.1']).toBe(pluginManifest.minAppVersion);
     expect(read('packages/obsidian-plugin/src/main.ts')).toContain("id: 'scan-current-note'");
     for (const path of [
       'packages/obsidian-plugin/src/help-view.ts',
@@ -168,7 +168,7 @@ describe('Hans SafeDoc v1.2 Obsidian integration contract', () => {
     expect(workflow).toContain('permissions:');
     expect(workflow).toContain('contents: write');
     expect(workflow).toContain('pnpm install --frozen-lockfile');
-    expect(workflow).toContain('pnpm ci');
+    expect(workflow).toContain('pnpm run ci');
     expect(workflow).toContain('artifacts/release/main.js');
     expect(workflow).toContain('artifacts/release/manifest.json');
     expect(workflow).toContain('artifacts/release/styles.css');
