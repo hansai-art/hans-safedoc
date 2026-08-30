@@ -9,6 +9,7 @@ const root = resolve(import.meta.dirname, '..');
 const pluginDist = resolve(root, 'packages/obsidian-plugin/dist');
 const outdir = resolve(root, 'artifacts/release');
 const encoder = new TextEncoder();
+const ZIP_REGULAR_FILE_MODE = (0o100644 << 16) >>> 0;
 const u16 = (value) => Buffer.from([value & 255, (value >>> 8) & 255]);
 const u32 = (value) =>
   Buffer.from([value & 255, (value >>> 8) & 255, (value >>> 16) & 255, (value >>> 24) & 255]);
@@ -60,7 +61,7 @@ function buildReleaseZip(entries) {
         u16(0),
         u16(0),
         u16(0),
-        u32(0),
+        u32(ZIP_REGULAR_FILE_MODE),
         u32(offset),
         name,
       ]),

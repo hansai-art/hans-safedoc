@@ -76,7 +76,7 @@ describe('Hans SafeDoc v1.2 Obsidian integration contract', () => {
     expect(workspace).toContain('this.actions.chooseFile()');
   });
 
-  it('keeps identifiers compatible while aligning 1.2.2 metadata', () => {
+  it('keeps identifiers compatible while aligning 1.2.3 metadata', () => {
     const packageJson = JSON.parse(read('package.json')) as { version: string };
     const pluginPackage = JSON.parse(read('packages/obsidian-plugin/package.json')) as {
       version: string;
@@ -90,16 +90,16 @@ describe('Hans SafeDoc v1.2 Obsidian integration contract', () => {
     };
     const rootManifest = JSON.parse(read('manifest.json')) as typeof pluginManifest;
     const versions = JSON.parse(read('versions.json')) as Record<string, string>;
-    expect(packageJson.version).toBe('1.2.2');
-    expect(pluginPackage.version).toBe('1.2.2');
+    expect(packageJson.version).toBe('1.2.3');
+    expect(pluginPackage.version).toBe('1.2.3');
     expect(pluginManifest).toMatchObject({
       id: 'privacy-bridge',
       name: 'Hans SafeDoc',
-      version: '1.2.2',
+      version: '1.2.3',
     });
     expect(rootManifest).toEqual(pluginManifest);
     expect(pluginManifest.description).toContain('MD, TXT, CSV, DOCX, and XLSX');
-    expect(versions['1.2.2']).toBe(pluginManifest.minAppVersion);
+    expect(versions['1.2.3']).toBe(pluginManifest.minAppVersion);
     expect(read('packages/obsidian-plugin/src/main.ts')).toContain("id: 'scan-current-note'");
     for (const path of [
       'packages/obsidian-plugin/src/help-view.ts',
@@ -154,6 +154,7 @@ describe('Hans SafeDoc v1.2 Obsidian integration contract', () => {
     expect(script).toContain('Release version metadata mismatch');
     expect(script).toContain("sbom: 'sbom.cdx.json'");
     expect(script).toContain('Release archive entry validation failed');
+    expect(script).toContain('ZIP_REGULAR_FILE_MODE = (0o100644 << 16) >>> 0');
     expect(script).toContain('`${archiveName}.sha256`');
     expect(script).toContain("'THIRD-PARTY-NOTICES.md'");
     expect(script).toContain('docs/THREAT-MODEL-V1.1.md');

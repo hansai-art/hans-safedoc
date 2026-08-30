@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.3 — 2026-08-31
+
+- 修正release ZIP的Unix檔案權限，解壓後為可讀的0644，不再產生mode 000檔案。
+
 ## 1.2.2 — 2026-08-31
 
 - 修正Office replacement token偶然包含原始短字串時的殘留誤判；只移除本次精確replacement後再檢查其餘解析surface，未放寬殘留阻擋。
