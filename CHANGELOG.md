@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.2 — 2026-08-31
+
+- 修正Office replacement token偶然包含原始短字串時的殘留誤判；只移除本次精確replacement後再檢查其餘解析surface，未放寬殘留阻擋。
+
 ## 1.2.1 — 2026-08-31
 
 - 修正clean tag release workflow呼叫方式；產品功能與1.2.0相同。

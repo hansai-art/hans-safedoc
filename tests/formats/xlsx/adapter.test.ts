@@ -18,6 +18,18 @@ describe('XLSX safe subset', () => {
     expect(() => xlsxAdapter.extract(source)).toThrow(OoxmlBlockedError);
   });
 
+  it('removes exact generated replacements before checking residual substrings', async () => {
+    const source = await readFile(new URL('common-libreoffice.xlsx', corpus));
+    const extraction = xlsxAdapter.extract(source);
+    const cell = extraction.cells.find((candidate) => candidate.value === '0900-000-012');
+    expect(cell).toBeDefined();
+    if (!cell) return;
+    const replacement = '⟦PB:PHONE:0900-000-012:COLLISION⟧';
+    const artifact = xlsxAdapter.rewrite(source, [{ locator: cell.locator, replacement }]);
+    expect(xlsxAdapter.residual(artifact, ['0900-000-012'])).toEqual(['0900-000-012']);
+    expect(xlsxAdapter.residual(artifact, ['0900-000-012'], [replacement])).toEqual([]);
+  });
+
   it('extracts all visible/hidden/veryHidden inline cells and preserves structure on rewrite', async () => {
     const source = await readFile(new URL('messy-formula-free.xlsx', corpus));
     const before = Buffer.from(source);

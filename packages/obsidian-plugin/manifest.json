@@ -1,7 +1,7 @@
 {
   "id": "privacy-bridge",
   "name": "Hans SafeDoc",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "minAppVersion": "1.8.0",
   "description": "Read-only local pseudonymization for MD, TXT, CSV, DOCX, and XLSX with manual review.",
   "author": "Hans Lin",

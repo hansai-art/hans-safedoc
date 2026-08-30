@@ -763,12 +763,13 @@ export const xlsxAdapter = {
   extract: scan,
   rewrite,
   reopen: independentReopen,
-  residual(artifact: Buffer, needles: readonly string[]) {
+  residual(artifact: Buffer, needles: readonly string[], replacements: readonly string[] = []) {
     const extraction = independentReopen(artifact);
-    const values = [
+    let values = [
       ...extraction.cells.flatMap((cell) => [cell.value, cell.rawValue, cell.displayValue]),
       ...extraction.reviewItems.map((item) => item.value),
     ].join('\n');
+    for (const replacement of replacements) values = values.replaceAll(replacement, '');
     return needles.filter((needle) => values.includes(needle));
   },
   verifyReopen: (artifact: Buffer) => verifyOoxmlReopen(artifact, 'xlsx'),

@@ -394,6 +394,7 @@ async function verifyArtifact(
   document: ExternalReviewDocument,
   artifact: Buffer,
   needles: readonly string[],
+  replacements: readonly string[],
 ): Promise<void> {
   const unacknowledgedResiduals = (residuals: readonly string[]): readonly string[] =>
     residuals.filter(
@@ -414,13 +415,13 @@ async function verifyArtifact(
   }
   if (document.kind === 'docx') {
     docxAdapter.reopen(artifact);
-    if (unacknowledgedResiduals(docxAdapter.residual(artifact, needles)).length > 0)
+    if (unacknowledgedResiduals(docxAdapter.residual(artifact, needles, replacements)).length > 0)
       throw new Error('安全副本仍含已接受的原始資料');
     return;
   }
   if (document.kind === 'xlsx') {
     xlsxAdapter.reopen(artifact);
-    if (unacknowledgedResiduals(xlsxAdapter.residual(artifact, needles)).length > 0)
+    if (unacknowledgedResiduals(xlsxAdapter.residual(artifact, needles, replacements)).length > 0)
       throw new Error('安全副本仍含已接受的原始資料');
     return;
   }
@@ -469,7 +470,10 @@ export async function publishExternalReviewedDocument(input: {
   const needles = input.prepared.previewChanges
     .filter((change) => change.decision === 'ACCEPTED')
     .map((change) => change.before);
-  await verifyArtifact(input.document, artifact, needles);
+  const replacements = input.prepared.previewChanges
+    .filter((change) => change.decision === 'ACCEPTED')
+    .map((change) => change.after);
+  await verifyArtifact(input.document, artifact, needles, replacements);
   await input.document.source.recheck('before-staging-write');
   await mkdir(input.outputParent, { recursive: true, mode: 0o700 });
   const suffix = randomBytes(5).toString('hex');
@@ -480,7 +484,7 @@ export async function publishExternalReviewedDocument(input: {
   let published = false;
   try {
     await writeFile(staging, artifact, { mode: 0o600 });
-    await verifyArtifact(input.document, await readFile(staging), needles);
+    await verifyArtifact(input.document, await readFile(staging), needles, replacements);
     await input.document.source.recheck('before-publish');
     await link(staging, output);
     published = true;

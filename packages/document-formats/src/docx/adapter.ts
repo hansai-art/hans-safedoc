@@ -470,13 +470,15 @@ export const docxAdapter = {
   residual(
     artifact: Buffer,
     checks: readonly (string | { needle: string; decision: 'replace' | 'retain' })[],
+    replacements: readonly string[] = [],
   ) {
     const extraction = independentReopen(artifact);
-    const logical = [
+    let logical = [
       ...extraction.surfaces.map((surface) => surface.text),
       ...extraction.reviewItems.map((item) => item.value),
       ...extraction.hyperlinks.map((link) => link.target),
     ].join('\n');
+    for (const replacement of replacements) logical = logical.replaceAll(replacement, '');
     return checks
       .filter((check) => typeof check === 'string' || check.decision === 'replace')
       .map((check) => (typeof check === 'string' ? check : check.needle))
