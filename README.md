@@ -1,4 +1,29 @@
-# Hans SafeDoc v1.2
+# Hans SafeDoc
+
+Hans SafeDoc is a desktop-only Obsidian plugin for reviewing and pseudonymizing local documents without overwriting the originals. It supports read-only MD, TXT, CSV, DOCX, and XLSX sources and creates a new safe copy only after item-by-item review and artifact verification.
+
+## Installation
+
+1. After the Obsidian directory review is approved, open **Settings → Community plugins → Browse** and search for **Hans SafeDoc**.
+2. Select **Install**, then **Enable**.
+3. If directory installation is not yet available, download `main.js`, `manifest.json`, and `styles.css` from the GitHub Release matching `manifest.version`, then place them in `<Vault>/.obsidian/plugins/privacy-bridge/` and restart Obsidian.
+
+## Basic usage
+
+1. Open a Markdown note or choose a supported local file.
+2. Review every suspected sensitive value and every mandatory Office surface.
+3. Inspect the preview, then create a safe copy.
+4. Open the output in its native application and verify it before sharing.
+
+## Privacy and limitations
+
+- Document processing is local and includes no telemetry or network requests.
+- The plugin reads only the selected source and writes a new safe copy outside the vault; it never overwrites the source.
+- Detection can miss names, organizations, and context-specific identifiers. Manual review is always required and does not constitute a legal determination of anonymization.
+- DOCX and XLSX use a narrow fail-closed profile. Macros, formulas, external content, tracked changes, and unknown OOXML structures are blocked.
+- PDF, legacy `.doc` and `.xls`, mobile Obsidian, and unsupported formats are not processed directly.
+
+## 繁體中文
 
 Hans SafeDoc 是 Obsidian 電腦版的本機文件去識別化外掛。它只讀取來源，讓使用者逐項審核疑似敏感資料，再建立新的安全副本；原始文件不會被覆寫。
 
@@ -47,7 +72,7 @@ MD／TXT／CSV／DOCX／XLSX 的固定規則可獨立使用，不需要安裝 Ol
 
 ## 安裝步驟
 
-目前尚未列入 Obsidian Community Plugins；不要把「可手動安裝」誤認為已正式上架。
+官方公開 listing 已建立，目錄自動審查仍在進行；「Add to Obsidian」啟用前仍使用下列手動安裝方式。
 
 1. 從 GitHub Release 下載與 `manifest.version` 完全相同版本的 `main.js`、`manifest.json`、`styles.css`。
 2. 將三個檔案放到 `<Obsidian Vault>/.obsidian/plugins/privacy-bridge/`。
@@ -59,7 +84,7 @@ MD／TXT／CSV／DOCX／XLSX 的固定規則可獨立使用，不需要安裝 Ol
 1. `docs/MASTER-SPEC.md`：唯一最高規格
 2. `docs/DECISION-REGISTER.md`：已鎖定決策
 3. `docs/IMPLEMENTATION-PLAN.md`：固定 Merge Order 與 Epic
-4. `docs/ACCEPTANCE-MATRIX.md`：105 項驗收
+4. `docs/ACCEPTANCE-MATRIX.md`：127 項驗收
 5. `schemas/`：18 份 machine-readable data contracts
 6. `docs/THREAT-MODEL-V1.1.md`：Hans SafeDoc 1.1 Phase 1 威脅模型
 7. `docs/UX-STATE-MAP.md`：畫面、狀態與按鈕規則
@@ -83,7 +108,7 @@ MASTER-SPEC
 
 ## 現有程式碼
 
-`reference/legacy-seed/` 只作為規則與測試起始素材，不是規格來源。既有 79 個測試不得被用來宣稱企業資料準確率；它們只是最低回歸基線。
+`reference/legacy-seed/` 只作為規則與測試起始素材，不是規格來源。回歸測試不得被用來宣稱企業資料準確率；它們只是最低安全基線。
 
 ## 開放產品決策
 

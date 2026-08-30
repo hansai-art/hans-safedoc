@@ -236,12 +236,12 @@
 }
 
 .privacy-bridge-diff-before {
-  background: var(--background-secondary);
+  background-color: var(--background-secondary);
   background: color-mix(in srgb, var(--color-red) 14%, var(--background-primary));
 }
 
 .privacy-bridge-diff-after {
-  background: var(--background-secondary);
+  background-color: var(--background-secondary);
   background: color-mix(in srgb, var(--color-green) 14%, var(--background-primary));
 }
 
@@ -272,12 +272,12 @@
 }
 
 .privacy-bridge-full-before {
-  background: var(--background-secondary);
+  background-color: var(--background-secondary);
   background: color-mix(in srgb, var(--color-red) 10%, var(--background-primary));
 }
 
 .privacy-bridge-full-after {
-  background: var(--background-secondary);
+  background-color: var(--background-secondary);
   background: color-mix(in srgb, var(--color-green) 10%, var(--background-primary));
 }
 
@@ -399,12 +399,12 @@
 }
 
 .privacy-bridge-document-source .privacy-bridge-document-text {
-  background: var(--background-secondary);
+  background-color: var(--background-secondary);
   background: color-mix(in srgb, var(--color-red) 10%, var(--background-primary));
 }
 
 .privacy-bridge-document-sanitized .privacy-bridge-document-text {
-  background: var(--background-secondary);
+  background-color: var(--background-secondary);
   background: color-mix(in srgb, var(--color-green) 10%, var(--background-primary));
 }
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.4 — 2026-08-31
+
+- 新增英文安裝、使用與隱私說明，修正Obsidian CSS lint，並為三個Community release assets產生GitHub artifact attestations。
+
 ## 1.2.3 — 2026-08-31
 
 - 修正release ZIP的Unix檔案權限，解壓後為可讀的0644，不再產生mode 000檔案。

@@ -6,6 +6,8 @@ on:
 
 permissions:
   contents: write
+  id-token: write
+  attestations: write
 
 jobs:
   release:
@@ -28,6 +30,13 @@ jobs:
           node --input-type=module -e "import fs from 'node:fs'; const version=JSON.parse(fs.readFileSync('manifest.json','utf8')).version; if (process.env.GITHUB_REF_NAME !== version) { throw new Error('Tag must exactly match manifest version'); }"
       - name: Run complete release gate
         run: pnpm run ci
+      - name: Attest direct Community assets
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: |
+            artifacts/release/main.js
+            artifacts/release/manifest.json
+            artifacts/release/styles.css
       - name: Publish direct Community assets and provenance
         env:
           GH_TOKEN: ${{ github.token }}
