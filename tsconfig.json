@@ -6,6 +6,7 @@
     "baseUrl": ".",
     "paths": {
       "@privacy-bridge/core": ["packages/core/src/index.ts"],
+      "@privacy-bridge/document-formats": ["packages/document-formats/src/index.ts"],
       "@privacy-bridge/obsidian-plugin": ["packages/obsidian-plugin/src/index.ts"]
     }
   },

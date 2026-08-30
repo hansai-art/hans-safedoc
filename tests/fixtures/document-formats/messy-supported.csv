@@ -1,0 +1,6 @@
+﻿姓名,電話,Email,Email,備註,金額,尾端空欄
+王測試,0900-000-001,case.alpha@example.invalid,case.alpha@example.invalid,"第一行
+第二行，含逗號與""雙引號""",001234,
+林範例,0900 000 002,case.beta@example.invalid,,"欄位內有,逗號",-42,
+陳合成,0900000003,audit.owner@example.invalid,audit.owner@example.invalid,少一欄
+王測試,0900-000-001,case.alpha+tag@example.invalid,,多一欄,3.14159,,EXTRA

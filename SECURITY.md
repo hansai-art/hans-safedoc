@@ -1,8 +1,8 @@
 # Security Policy
 
-## Alpha Notice
+## Release Candidate Notice
 
-Privacy Bridge Alpha is for synthetic or test data only. Do not use it with production customer data until the Security Ready and GitHub Alpha gates have been independently verified for the actual release commit.
+Hans SafeDoc 1.1.0 尚未正式發布。在實際 release commit 完成獨立安全審查、跨平台及人工驗收前，只能使用純合成或測試資料，不得處理正式客戶資料。
 
 ## Reporting
 
@@ -21,12 +21,12 @@ Use the repository's private security advisory process. Include only safe Error 
 
 ## Supported Versions
 
-During Alpha, only the latest tagged release receives fixes.
+正式發布後，只維護最新標記版本。目前尚無受支援的正式版本。
 
 ## Security Invariants
 
 - Original Vault is read-only.
-- No runtime network path or telemetry.
+- 文件讀取、掃描、推論、預覽與輸出沒有網路路徑或遙測。唯一例外是使用者主動選擇線上安裝模型時，由固定 HTTPS 來源下載固定 revision 的模型資料，並逐檔驗證大小及 SHA-256。
 - Mapping and dictionary remain outside the Vault and encrypted.
 - Unknown or cross-job tokens are rejected.
 - Secret values are never reversibly tokenized.

@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://privacy-bridge.local/schemas/v1.1/format-job-index-v1.1.schema.json",
+  "title": "Format Job Index v1.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "clientId",
+    "jobId",
+    "contentId",
+    "contentSchema",
+    "contentVersion",
+    "format",
+    "adapterId",
+    "adapterVersion",
+    "minimumReaderVersion",
+    "minimumWriterVersion",
+    "state",
+    "sourceSha256",
+    "inventorySha256",
+    "manifestSha256",
+    "activeGenerationId",
+    "artifactId",
+    "createdAt",
+    "updatedAt"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.1.0"
+    },
+    "clientId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "jobId": {
+      "type": "string",
+      "pattern": "^PB-[0-9]{8}-[0-9A-HJKMNP-TV-Z]{10}$"
+    },
+    "contentId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "contentSchema": {
+      "const": "pb-format-job"
+    },
+    "contentVersion": {
+      "const": "1.1.0"
+    },
+    "format": {
+      "enum": ["txt", "csv", "docx", "xlsx"]
+    },
+    "adapterId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "adapterVersion": {
+      "const": "1.1.0"
+    },
+    "minimumReaderVersion": {
+      "const": "1.1.0"
+    },
+    "minimumWriterVersion": {
+      "const": "1.1.0"
+    },
+    "state": {
+      "enum": [
+        "DRAFT",
+        "INVENTORY_REQUIRED",
+        "SCANNING",
+        "REVIEW_REQUIRED",
+        "READY_TO_BUILD",
+        "BUILDING_SHADOW",
+        "RESIDUAL_REVIEW",
+        "READY_TO_EXPORT",
+        "EXPORTED",
+        "FAILED"
+      ]
+    },
+    "sourceSha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "inventorySha256": {
+      "type": ["string", "null"],
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "manifestSha256": {
+      "type": ["string", "null"],
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "activeGenerationId": {
+      "type": ["string", "null"],
+      "maxLength": 200
+    },
+    "artifactId": {
+      "type": ["string", "null"],
+      "maxLength": 200
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

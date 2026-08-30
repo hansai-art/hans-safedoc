@@ -1,6 +1,6 @@
 {
   "name": "@privacy-bridge/obsidian-plugin",
-  "version": "0.1.0",
+  "version": "1.2.0",
   "private": true,
   "type": "module",
   "exports": {
@@ -8,5 +8,8 @@
   },
   "scripts": {
     "build": "node build.mjs"
+  },
+  "dependencies": {
+    "fflate": "0.8.2"
   }
 }

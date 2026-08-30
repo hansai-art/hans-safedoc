@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "1.1.0",
+  "transactionId": "44444444-4444-4444-8444-444444444444",
+  "jobId": "PB-20260829-0123456789",
+  "format": "txt",
+  "adapterId": "txt",
+  "adapterVersion": "1.1.0",
+  "phase": "PREPARING",
+  "sourceSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "manifestSha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "rewritePlanSha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "expectedArtifactId": "artifact-01",
+  "packageGenerationId": "package-generation-01",
+  "secureGenerationId": "secure-generation-01",
+  "steps": [
+    {
+      "stepId": "77777777-7777-4777-8777-777777777777",
+      "name": "prepare-generation",
+      "state": "PENDING",
+      "expectedHash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "updatedAt": "2026-08-29T10:00:00Z"
+    }
+  ],
+  "startedAt": "2026-08-29T10:00:00Z",
+  "updatedAt": "2026-08-29T10:00:00Z"
+}

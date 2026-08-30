@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://privacy-bridge.local/schemas/v1.1/format-inventory-v1.1.schema.json",
+  "title": "Format Inventory v1.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "jobId",
+    "documentId",
+    "format",
+    "adapterId",
+    "adapterVersion",
+    "sourceSha256",
+    "inventorySha256",
+    "entries",
+    "blockerCodes",
+    "createdAt"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.1.0"
+    },
+    "jobId": {
+      "type": "string",
+      "pattern": "^PB-[0-9]{8}-[0-9A-HJKMNP-TV-Z]{10}$"
+    },
+    "documentId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "format": {
+      "enum": ["txt", "csv", "docx", "xlsx"]
+    },
+    "adapterId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "adapterVersion": {
+      "const": "1.1.0"
+    },
+    "sourceSha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "inventorySha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["entryId", "kind", "classification", "containerPart", "sizeBytes", "sha256"],
+        "properties": {
+          "entryId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "kind": {
+            "enum": ["part", "relationship", "surface", "media"]
+          },
+          "classification": {
+            "enum": ["ALLOWED", "BLOCKED", "MANUAL_REVIEW"]
+          },
+          "containerPart": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024,
+            "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+          },
+          "sizeBytes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "blockerCode": {
+            "type": ["string", "null"],
+            "pattern": "^HSD-[A-Z]+-[0-9]{3}$"
+          }
+        }
+      },
+      "maxItems": 10000
+    },
+    "blockerCodes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^HSD-[A-Z]+-[0-9]{3}$"
+      },
+      "uniqueItems": true,
+      "maxItems": 10000
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

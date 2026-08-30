@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "1.1.0",
+  "jobId": "PB-20260829-0123456789",
+  "documentId": "11111111-1111-4111-8111-111111111111",
+  "format": "txt",
+  "adapterId": "txt",
+  "adapterVersion": "1.1.0",
+  "sourceSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "inventorySha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "manifestSha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "rewritePlanSha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "operations": [
+    {
+      "occurrenceId": "22222222-2222-4222-8222-222222222222",
+      "formatLocatorV11": {
+        "kind": "txt",
+        "sourceSurfaceHashSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "rawByteStart": 0,
+        "rawByteEnd": 4,
+        "logicalStartUtf16": 0,
+        "logicalEndUtf16": 4,
+        "segmentId": "segment-0",
+        "mapSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "decision": "TOKENIZE",
+      "replacement": "⟦PB:PERSON:EXAMPLE:TOKEN⟧"
+    }
+  ],
+  "parts": [
+    {
+      "containerPart": "source.txt",
+      "action": "MODIFY"
+    }
+  ],
+  "createdAt": "2026-08-29T10:00:00Z"
+}

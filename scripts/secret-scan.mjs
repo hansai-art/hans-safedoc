@@ -1,12 +1,35 @@
 #!/usr/bin/env node
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { readdirSync, readFileSync } from 'node:fs';
+import { extname, relative, resolve } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..');
-const files = execFileSync('git', ['ls-files', '-z'], { cwd: root, encoding: 'utf8' })
-  .split('\0')
-  .filter((path) => /^(packages|scripts)\//.test(path));
+const textExtensions = new Set(['.css', '.js', '.json', '.md', '.mjs', '.ts']);
+function walk(path) {
+  return readdirSync(path, { withFileTypes: true }).flatMap((entry) => {
+    if (entry.name === 'node_modules' || entry.name === 'dist' || entry.name === 'artifacts')
+      return [];
+    const absolute = resolve(path, entry.name);
+    if (entry.isDirectory()) return walk(absolute);
+    return entry.isFile() && textExtensions.has(extname(entry.name))
+      ? [relative(root, absolute)]
+      : [];
+  });
+}
+function productionFiles() {
+  try {
+    return execFileSync('git', ['ls-files', '-z'], {
+      cwd: root,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    })
+      .split('\0')
+      .filter((path) => /^(packages|scripts)\//.test(path));
+  } catch {
+    return ['packages', 'scripts'].flatMap((path) => walk(resolve(root, path))).sort();
+  }
+}
+const files = productionFiles();
 const patterns = [
   /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/,
   /(?:sk|gh[pousr])_[A-Za-z0-9_-]{20,}/,

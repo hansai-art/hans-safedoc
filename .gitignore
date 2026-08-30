@@ -13,4 +13,8 @@ Thumbs.db
 *-results/
 privacy-bridge-secure-store/
 .migration/
+.hermes/
 *.tmp
+
+# Spectra app data
+.spectra/

@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { basename, dirname, posix, relative } from 'node:path';
+import { dirname, posix, relative } from 'node:path';
 import { err, error, ok, type Result } from './index.js';
 import { parseWikilinks, replaceMarkdownSpans } from './markdown.js';
 
@@ -35,10 +35,11 @@ export function createPathMap(
     if (!path.ok || seen.has(path.value.normalize('NFC').toLocaleLowerCase('en-US')))
       return err(error('PB-FILE-006'));
     seen.add(path.value.normalize('NFC').toLocaleLowerCase('en-US'));
+    const opaqueId = `DOC-${String(index + 1).padStart(6, '0')}`;
     entries.push({
       documentId: doc.documentId,
       sourceRelativePath: path.value,
-      sanitizedRelativePath: `DOC-${String(index + 1).padStart(6, '0')}/${basename(path.value)}`,
+      sanitizedRelativePath: `${opaqueId}/${opaqueId}.md`,
       sourcePathHash: createHash('sha256').update(path.value, 'utf8').digest('hex'),
     });
   }

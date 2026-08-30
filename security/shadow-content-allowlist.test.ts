@@ -32,10 +32,9 @@ it('ACC-EXP-005: publishes only sanitized Markdown, never secure map or .obsidia
     expect(built.ok).toBe(true);
     if (!built.ok) return;
     expect(await readdir(built.value.root)).toEqual(['DOC-000001']);
+    expect(await readdir(join(built.value.root, 'DOC-000001'))).toEqual(['DOC-000001.md']);
     expect(
-      new TextDecoder().decode(
-        await readFile(join(built.value.root, 'DOC-000001/canary-raw-name.md')),
-      ),
+      new TextDecoder().decode(await readFile(join(built.value.root, 'DOC-000001/DOC-000001.md'))),
     ).toContain('PB:PERSON');
   } finally {
     await rm(root, { recursive: true, force: true });

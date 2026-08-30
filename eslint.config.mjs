@@ -10,6 +10,7 @@ export default tseslint.config(
       'coverage/**',
       'artifacts/**',
       'node_modules/**',
+      '**/.venv/**',
       'reference/legacy-seed/**',
     ],
   },

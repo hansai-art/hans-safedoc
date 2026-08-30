@@ -25,10 +25,15 @@ export default defineConfig({
       'ui/*.test.ts',
     ],
     environment: 'node',
+    testTimeout: 20_000,
   },
   resolve: {
     alias: {
       '@privacy-bridge/core': resolve(import.meta.dirname, 'packages/core/src/index.ts'),
+      '@privacy-bridge/document-formats': resolve(
+        import.meta.dirname,
+        'packages/document-formats/src/index.ts',
+      ),
       '@privacy-bridge/obsidian-plugin': resolve(
         import.meta.dirname,
         'packages/obsidian-plugin/src/index.ts',

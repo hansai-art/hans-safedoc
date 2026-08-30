@@ -7,6 +7,7 @@ for (const [command, args] of [
   ['pnpm', ['install', '--frozen-lockfile', '--ignore-scripts']],
   ['pnpm', ['run', 'build']],
   ['pnpm', ['run', 'validate:schemas']],
+  ['pnpm', ['run', 'sbom']],
   ['pnpm', ['run', 'release:artifact']],
 ]) {
   execFileSync(command, args, { cwd: root, stdio: 'inherit' });

@@ -122,6 +122,15 @@ describe('Obsidian current-note vertical workflow', () => {
           decision: 'IGNORED',
         }),
       ]);
+      expect(prepared.value.previewHunks).toEqual([
+        expect.objectContaining({
+          lineNumber: 1,
+          collapsedBefore: 0,
+          beforeLine: '電話：0912-345-678',
+          afterLine: expect.stringMatching(/^電話：⟦PB:TW_MOBILE:/u),
+          displayAfterLine: '電話：⟦手機代碼 01⟧',
+        }),
+      ]);
 
       const published = await publishPreparedDocument({
         vaultRoot,

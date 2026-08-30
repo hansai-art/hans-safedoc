@@ -1,0 +1,5 @@
+﻿姓名,輸入值,聯絡方式
+王測試,=1+1,case.alpha@example.invalid
+林範例,+0900000002,0900-000-002
+陳合成,"@SUM(1,2)",audit.owner@example.invalid
+王測試,-1+2,safe text

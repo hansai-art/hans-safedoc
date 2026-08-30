@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "product": "Hans SafeDoc",
+  "spec_version": "1.1.0",
+  "status": "LOCKED",
+  "locked_on": "2026-08-29",
+  "files": {
+    "docs/HANS-SAFEDOC-V1.1-FORMAT-EXPANSION-SPEC.md": "b6c2fe320237154f45d6b045bfb69ab5bcb8cab8a8460c2933d569be150b542a",
+    "docs/HANS-SAFEDOC-V1.1-ACCEPTANCE-MATRIX.csv": "a6c7f39950878b9f99b51248affe1e82006cc906b7de1c6b3e8d12d586bd2a82",
+    "docs/HANS-SAFEDOC-V1.1-REQUIREMENTS.csv": "e2c9b20778defa7b323c0ccdc16233bb6ea010bf5a6d3b1cd2a3cd7a5c024445",
+    "docs/HANS-SAFEDOC-V1.1-CLAUSE-COVERAGE.csv": "477f484405f6313afbf0ae36e382606c7b9ebdcfb0d9b47680b7cfaec5bbe5a6",
+    "docs/HANS-SAFEDOC-V1.1-OOXML-ALLOWLIST.csv": "eb6340e578988b05000cd5a9884416b6a17aa53cb793904f43337a8dc5643bfa",
+    "docs/HANS-SAFEDOC-V1.1-OOXML-RELATIONSHIPS.csv": "f2fd1e37173d51b06d2c76f76ae3a86b247827c4c82dcc8b644c7f08226e4592",
+    "docs/HANS-SAFEDOC-V1.1-OOXML-SURFACES.csv": "984eb69b0427c0cc6e2c0e3f32ffc8b2a092b5ad073c07934c4a26c1fbe2038e"
+  }
+}

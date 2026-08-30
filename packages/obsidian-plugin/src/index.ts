@@ -3,8 +3,7 @@ export interface RuntimeInfo {
 }
 
 export function assertDesktopRuntime(runtime: RuntimeInfo): void {
-  if (runtime.isMobile)
-    throw new Error('PB-PLATFORM-001: Privacy Bridge requires Obsidian Desktop.');
+  if (runtime.isMobile) throw new Error('PB-PLATFORM-001: Hans SafeDoc requires Obsidian Desktop.');
 }
 
 /**

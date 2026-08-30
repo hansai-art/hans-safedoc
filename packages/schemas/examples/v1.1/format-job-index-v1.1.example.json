@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "1.1.0",
+  "clientId": "33333333-3333-4333-8333-333333333333",
+  "jobId": "PB-20260829-0123456789",
+  "contentId": "88888888-8888-4888-8888-888888888888",
+  "contentSchema": "pb-format-job",
+  "contentVersion": "1.1.0",
+  "format": "txt",
+  "adapterId": "txt",
+  "adapterVersion": "1.1.0",
+  "minimumReaderVersion": "1.1.0",
+  "minimumWriterVersion": "1.1.0",
+  "state": "SCANNING",
+  "sourceSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "inventorySha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "manifestSha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "activeGenerationId": null,
+  "artifactId": null,
+  "createdAt": "2026-08-29T10:00:00Z",
+  "updatedAt": "2026-08-29T10:00:00Z"
+}

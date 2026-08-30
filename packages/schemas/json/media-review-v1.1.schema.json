@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://privacy-bridge.local/schemas/v1.1/media-review-v1.1.schema.json",
+  "title": "Media Review v1.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "jobId",
+    "documentId",
+    "format",
+    "adapterId",
+    "adapterVersion",
+    "items",
+    "createdAt",
+    "updatedAt"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.1.0"
+    },
+    "jobId": {
+      "type": "string",
+      "pattern": "^PB-[0-9]{8}-[0-9A-HJKMNP-TV-Z]{10}$"
+    },
+    "documentId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "format": {
+      "const": "docx"
+    },
+    "adapterId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "adapterVersion": {
+      "const": "1.1.0"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "mediaId",
+          "mediaLocatorV11",
+          "contentType",
+          "mediaSha256",
+          "decision",
+          "reviewedAt"
+        ],
+        "properties": {
+          "mediaId": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "mediaLocatorV11": {
+            "$ref": "#/$defs/mediaLocatorV11"
+          },
+          "contentType": {
+            "enum": ["image/png", "image/jpeg"]
+          },
+          "mediaSha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "decision": {
+            "enum": ["PENDING", "ACCEPTED", "REJECTED"]
+          },
+          "reviewedAt": {
+            "type": ["string", "null"],
+            "format": "date-time"
+          }
+        }
+      },
+      "maxItems": 10000
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "$defs": {
+    "mediaLocatorV11": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "partName", "relationshipId"],
+          "properties": {
+            "kind": {
+              "const": "docx-embedded-media"
+            },
+            "partName": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024,
+              "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+            },
+            "relationshipId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "relsPartName", "relationshipId", "targetMode"],
+          "properties": {
+            "kind": {
+              "const": "ooxml-linked-media"
+            },
+            "relsPartName": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024,
+              "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+            },
+            "relationshipId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "targetMode": {
+              "const": "External"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

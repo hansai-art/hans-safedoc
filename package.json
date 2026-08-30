@@ -1,6 +1,6 @@
 {
   "name": "privacy-bridge",
-  "version": "0.1.0",
+  "version": "1.2.0",
   "private": true,
   "license": "MIT",
   "type": "module",
@@ -10,7 +10,7 @@
   },
   "scripts": {
     "lint": "eslint . --max-warnings=0",
-    "format:check": "prettier --check package.json pnpm-workspace.yaml tsconfig.json tsconfig.base.json vitest.config.ts eslint.config.mjs .prettierrc.json .github/workflows/ci.yml 'packages/**/*.ts' 'packages/**/*.json' 'packages/**/*.mjs' 'scripts/*.mjs' 'tests/**/*.ts' 'architecture/*.test.ts' 'ci/*.test.mjs' 'crypto/*.test.ts' 'detection/*.test.ts' 'dictionary/*.test.ts' 'files/*.test.ts' 'fuzz/*.test.ts' 'handling/*.test.ts' 'integration/*.test.ts' 'mapping/*.test.ts' 'recovery/*.test.ts' 'regression/*.test.ts' 'review/*.test.ts' 'schema/*.test.ts' 'security/*.test.ts' 'store/*.test.ts' 'token/*.test.ts' 'ui/*.test.ts'",
+    "format:check": "prettier --check package.json pnpm-workspace.yaml tsconfig.json tsconfig.base.json vitest.config.ts eslint.config.mjs .prettierrc.json .github/workflows/ci.yml .github/workflows/release.yml \"packages/**/*.ts\" \"packages/**/*.json\" \"packages/**/*.mjs\" \"scripts/*.mjs\" \"tests/**/*.ts\" \"architecture/*.test.ts\" \"ci/*.test.mjs\" \"crypto/*.test.ts\" \"detection/*.test.ts\" \"dictionary/*.test.ts\" \"files/*.test.ts\" \"fuzz/*.test.ts\" \"handling/*.test.ts\" \"integration/*.test.ts\" \"mapping/*.test.ts\" \"recovery/*.test.ts\" \"regression/*.test.ts\" \"review/*.test.ts\" \"schema/*.test.ts\" \"security/*.test.ts\" \"store/*.test.ts\" \"token/*.test.ts\" \"ui/*.test.ts\"",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "acceptance": "node scripts/run-acceptance.mjs",
@@ -24,7 +24,7 @@
     "release:artifact": "node scripts/release-artifact.mjs",
     "clean:machine": "node scripts/clean-machine-check.mjs",
     "performance:fixture": "node scripts/generate-performance-fixture.mjs",
-    "ci": "pnpm verify:lockfile && pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm build && pnpm validate:schemas && pnpm scan:network && pnpm scan:secrets && pnpm scan:licenses && pnpm sbom && pnpm release:artifact"
+    "ci": "pnpm verify:lockfile && pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm acceptance && pnpm build && pnpm validate:schemas && pnpm scan:network && pnpm scan:secrets && pnpm scan:licenses && pnpm sbom && pnpm release:artifact"
   },
   "devDependencies": {
     "@cyclonedx/cyclonedx-npm": "^4.1.1",
@@ -35,6 +35,7 @@
     "esbuild": "^0.25.9",
     "eslint": "^9.34.0",
     "fast-check": "^4.2.0",
+    "fflate": "0.8.2",
     "globals": "^16.3.0",
     "license-checker-rseidelsohn": "^4.4.2",
     "prettier": "^3.6.2",

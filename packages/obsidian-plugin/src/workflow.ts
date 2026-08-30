@@ -23,6 +23,7 @@ export interface PreparedReviewedDocument {
   readonly sourceContent: string;
   readonly sanitizedContent: string;
   readonly previewChanges: readonly PreviewChange[];
+  readonly previewHunks: readonly PreviewHunk[];
   readonly sourceSha256: string;
   readonly documentId: string;
 }
@@ -33,6 +34,101 @@ export interface PreviewChange {
   readonly before: string;
   readonly after: string;
   readonly decision: CandidateDecision;
+  readonly start: number;
+  readonly end: number;
+}
+
+export interface PreviewHunk {
+  readonly lineNumber: number;
+  readonly collapsedBefore: number;
+  readonly beforeLine: string;
+  readonly afterLine: string;
+  readonly displayAfterLine: string;
+  readonly types: readonly string[];
+}
+
+const DISPLAY_TYPE_NAMES: Readonly<Record<string, string>> = {
+  TW_ID: '身分證',
+  TW_ARC: '居留證',
+  TW_TAX_ID: '統一編號',
+  TW_PASSPORT: '護照',
+  PASSPORT_CANDIDATE: '疑似護照號碼',
+  TW_NHI_CARD: '健保卡號',
+  TW_MOBILE: '手機',
+  TW_LANDLINE: '市話',
+  TW_PHONE_SERVICE: '服務電話',
+  TW_ADDRESS: '地址',
+  TW_POSTCODE: '郵遞區號',
+  TW_PLATE: '車牌',
+  TW_INVOICE: '發票號碼',
+  TW_BANK_ACCOUNT: '銀行帳號',
+  CREDIT_CARD: '信用卡',
+  EMAIL: '電子郵件',
+  IPV4: '網路位址',
+  URL: '網址',
+  LINE_ID: 'LINE 帳號',
+  SECRET: '機密字串',
+  AMBIGUOUS_IDENTIFIER: '無法判定類型的識別碼',
+  PERSON: '人名',
+  ORGANIZATION: '組織',
+  PROJECT: '專案',
+  PRODUCT: '產品',
+  DEPARTMENT: '部門',
+  SYSTEM: '系統',
+  CUSTOM_TERM: '自訂詞',
+};
+
+export const displayTypeName = (type: string): string => DISPLAY_TYPE_NAMES[type] ?? '其他敏感資料';
+
+export function buildPreviewHunks(
+  source: string,
+  changes: readonly PreviewChange[],
+): readonly PreviewHunk[] {
+  const displayTokens = new Map<string, string>();
+  const typeCounts = new Map<string, number>();
+  for (const change of [...changes]
+    .filter((candidate) => candidate.decision === 'ACCEPTED')
+    .sort((left, right) => left.start - right.start)) {
+    const count = (typeCounts.get(change.type) ?? 0) + 1;
+    typeCounts.set(change.type, count);
+    const typeName = displayTypeName(change.type);
+    displayTokens.set(change.candidateId, `⟦${typeName}代碼 ${String(count).padStart(2, '0')}⟧`);
+  }
+  const groups = new Map<number, PreviewChange[]>();
+  for (const change of changes) {
+    if (change.decision !== 'ACCEPTED') continue;
+    const lineStart = source.lastIndexOf('\n', Math.max(0, change.start - 1)) + 1;
+    const group = groups.get(lineStart) ?? [];
+    group.push(change);
+    groups.set(lineStart, group);
+  }
+  let previousLine = 0;
+  return [...groups.entries()]
+    .sort(([left], [right]) => left - right)
+    .map(([lineStart, lineChanges]) => {
+      const lineEnd = source.indexOf('\n', lineStart);
+      const end = lineEnd === -1 ? source.length : lineEnd;
+      const beforeLine = source.slice(lineStart, end);
+      const lineNumber = source.slice(0, lineStart).split('\n').length;
+      let afterLine = beforeLine;
+      let displayAfterLine = beforeLine;
+      for (const change of [...lineChanges].sort((left, right) => right.start - left.start)) {
+        const start = change.start - lineStart;
+        const finish = change.end - lineStart;
+        afterLine = `${afterLine.slice(0, start)}${change.after}${afterLine.slice(finish)}`;
+        displayAfterLine = `${displayAfterLine.slice(0, start)}${displayTokens.get(change.candidateId) ?? change.after}${displayAfterLine.slice(finish)}`;
+      }
+      const hunk: PreviewHunk = {
+        lineNumber,
+        collapsedBefore: Math.max(0, lineNumber - previousLine - 1),
+        beforeLine,
+        afterLine,
+        displayAfterLine,
+        types: [...new Set(lineChanges.map((change) => change.type))],
+      };
+      previousLine = lineNumber;
+      return hunk;
+    });
 }
 
 export interface PublishPreparedDocumentInput {
@@ -99,18 +195,22 @@ export function prepareReviewedDocument(
   const tokens = new Map(
     accepted.map((candidate, index) => [candidate.candidateId, assignments[index]!.token]),
   );
+  const previewChanges: readonly PreviewChange[] = candidates.map((candidate) => ({
+    candidateId: candidate.candidateId,
+    type: candidate.primaryType,
+    before: candidate.surfaceText,
+    after: tokens.get(candidate.candidateId) ?? candidate.surfaceText,
+    decision: decisions[candidate.candidateId]!,
+    start: candidate.start,
+    end: candidate.end,
+  }));
   return ok({
     jobId,
     candidates,
     sourceContent: source,
     sanitizedContent: sanitized.value,
-    previewChanges: candidates.map((candidate) => ({
-      candidateId: candidate.candidateId,
-      type: candidate.primaryType,
-      before: candidate.surfaceText,
-      after: tokens.get(candidate.candidateId) ?? candidate.surfaceText,
-      decision: decisions[candidate.candidateId]!,
-    })),
+    previewChanges,
+    previewHunks: buildPreviewHunks(source, previewChanges),
     sourceSha256: sha256(source),
     documentId: assignments[0]?.entityId ?? sha256(source).slice(0, 16),
   });

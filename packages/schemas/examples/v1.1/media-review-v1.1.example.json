@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "1.1.0",
+  "jobId": "PB-20260829-0123456789",
+  "documentId": "11111111-1111-4111-8111-111111111111",
+  "format": "docx",
+  "adapterId": "docx",
+  "adapterVersion": "1.1.0",
+  "items": [
+    {
+      "mediaId": "55555555-5555-4555-8555-555555555555",
+      "mediaLocatorV11": {
+        "kind": "docx-embedded-media",
+        "partName": "word/media/image1.png",
+        "relationshipId": "rId5"
+      },
+      "contentType": "image/png",
+      "mediaSha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "decision": "ACCEPTED",
+      "reviewedAt": "2026-08-29T10:00:00Z"
+    }
+  ],
+  "createdAt": "2026-08-29T10:00:00Z",
+  "updatedAt": "2026-08-29T10:00:00Z"
+}

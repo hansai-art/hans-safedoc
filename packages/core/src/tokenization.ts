@@ -35,16 +35,21 @@ export function tokenizeDocument(
     handling: 'TOKENIZE';
   }[],
 ): Result<string> {
-  let out = source;
-  for (const r of [...replacements].sort((a, b) => b.start - a.start)) {
+  const ordered = [...replacements].sort((a, b) => a.start - b.start);
+  const chunks: string[] = [];
+  let cursor = 0;
+  for (const r of ordered) {
     if (
       r.start < 0 ||
       r.end <= r.start ||
       r.end > source.length ||
+      r.start < cursor ||
       createHash('sha256').update(source.slice(r.start, r.end)).digest('hex') !== r.sourceTextHash
     )
       return err(error('PB-FILE-004'));
-    out = out.slice(0, r.start) + r.token + out.slice(r.end);
+    chunks.push(source.slice(cursor, r.start), r.token);
+    cursor = r.end;
   }
-  return ok(out);
+  chunks.push(source.slice(cursor));
+  return ok(chunks.join(''));
 }

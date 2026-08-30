@@ -1,0 +1,1359 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://privacy-bridge.local/schemas/v1.1/artifact-verification-v1.1.schema.json",
+  "title": "Artifact Verification v1.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "jobId",
+    "documentId",
+    "artifactId",
+    "format",
+    "adapterId",
+    "adapterVersion",
+    "artifactSha256",
+    "artifactSizeBytes",
+    "independentParserId",
+    "independentParserVersion",
+    "checks",
+    "verifiedOccurrences",
+    "blockerCodes",
+    "verifiedAt"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.1.0"
+    },
+    "jobId": {
+      "type": "string",
+      "pattern": "^PB-[0-9]{8}-[0-9A-HJKMNP-TV-Z]{10}$"
+    },
+    "documentId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "artifactId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "format": {
+      "enum": ["txt", "csv", "docx", "xlsx"]
+    },
+    "adapterId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "adapterVersion": {
+      "const": "1.1.0"
+    },
+    "artifactSha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "artifactSizeBytes": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "independentParserId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "independentParserVersion": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "containerParsed",
+        "requiredPartsPresent",
+        "relationshipsIntact",
+        "untargetedStructurePreserved",
+        "tokensAuthentic",
+        "canariesAbsent",
+        "activeContentAbsent"
+      ],
+      "properties": {
+        "containerParsed": {
+          "type": "boolean"
+        },
+        "requiredPartsPresent": {
+          "type": "boolean"
+        },
+        "relationshipsIntact": {
+          "type": "boolean"
+        },
+        "untargetedStructurePreserved": {
+          "type": "boolean"
+        },
+        "tokensAuthentic": {
+          "type": "boolean"
+        },
+        "canariesAbsent": {
+          "type": "boolean"
+        },
+        "activeContentAbsent": {
+          "type": "boolean"
+        }
+      }
+    },
+    "verifiedOccurrences": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["occurrenceId", "artifactLocatorV11", "status"],
+        "properties": {
+          "occurrenceId": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "artifactLocatorV11": {
+            "$ref": "#/$defs/artifactLocatorV11"
+          },
+          "status": {
+            "enum": ["VERIFIED", "FAILED"]
+          }
+        }
+      },
+      "maxItems": 5000000
+    },
+    "blockerCodes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200
+      },
+      "uniqueItems": true,
+      "maxItems": 10000
+    },
+    "verifiedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "$defs": {
+    "artifactLocatorV11": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "sourceSurfaceHashSha256",
+            "rawByteStart",
+            "rawByteEnd",
+            "logicalStartUtf16",
+            "logicalEndUtf16",
+            "segmentId",
+            "mapSha256",
+            "artifactLogicalStartUtf16",
+            "artifactLogicalEndUtf16",
+            "artifactSurfaceSha256",
+            "sourceToOutputMapSha256"
+          ],
+          "properties": {
+            "kind": {
+              "const": "txt"
+            },
+            "sourceSurfaceHashSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "rawByteStart": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "rawByteEnd": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "logicalStartUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "logicalEndUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "segmentId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "mapSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "artifactLogicalStartUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "artifactLogicalEndUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "artifactSurfaceSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "sourceToOutputMapSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "sourceSurfaceHashSha256",
+            "rowIndex0",
+            "columnIndex0",
+            "rawFieldByteStart",
+            "rawFieldByteEnd",
+            "rawContentByteStart",
+            "rawContentByteEnd",
+            "decodedStartUtf16",
+            "decodedEndUtf16",
+            "quoteState",
+            "mapSha256",
+            "artifactLogicalStartUtf16",
+            "artifactLogicalEndUtf16",
+            "artifactSurfaceSha256",
+            "sourceToOutputMapSha256"
+          ],
+          "properties": {
+            "kind": {
+              "const": "csv-field"
+            },
+            "sourceSurfaceHashSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "rowIndex0": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "columnIndex0": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "rawFieldByteStart": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "rawFieldByteEnd": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "rawContentByteStart": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "rawContentByteEnd": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "decodedStartUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "decodedEndUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "quoteState": {
+              "enum": ["quoted", "plain"]
+            },
+            "mapSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "artifactLogicalStartUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "artifactLogicalEndUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "artifactSurfaceSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "sourceToOutputMapSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "sourceSurfaceHashSha256",
+            "partName",
+            "blockPath",
+            "runSlices",
+            "logicalStartUtf16",
+            "logicalEndUtf16",
+            "mapSha256",
+            "artifactLogicalStartUtf16",
+            "artifactLogicalEndUtf16",
+            "artifactSurfaceSha256",
+            "sourceToOutputMapSha256"
+          ],
+          "properties": {
+            "kind": {
+              "const": "docx-text"
+            },
+            "sourceSurfaceHashSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "partName": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024,
+              "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+            },
+            "blockPath": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "runSlices": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["childPath", "startUtf16", "endUtf16"],
+                "properties": {
+                  "childPath": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "startUtf16": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "endUtf16": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              },
+              "minItems": 1,
+              "maxItems": 100000
+            },
+            "logicalStartUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "logicalEndUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "mapSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "artifactLogicalStartUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "artifactLogicalEndUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "artifactSurfaceSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "sourceToOutputMapSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "sourceSurfaceHashSha256",
+            "sheetRelId",
+            "cellRef",
+            "valueKind",
+            "logicalStartUtf16",
+            "logicalEndUtf16",
+            "mapSha256",
+            "artifactLogicalStartUtf16",
+            "artifactLogicalEndUtf16",
+            "artifactSurfaceSha256",
+            "sourceToOutputMapSha256"
+          ],
+          "properties": {
+            "kind": {
+              "const": "xlsx-cell-text"
+            },
+            "sourceSurfaceHashSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "sheetRelId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "cellRef": {
+              "type": "string",
+              "pattern": "^[A-Z]{1,3}[1-9][0-9]*$"
+            },
+            "valueKind": {
+              "enum": ["shared", "inline"]
+            },
+            "richTextSlices": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["run", "startUtf16", "endUtf16"],
+                "properties": {
+                  "run": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "startUtf16": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "endUtf16": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              },
+              "minItems": 1,
+              "maxItems": 100000
+            },
+            "logicalStartUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "logicalEndUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "mapSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "artifactLogicalStartUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "artifactLogicalEndUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "artifactSurfaceSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "sourceToOutputMapSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "sourceSurfaceHashSha256",
+            "partName",
+            "sheetRelId",
+            "cellRef",
+            "elementQName",
+            "startUtf16",
+            "endUtf16",
+            "mapSha256",
+            "artifactLogicalStartUtf16",
+            "artifactLogicalEndUtf16",
+            "artifactSurfaceSha256",
+            "sourceToOutputMapSha256"
+          ],
+          "properties": {
+            "kind": {
+              "const": "xlsx-raw-value"
+            },
+            "sourceSurfaceHashSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "partName": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024,
+              "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+            },
+            "sheetRelId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "cellRef": {
+              "type": "string",
+              "pattern": "^[A-Z]{1,3}[1-9][0-9]*$"
+            },
+            "elementQName": {
+              "const": "x:v"
+            },
+            "startUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "endUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "mapSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "artifactLogicalStartUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "artifactLogicalEndUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "artifactSurfaceSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "sourceToOutputMapSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "sourceSurfaceHashSha256",
+            "partName",
+            "sheetRelId",
+            "cellRef",
+            "rawValueHashSha256",
+            "numberFormatId",
+            "displayStartUtf16",
+            "displayEndUtf16",
+            "mapSha256",
+            "artifactLogicalStartUtf16",
+            "artifactLogicalEndUtf16",
+            "artifactSurfaceSha256",
+            "sourceToOutputMapSha256"
+          ],
+          "properties": {
+            "kind": {
+              "const": "xlsx-display-value"
+            },
+            "sourceSurfaceHashSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "partName": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024,
+              "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+            },
+            "sheetRelId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "cellRef": {
+              "type": "string",
+              "pattern": "^[A-Z]{1,3}[1-9][0-9]*$"
+            },
+            "rawValueHashSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "numberFormatId": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "displayStartUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "displayEndUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "mapSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "artifactLogicalStartUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "artifactLogicalEndUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "artifactSurfaceSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "sourceToOutputMapSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "sourceSurfaceHashSha256",
+            "partName",
+            "sheetRelId",
+            "cellRef",
+            "formulaKind",
+            "elementQName",
+            "startUtf16",
+            "endUtf16",
+            "mapSha256",
+            "artifactLogicalStartUtf16",
+            "artifactLogicalEndUtf16",
+            "artifactSurfaceSha256",
+            "sourceToOutputMapSha256"
+          ],
+          "properties": {
+            "kind": {
+              "const": "xlsx-formula"
+            },
+            "sourceSurfaceHashSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "partName": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024,
+              "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+            },
+            "sheetRelId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "cellRef": {
+              "type": "string",
+              "pattern": "^[A-Z]{1,3}[1-9][0-9]*$"
+            },
+            "formulaKind": {
+              "enum": ["normal", "shared-master", "shared-follower", "array", "data-table"]
+            },
+            "elementQName": {
+              "const": "x:f"
+            },
+            "startUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "endUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "mapSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "artifactLogicalStartUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "artifactLogicalEndUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "artifactSurfaceSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "sourceToOutputMapSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "sourceSurfaceHashSha256",
+            "partName",
+            "sheetRelId",
+            "cellRef",
+            "elementQName",
+            "startUtf16",
+            "endUtf16",
+            "mapSha256",
+            "artifactLogicalStartUtf16",
+            "artifactLogicalEndUtf16",
+            "artifactSurfaceSha256",
+            "sourceToOutputMapSha256"
+          ],
+          "properties": {
+            "kind": {
+              "const": "xlsx-cached-result"
+            },
+            "sourceSurfaceHashSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "partName": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024,
+              "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+            },
+            "sheetRelId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "cellRef": {
+              "type": "string",
+              "pattern": "^[A-Z]{1,3}[1-9][0-9]*$"
+            },
+            "elementQName": {
+              "const": "x:v"
+            },
+            "startUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "endUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "mapSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "artifactLogicalStartUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "artifactLogicalEndUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "artifactSurfaceSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "sourceToOutputMapSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "sourceSurfaceHashSha256",
+            "package",
+            "partName",
+            "canonicalElementPath",
+            "elementQName",
+            "textNodeIndex",
+            "startUtf16",
+            "endUtf16",
+            "mapSha256",
+            "artifactLogicalStartUtf16",
+            "artifactLogicalEndUtf16",
+            "artifactSurfaceSha256",
+            "sourceToOutputMapSha256"
+          ],
+          "properties": {
+            "kind": {
+              "const": "ooxml-element-text"
+            },
+            "sourceSurfaceHashSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "package": {
+              "enum": ["docx", "xlsx"]
+            },
+            "partName": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024,
+              "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+            },
+            "canonicalElementPath": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "elementQName": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "textNodeIndex": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "startUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "endUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "mapSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "artifactLogicalStartUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "artifactLogicalEndUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "artifactSurfaceSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "sourceToOutputMapSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "sourceSurfaceHashSha256",
+            "package",
+            "partName",
+            "canonicalElementPath",
+            "elementQName",
+            "attributeQName",
+            "startUtf16",
+            "endUtf16",
+            "mapSha256",
+            "artifactLogicalStartUtf16",
+            "artifactLogicalEndUtf16",
+            "artifactSurfaceSha256",
+            "sourceToOutputMapSha256"
+          ],
+          "properties": {
+            "kind": {
+              "const": "ooxml-attribute-value"
+            },
+            "sourceSurfaceHashSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "package": {
+              "enum": ["docx", "xlsx"]
+            },
+            "partName": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024,
+              "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+            },
+            "canonicalElementPath": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "elementQName": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "attributeQName": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "startUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "endUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "mapSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "artifactLogicalStartUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "artifactLogicalEndUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "artifactSurfaceSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "sourceToOutputMapSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "sourceSurfaceHashSha256",
+            "package",
+            "partName",
+            "propertyQName",
+            "occurrenceIndex0",
+            "logicalStartUtf16",
+            "logicalEndUtf16",
+            "mapSha256",
+            "artifactLogicalStartUtf16",
+            "artifactLogicalEndUtf16",
+            "artifactSurfaceSha256",
+            "sourceToOutputMapSha256"
+          ],
+          "properties": {
+            "kind": {
+              "const": "ooxml-property"
+            },
+            "sourceSurfaceHashSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "package": {
+              "enum": ["docx", "xlsx"]
+            },
+            "partName": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024,
+              "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+            },
+            "propertyQName": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "occurrenceIndex0": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "logicalStartUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "logicalEndUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "mapSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "artifactLogicalStartUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "artifactLogicalEndUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "artifactSurfaceSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "sourceToOutputMapSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "sourceSurfaceHashSha256",
+            "package",
+            "partName",
+            "commentId",
+            "logicalStartUtf16",
+            "logicalEndUtf16",
+            "mapSha256",
+            "artifactLogicalStartUtf16",
+            "artifactLogicalEndUtf16",
+            "artifactSurfaceSha256",
+            "sourceToOutputMapSha256"
+          ],
+          "properties": {
+            "kind": {
+              "const": "comment-author"
+            },
+            "sourceSurfaceHashSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "package": {
+              "const": "docx"
+            },
+            "partName": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024,
+              "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+            },
+            "commentId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "logicalStartUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "logicalEndUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "mapSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "artifactLogicalStartUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "artifactLogicalEndUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "artifactSurfaceSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "sourceToOutputMapSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "sourceSurfaceHashSha256",
+            "package",
+            "relsPartName",
+            "relationshipId",
+            "targetMode",
+            "logicalStartUtf16",
+            "logicalEndUtf16",
+            "mapSha256",
+            "artifactLogicalStartUtf16",
+            "artifactLogicalEndUtf16",
+            "artifactSurfaceSha256",
+            "sourceToOutputMapSha256"
+          ],
+          "properties": {
+            "kind": {
+              "const": "relationship-target"
+            },
+            "sourceSurfaceHashSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "package": {
+              "enum": ["docx", "xlsx"]
+            },
+            "relsPartName": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024,
+              "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+            },
+            "relationshipId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "targetMode": {
+              "enum": ["Internal", "External"]
+            },
+            "logicalStartUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "logicalEndUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "mapSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "artifactLogicalStartUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "artifactLogicalEndUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "artifactSurfaceSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "sourceToOutputMapSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "sourceSurfaceHashSha256",
+            "sheetIndex0",
+            "sheetRelId",
+            "logicalStartUtf16",
+            "logicalEndUtf16",
+            "mapSha256",
+            "artifactLogicalStartUtf16",
+            "artifactLogicalEndUtf16",
+            "artifactSurfaceSha256",
+            "sourceToOutputMapSha256"
+          ],
+          "properties": {
+            "kind": {
+              "const": "xlsx-sheet-name"
+            },
+            "sourceSurfaceHashSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "sheetIndex0": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "sheetRelId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "logicalStartUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "logicalEndUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "mapSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "artifactLogicalStartUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "artifactLogicalEndUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "artifactSurfaceSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "sourceToOutputMapSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "sourceSurfaceHashSha256",
+            "definedNameIndex0",
+            "logicalStartUtf16",
+            "logicalEndUtf16",
+            "mapSha256",
+            "artifactLogicalStartUtf16",
+            "artifactLogicalEndUtf16",
+            "artifactSurfaceSha256",
+            "sourceToOutputMapSha256"
+          ],
+          "properties": {
+            "kind": {
+              "const": "xlsx-defined-name"
+            },
+            "sourceSurfaceHashSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "definedNameIndex0": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "localSheetId": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "logicalStartUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "logicalEndUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "mapSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "artifactLogicalStartUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "artifactLogicalEndUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "artifactSurfaceSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "sourceToOutputMapSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "sourceSurfaceHashSha256",
+            "partName",
+            "tableId",
+            "attribute",
+            "logicalStartUtf16",
+            "logicalEndUtf16",
+            "mapSha256",
+            "artifactLogicalStartUtf16",
+            "artifactLogicalEndUtf16",
+            "artifactSurfaceSha256",
+            "sourceToOutputMapSha256"
+          ],
+          "properties": {
+            "kind": {
+              "const": "xlsx-table-name"
+            },
+            "sourceSurfaceHashSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "partName": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024,
+              "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+            },
+            "tableId": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "attribute": {
+              "enum": ["name", "displayName"]
+            },
+            "logicalStartUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "logicalEndUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "mapSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "artifactLogicalStartUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "artifactLogicalEndUtf16": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "artifactSurfaceSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "sourceToOutputMapSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

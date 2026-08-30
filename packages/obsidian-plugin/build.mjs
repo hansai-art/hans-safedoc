@@ -2,6 +2,8 @@ import { build } from 'esbuild';
 import { cp, mkdir, rm } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
+await import('../../scripts/generate-ooxml-contracts.mjs');
+
 const root = resolve(import.meta.dirname);
 const outdir = resolve(root, 'dist');
 
@@ -14,6 +16,8 @@ await build({
   format: 'cjs',
   platform: 'node',
   target: 'es2022',
+  inject: [resolve(root, 'src/network-deny-runtime.ts')],
+
   outfile: resolve(outdir, 'main.js'),
   sourcemap: false,
   minify: true,

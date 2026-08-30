@@ -1,47 +1,66 @@
-# Gate D manual acceptance checklist
+# Hans SafeDoc 1.1 Phase 1 人工驗收
 
-Status: PENDING. This checklist is deliberately outside the locked acceptance/spec documents. It is evidence collection, not an automated-pass substitute.
+狀態：**PENDING／BLOCKER**。本清單只收集真人與跨平台證據，不能以自動測試代簽。
 
-## Preconditions
+## 驗收前置
 
-Run on a new local OS user profile with a fresh Obsidian profile. Record the exact Obsidian version, plugin commit, OS version and UTC start time in the evidence file.
+- macOS、Windows 各使用新的 OS 帳號與全新 Obsidian profile。
+- 只使用專用合成測試 Vault，不得放入真實敏感資料。
+- 記錄 OS、Obsidian、外掛版本、source commit、開始時間及驗收人。
+- 每項只能填 `PASS`、`FAIL` 或 `PENDING`；PASS 必須附截圖／錄影檔名與一句觀察結果。
 
-```sh
-pnpm install --frozen-lockfile
-pnpm run ci
-pnpm acceptance
-```
+## A. 安裝與首次設定
 
-Save terminal output as `manual-evidence/<os>-<utc>/automation.log`.
+| ID         | 操作                                                               | PASS 標準                                                  |
+| ---------- | ------------------------------------------------------------------ | ---------------------------------------------------------- |
+| D-SETUP-01 | 手動安裝 `main.js`、`manifest.json`、`styles.css` 後啟用外掛。     | 外掛載入成功，無console error。                            |
+| D-SETUP-02 | 不接受安全告知，關閉modal後嘗試工具列與指令。                      | 不讀文件、不掃描、不輸出；只重開安全告知。                 |
+| D-SETUP-03 | 接受告知後分別選「建立合成練習」、「使用自己的MD」、「稍後處理」。 | 三條路徑都能返回可理解狀態；只有明確選擇時才建立練習筆記。 |
+| D-SETUP-04 | 檢查首次設定、Help與設定資料。                                      | 只有固定規則模式；無模型安裝／匯入入口，舊啟用值被關閉。     |
 
-## macOS and Windows workflow
+## B. 格式與安全輸出
 
-Repeat every item independently on macOS and Windows. Mark PASS only with a screenshot or screen recording filename and the observed result. Any failure remains PENDING/FAIL and blocks release.
+| ID       | 操作                                                                             | PASS 標準                                                                   |
+| -------- | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| D-FMT-01 | 各完成一份合成MD、UTF-8 TXT及結構安全CSV的掃描、逐項確認、預覽、二次確認與輸出。 | 來源hash不變；輸出可重開；已接受原文無殘留；檔名為opaque ID，不含來源檔名。 |
+| D-FMT-02 | 測試TXT BOM／CRLF，以及CSV comma／Tab／semicolon與quoted newline。               | 格式特徵保留，欄數與結構不變。                                              |
+| D-FMT-03 | 測試模糊delimiter、損壞引號、欄數不一致、CSV公式。                               | 顯示白話原因、來源未修改、沒有輸出。                                        |
+| D-FMT-04 | 選擇DOCX、XLSX、PDF及其他未支援格式。                                            | Office保持阻擋；PDF只說明本機轉Markdown；不讀取或輸出。                     |
+| D-FMT-05 | 掃描失敗或完成後選「處理另一份檔案」。                                           | 上一份候選、決策、預覽及artifact狀態完全清除。                              |
 
-| ID | Reproducible action | Expected evidence |
-| --- | --- | --- |
-| D-OS-01 | Install the built plugin into a new Obsidian profile, open the dashboard, create and unlock a Client, create a Job from the supplied demo vault. | Store path is in OS Application Data, not the vault; no console error. |
-| D-OS-02 | Lock Client, switch Client, put the machine to sleep and resume after 15 minutes, then try review/export. | Keys are cleared and sensitive view is masked until unlock. |
-| D-OS-03 | Complete scan, review, Shadow, Safe Package, Result import, restore and `.pbjob` backup/import. | Each state transition appears once; original vault checksum before/after is equal. |
-| D-OS-04 | Upgrade plugin, then rollback plugin version with an existing store. | Store remains readable or shows a safe migration error. No new empty Client/Job is created. |
-| D-OS-05 | Uninstall/reinstall plugin after creating a Client and Job. | Secure Store behavior matches the documented local-data policy; source remains unchanged. |
+## C. 鍵盤與螢幕閱讀器
 
-## Keyboard and screen-reader gate
+macOS 使用 VoiceOver；Windows 使用 Narrator。全程不得使用滑鼠。
 
-Use VoiceOver on macOS and Narrator on Windows. With keyboard only, tab through dashboard, review and disabled Export controls.
+| ID        | 操作                                          | PASS 標準                                        |
+| --------- | --------------------------------------------- | ------------------------------------------------ |
+| D-A11Y-01 | 走完首次設定、選檔、審核、預覽及完成頁。      | 焦點順序可預期、可見，沒有keyboard trap。        |
+| D-A11Y-02 | 在每一步使用Escape、取消與錯誤後重試。        | Modal正確關閉；焦點回到安全且可理解的位置。      |
+| D-A11Y-03 | 朗讀按鈕、狀態、錯誤及disabled輸出控制。      | 名稱、目前狀態與阻擋原因完整朗讀，沒有舊品牌。   |
+| D-A11Y-04 | 以390px等效窄視窗及深／淺色各走一次主要流程。 | 無裁切、橫向捲動或低對比；主要操作目標至少44px。 |
 
-| ID | Reproducible action | Expected evidence |
-| --- | --- | --- |
-| D-A11Y-01 | Navigate every command/view/button by keyboard without a mouse. | Visible focus order, no keyboard trap, Escape closes modal. |
-| D-A11Y-02 | Read locked state and disabled Export control with screen reader. | State, action and every blocking reason are announced. |
-| D-A11Y-03 | Lock Client while review/diff is visible. | Raw text is removed/masked and focus lands on a safe control. |
+## D. 安裝生命週期與效能
 
-## Performance gate
+| ID        | 操作                                                                                                      | PASS 標準                                                      |
+| --------- | --------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| D-LIFE-01 | 由前一候選升級至1.1.0，再回滾並重新升級。                                                                 | 設定可讀或安全提示不相容；不建立空白或損壞狀態。               |
+| D-LIFE-02 | 移除並重裝外掛；測試舊版曾留下模型資料的升級情境。                                                        | 新版不讀取或執行舊模型；來源與既有安全輸出不變。               |
+| D-PERF-01 | 在真實Obsidian重複掃描50MB合成單檔並取消一次。                                                            | UI可取消且恢復；無半套輸出；記錄時間、峰值記憶體及驗收人判定。 |
+| D-PERF-02 | 掃描1,000份合成筆記。                                                                                     | 記錄時間與峰值記憶體；無凍結、崩潰或來源修改。                 |
+| D-NET-01  | 依 `NETWORK-EVIDENCE-RUNBOOK.md` 同時啟動PKTAP、Electron NetLog及runtime recorder，再走MD／TXT／CSV流程。 | 文件動作零外連；三層證據、版本與hash完整。                     |
+| D-NET-02  | fresh profile檢查首次設定與Help後重走文件流程。                                                          | 無模型網路入口；catalog零URL，SafeDoc相關外連為0。             |
 
-Generate the locked performance fixture and record elapsed time and peak memory on each OS.
+D-NET-01：**PASS（2026-08-30）**。真實Obsidian Host三層證據已保存；0 capture drops、SafeDoc動作相關外連0、來源hash不變、匿名新輸出3、原文殘留0。Obsidian本身在動作窗前建立的更新／Sync背景連線已依NetLog來源、local port與時間線分離歸因。
 
-```sh
-pnpm performance:fixture
-```
+D-NET-02：**PENDING（scope changed）**。2026-08-30的模型安裝PASS只保留為歷史研究證據；目前release已移除模型入口與URL，必須對新build重新驗證「無模型網路面、文件流程零外連」，舊證據不可直接沿用。
 
-Run the UI scan against the generated 50 MB/1,000-note fixture. Attach the command output plus OS activity-monitor screenshot. This remains PENDING until a human records the agreed threshold decision.
+## E. 簽核
+
+- macOS驗收人：`PENDING`
+- Windows驗收人：`PENDING`
+- VoiceOver驗收人：`PENDING`
+- Narrator驗收人：`PENDING`
+- 獨立安全reviewer：`PENDING`
+- Hans產品／UX接受：`PENDING`
+
+以上任一項仍為PENDING或FAIL時，`RELEASE-READINESS.md`必須維持STOP。

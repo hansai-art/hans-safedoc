@@ -59,10 +59,17 @@ export async function buildShadowVault(input: {
     const files: { documentId: string; relativePath: string; sha256: string; size: number }[] = [];
     for (const document of input.documents) {
       const entry = map.get(document.documentId),
-        path = entry && normalizeRelativePath(entry.sanitizedRelativePath);
+        path = entry && normalizeRelativePath(entry.sanitizedRelativePath),
+        source = normalizeRelativePath(document.sourceRelativePath),
+        mappedSource = entry && normalizeRelativePath(entry.sourceRelativePath);
       if (
         !entry ||
         !path?.ok ||
+        !source.ok ||
+        !mappedSource?.ok ||
+        source.value !== mappedSource.value ||
+        !source.value.toLowerCase().endsWith('.md') ||
+        source.value.split('/').some((segment) => segment.toLowerCase() === '.obsidian') ||
         !path.value.endsWith('.md') ||
         path.value.split('/').some((segment) => segment.toLowerCase() === '.obsidian') ||
         hash(document.content) !== document.sourceSha256

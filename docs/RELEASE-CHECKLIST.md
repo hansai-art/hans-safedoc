@@ -3,6 +3,8 @@
 **版本：** 1.0.0 LOCKED  
 **規則：** 所有標記 `[BLOCKER]` 的項目都必須通過。不得用「已知問題」繞過安全與資料完整性 Gate。
 
+> 歷史文件：本清單只適用 v1.0 Client／Job／Whole Vault alpha 架構。Hans SafeDoc v1.1 Phase 1 的 release 正本為 [`RELEASE-CHECKLIST-V1.1.md`](RELEASE-CHECKLIST-V1.1.md)，不得混用本清單要求來判定 v1.1 GO／STOP。
+
 ---
 
 # Gate A — Core Ready

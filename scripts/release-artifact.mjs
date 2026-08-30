@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { cp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
+import { unzipSync } from 'fflate';
 
 const root = resolve(import.meta.dirname, '..');
 const pluginDist = resolve(root, 'packages/obsidian-plugin/dist');
@@ -80,11 +81,60 @@ function buildReleaseZip(entries) {
     u16(0),
   ]);
 }
+const dirty = execFileSync('git', ['status', '--porcelain', '--untracked-files=normal'], {
+  cwd: root,
+  encoding: 'utf8',
+}).trim();
+if (dirty) throw new Error('Refusing to prepare release artifacts from a dirty working tree.');
+
+const rootManifest = JSON.parse(await readFile(resolve(root, 'manifest.json'), 'utf8'));
+const pluginSourceManifestPath = resolve(root, 'packages/obsidian-plugin/manifest.json');
+const pluginSourceManifest = JSON.parse(await readFile(pluginSourceManifestPath, 'utf8'));
+const pluginManifest = JSON.parse(await readFile(resolve(pluginDist, 'manifest.json'), 'utf8'));
+const packageMetadata = JSON.parse(await readFile(resolve(root, 'package.json'), 'utf8'));
+const pluginPackageMetadata = JSON.parse(
+  await readFile(resolve(root, 'packages/obsidian-plugin/package.json'), 'utf8'),
+);
+const versions = JSON.parse(await readFile(resolve(root, 'versions.json'), 'utf8'));
+const version = rootManifest.version;
+if (
+  typeof version !== 'string' ||
+  pluginSourceManifest.version !== version ||
+  pluginManifest.version !== version ||
+  packageMetadata.version !== version ||
+  pluginPackageMetadata.version !== version ||
+  versions[version] !== rootManifest.minAppVersion
+)
+  throw new Error('Release version metadata mismatch.');
+if (
+  !(await readFile(pluginSourceManifestPath)).equals(
+    await readFile(resolve(pluginDist, 'manifest.json')),
+  )
+)
+  throw new Error('Built manifest differs from source manifest.');
+
+execFileSync('pnpm', ['acceptance'], {
+  cwd: root,
+  stdio: 'inherit',
+  shell: process.platform === 'win32',
+});
+
 await rm(outdir, { recursive: true, force: true });
 await mkdir(outdir, { recursive: true });
 for (const name of ['main.js', 'manifest.json', 'styles.css'])
   await cp(resolve(pluginDist, name), resolve(outdir, name));
-const files = ['main.js', 'manifest.json', 'styles.css'];
+for (const name of [
+  'README.md',
+  'LICENSE',
+  'SECURITY.md',
+  'CHANGELOG.md',
+  'THIRD-PARTY-NOTICES.md',
+  'versions.json',
+])
+  await cp(resolve(root, name), resolve(outdir, name));
+await cp(resolve(root, 'docs/THREAT-MODEL-V1.1.md'), resolve(outdir, 'THREAT-MODEL.md'));
+await cp(resolve(root, 'artifacts/sbom.cdx.json'), resolve(outdir, 'sbom.cdx.json'));
+const files = (await readdir(outdir)).sort();
 const checksums = Object.fromEntries(
   await Promise.all(
     files.map(async (name) => [
@@ -100,15 +150,15 @@ const sourceCommit = execFileSync('git', ['rev-parse', 'HEAD'], {
   encoding: 'utf8',
 }).trim();
 const artifactManifest = {
+  version,
   sourceCommit,
   files: checksums,
-  sbom: '../../artifacts/sbom.cdx.json',
+  sbom: 'sbom.cdx.json',
 };
 await writeFile(
   resolve(outdir, 'artifact-manifest.json'),
   `${JSON.stringify(artifactManifest, null, 2)}\n`,
 );
-await cp(resolve(root, 'artifacts/sbom.cdx.json'), resolve(outdir, 'sbom.cdx.json'));
 const releaseFiles = (await readdir(outdir)).sort();
 const releaseChecksums = Object.fromEntries(
   await Promise.all(
@@ -127,6 +177,7 @@ await writeFile(
     .join('\n')}\n`,
 );
 const persisted = JSON.parse(await readFile(resolve(outdir, 'artifact-manifest.json'), 'utf8'));
+if (persisted.version !== version) throw new Error('Release artifact version mismatch.');
 if (persisted.sourceCommit !== sourceCommit)
   throw new Error('Release artifact source commit mismatch.');
 for (const [name, hash] of Object.entries(checksums))
@@ -145,11 +196,28 @@ const archiveEntries = await Promise.all(
     .map(async (name) => ({ name, bytes: await readFile(resolve(outdir, name)) })),
 );
 const archive = buildReleaseZip(archiveEntries);
-await writeFile(resolve(outdir, 'privacy-bridge-alpha.zip'), archive);
-const readBackArchive = await readFile(resolve(outdir, 'privacy-bridge-alpha.zip'));
+const archiveName = `hans-safedoc-${version}.zip`;
+await writeFile(resolve(outdir, archiveName), archive);
+const readBackArchive = await readFile(resolve(outdir, archiveName));
 if (
   !readBackArchive.subarray(0, 4).equals(Buffer.from([0x50, 0x4b, 0x03, 0x04])) ||
   !readBackArchive.subarray(-22, -18).equals(Buffer.from([0x50, 0x4b, 0x05, 0x06]))
 )
   throw new Error('Release archive validation failed.');
+const unpacked = unzipSync(readBackArchive);
+if (
+  Object.keys(unpacked).sort().join('\n') !==
+    archiveEntries.map((entry) => entry.name).join('\n') ||
+  archiveEntries.some(
+    (entry) =>
+      createHash('sha256')
+        .update(unpacked[entry.name] ?? new Uint8Array())
+        .digest('hex') !== createHash('sha256').update(entry.bytes).digest('hex'),
+  )
+)
+  throw new Error('Release archive entry validation failed.');
+await writeFile(
+  resolve(outdir, `${archiveName}.sha256`),
+  `${createHash('sha256').update(readBackArchive).digest('hex')}  ${archiveName}\n`,
+);
 console.log(`Release artifact prepared and read-back validated in ${outdir}`);

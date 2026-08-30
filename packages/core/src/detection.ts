@@ -430,7 +430,7 @@ export function detectAll(source: string): Result<readonly DetectedCandidate[]> 
   addRegex(
     found,
     source,
-    /(?<![A-Za-z0-9._%+-])[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}(?![A-Za-z])/gu,
+    /(?<![A-Za-z0-9._%+-])[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9.-]{1,189}\.[A-Za-z]{2,63}(?![A-Za-z])/gu,
     'EMAIL',
     'email',
     0.97,

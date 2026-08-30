@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://privacy-bridge.local/schemas/v1.1/format-transaction-journal-v1.1.schema.json",
+  "title": "Format Transaction Journal v1.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "transactionId",
+    "jobId",
+    "format",
+    "adapterId",
+    "adapterVersion",
+    "phase",
+    "sourceSha256",
+    "manifestSha256",
+    "rewritePlanSha256",
+    "expectedArtifactId",
+    "packageGenerationId",
+    "secureGenerationId",
+    "steps",
+    "startedAt",
+    "updatedAt"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.1.0"
+    },
+    "transactionId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "jobId": {
+      "type": "string",
+      "pattern": "^PB-[0-9]{8}-[0-9A-HJKMNP-TV-Z]{10}$"
+    },
+    "format": {
+      "enum": ["txt", "csv", "docx", "xlsx"]
+    },
+    "adapterId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "adapterVersion": {
+      "const": "1.1.0"
+    },
+    "phase": {
+      "enum": ["PREPARING", "AUDIT_COMMITTED", "SECURE_COMMITTED", "ROLLED_BACK", "FAILED"]
+    },
+    "sourceSha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "manifestSha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "rewritePlanSha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "expectedArtifactId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "packageGenerationId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "secureGenerationId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["stepId", "name", "state", "expectedHash", "updatedAt"],
+        "properties": {
+          "stepId": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "state": {
+            "enum": ["PENDING", "COMPLETED", "ROLLED_BACK", "FAILED"]
+          },
+          "expectedHash": {
+            "type": ["string", "null"],
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "minItems": 1,
+      "maxItems": 100000
+    },
+    "startedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

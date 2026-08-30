@@ -108,12 +108,34 @@ const acceptanceTests = Object.freeze({
   'ACC-OPS-004': 'migration/copy-on-write.test.ts',
   'ACC-OPS-005': 'backup/job-backup.test.ts',
   'ACC-OPS-006': 'release/reproducible-artifacts.test.mjs',
+  'HSD-ACC-DOCX-001': 'tests/formats/acceptance/hsd-acc-docx-001.test.ts',
+  'HSD-ACC-DOCX-002': 'tests/formats/acceptance/hsd-acc-docx-002.test.ts',
+  'HSD-ACC-DOCX-003': 'tests/formats/acceptance/hsd-acc-docx-003.test.ts',
+  'HSD-ACC-DOCX-004': 'tests/formats/acceptance/hsd-acc-docx-004.test.ts',
+  'HSD-ACC-DOCX-005': 'tests/formats/acceptance/hsd-acc-docx-005.test.ts',
+  'HSD-ACC-DOCX-006': 'tests/formats/acceptance/hsd-acc-docx-006.test.ts',
+  'HSD-ACC-DOCX-007': 'tests/formats/acceptance/hsd-acc-docx-007.test.ts',
+  'HSD-ACC-DOCX-008': 'tests/formats/acceptance/hsd-acc-docx-008.test.ts',
+  'HSD-ACC-DOCX-009': 'tests/formats/acceptance/hsd-acc-docx-009.test.ts',
+  'HSD-ACC-DOCX-010': 'tests/formats/acceptance/hsd-acc-docx-010.test.ts',
+  'HSD-ACC-DOCX-011': 'tests/formats/acceptance/hsd-acc-docx-011.test.ts',
+  'HSD-ACC-XLSX-001': 'tests/formats/acceptance/hsd-acc-xlsx-001.test.ts',
+  'HSD-ACC-XLSX-002': 'tests/formats/acceptance/hsd-acc-xlsx-002.test.ts',
+  'HSD-ACC-XLSX-003': 'tests/formats/acceptance/hsd-acc-xlsx-003.test.ts',
+  'HSD-ACC-XLSX-004': 'tests/formats/acceptance/hsd-acc-xlsx-004.test.ts',
+  'HSD-ACC-XLSX-005': 'tests/formats/acceptance/hsd-acc-xlsx-005.test.ts',
+  'HSD-ACC-XLSX-006': 'tests/formats/acceptance/hsd-acc-xlsx-006.test.ts',
+  'HSD-ACC-XLSX-007': 'tests/formats/acceptance/hsd-acc-xlsx-007.test.ts',
+  'HSD-ACC-XLSX-008': 'tests/formats/acceptance/hsd-acc-xlsx-008.test.ts',
+  'HSD-ACC-XLSX-009': 'tests/formats/acceptance/hsd-acc-xlsx-009.test.ts',
+  'HSD-ACC-XLSX-010': 'tests/formats/acceptance/hsd-acc-xlsx-010.test.ts',
+  'HSD-ACC-XLSX-011': 'tests/formats/acceptance/hsd-acc-xlsx-011.test.ts',
 });
 
 function productCalls(source) {
   const imports = [
     ...source.matchAll(
-      /import\s*\{([^}]+)\}\s*from\s*['"]@privacy-bridge\/(?:core|obsidian-plugin)['"]/gu,
+      /import\s*\{([^}]+)\}\s*from\s*['"]@privacy-bridge\/(?:core|document-formats|obsidian-plugin)['"]/gu,
     ),
   ]
     .flatMap((match) => match[1].split(','))
@@ -125,7 +147,7 @@ function productCalls(source) {
           .split(/\s+as\s+/u)[0],
     )
     .filter(Boolean);
-  return imports.some((name) => new RegExp(`\\b${name}\\s*\\(`, 'u').test(source));
+  return imports.some((name) => new RegExp(`\\b${name}\\s*(?:\\(|\\.)`, 'u').test(source));
 }
 
 for (const [id, path] of Object.entries(acceptanceTests)) {
@@ -142,4 +164,5 @@ const result = spawnSync('pnpm', ['exec', 'vitest', 'run', ...Object.values(acce
   shell: process.platform === 'win32',
 });
 if (result.status !== 0) process.exit(result.status ?? 1);
-console.log(`REAL ACCEPTANCE PASS ${Object.keys(acceptanceTests).length}/105`);
+const acceptanceCount = Object.keys(acceptanceTests).length;
+console.log(`REAL ACCEPTANCE PASS ${acceptanceCount}/${acceptanceCount}`);

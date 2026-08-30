@@ -25,6 +25,7 @@ run('installed synthetic demo smoke test', () => {
       const scanned = scanSyntheticDocument(source);
       expect(scanned.ok).toBe(true);
       if (!scanned.ok) return;
+      expect(scanned.value).toHaveLength(20);
       const prepared = prepareReviewedDocument(
         source,
         scanned.value,
@@ -34,6 +35,7 @@ run('installed synthetic demo smoke test', () => {
       );
       expect(prepared.ok).toBe(true);
       if (!prepared.ok) return;
+      expect(prepared.value.previewHunks).toHaveLength(10);
       const result = await publishPreparedDocument({
         vaultRoot,
         outputParent,
@@ -45,7 +47,7 @@ run('installed synthetic demo smoke test', () => {
       if (!result.ok) return;
       const output = await readFile(result.value.outputFile, 'utf8');
       expect(output).not.toContain('0912-345-678');
-      expect(output).not.toContain('demo@example.invalid');
+      expect(output).not.toContain('aurora08@example.invalid');
       expect(output).toContain('⟦PB:TW_MOBILE:');
       expect(output).toContain('⟦PB:EMAIL:');
       const afterHash = createHash('sha256')

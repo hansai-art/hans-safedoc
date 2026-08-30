@@ -1,0 +1,204 @@
+{
+  "schema": 1,
+  "notice": "All identities and contact data are synthetic. Email domains use .invalid.",
+  "synthetic_entities": {
+    "names": [
+      "王測試",
+      "林範例",
+      "陳合成"
+    ],
+    "phones": [
+      "0900-000-001",
+      "0900-000-002",
+      "0900-000-003"
+    ],
+    "emails": [
+      "case.alpha@example.invalid",
+      "case.beta@example.invalid",
+      "audit.owner@example.invalid"
+    ],
+    "address": "臺北市測試區不存在路 99 號 88 樓",
+    "company": "不存在測試科技股份有限公司",
+    "project": "PROJECT-SYNTHETIC-ALPHA"
+  },
+  "cases": [
+    {
+      "path": "messy-supported-utf8.txt",
+      "format": "txt",
+      "expected_policy": "candidate-supported",
+      "native_open_allowed": true,
+      "traps": [
+        "UTF-8 BOM",
+        "CRLF",
+        "no final newline",
+        "long line",
+        "Unicode",
+        "repeated identifiers"
+      ]
+    },
+    {
+      "path": "blocked-big5.txt",
+      "format": "txt",
+      "expected_policy": "expected-blocked",
+      "native_open_allowed": false,
+      "traps": [
+        "Big5 encoding"
+      ]
+    },
+    {
+      "path": "blocked-nul.txt",
+      "format": "txt",
+      "expected_policy": "expected-blocked",
+      "native_open_allowed": false,
+      "traps": [
+        "NUL byte"
+      ]
+    },
+    {
+      "path": "messy-supported.csv",
+      "format": "csv",
+      "expected_policy": "candidate-supported",
+      "native_open_allowed": true,
+      "traps": [
+        "duplicate header",
+        "quoted newline",
+        "escaped quote",
+        "ragged rows",
+        "trailing empty field",
+        "leading zero"
+      ]
+    },
+    {
+      "path": "blocked-formula-injection.csv",
+      "format": "csv",
+      "expected_policy": "expected-blocked",
+      "native_open_allowed": false,
+      "traps": [
+        "spreadsheet formula injection prefixes"
+      ]
+    },
+    {
+      "path": "messy-minimal.docx",
+      "format": "docx",
+      "expected_policy": "candidate-supported",
+      "native_open_allowed": true,
+      "traps": [
+        "split runs",
+        "table",
+        "merged cell",
+        "header",
+        "footer",
+        "footnote",
+        "comment",
+        "hidden text",
+        "metadata",
+        "external hyperlink"
+      ]
+    },
+    {
+      "path": "common-libreoffice.docx",
+      "format": "docx",
+      "expected_policy": "candidate-supported-theme-profile",
+      "native_open_allowed": true,
+      "traps": [
+        "LibreOffice common theme",
+        "theme display names require review",
+        "relative internal relationships"
+      ]
+    },
+    {
+      "path": "blocked-unknown-theme.docx",
+      "format": "docx",
+      "expected_policy": "expected-blocked",
+      "native_open_allowed": false,
+      "traps": [
+        "unknown DrawingML theme element"
+      ]
+    },
+    {
+      "path": "blocked-tracked-changes.docx",
+      "format": "docx",
+      "expected_policy": "expected-blocked",
+      "native_open_allowed": false,
+      "traps": [
+        "tracked insertion",
+        "deleted revision text"
+      ]
+    },
+    {
+      "path": "blocked-realistic-theme.docx",
+      "format": "docx",
+      "expected_policy": "expected-blocked",
+      "native_open_allowed": false,
+      "traps": [
+        "theme part",
+        "complex styles",
+        "split runs",
+        "table",
+        "hidden text",
+        "metadata"
+      ]
+    },
+    {
+      "path": "messy-formula-free.xlsx",
+      "format": "xlsx",
+      "expected_policy": "candidate-supported",
+      "native_open_allowed": true,
+      "traps": [
+        "hidden sheet",
+        "veryHidden sheet",
+        "formatted numeric phone",
+        "merged cell",
+        "shared strings",
+        "hyperlink",
+        "metadata",
+        "no formulas"
+      ]
+    },
+    {
+      "path": "common-libreoffice.xlsx",
+      "format": "xlsx",
+      "expected_policy": "candidate-supported-theme-profile",
+      "native_open_allowed": true,
+      "traps": [
+        "LibreOffice common theme",
+        "theme display names require review",
+        "relative workbook relationship targets",
+        "no formulas"
+      ]
+    },
+    {
+      "path": "blocked-unknown-theme.xlsx",
+      "format": "xlsx",
+      "expected_policy": "expected-blocked",
+      "native_open_allowed": false,
+      "traps": [
+        "unknown DrawingML theme element"
+      ]
+    },
+    {
+      "path": "blocked-formulas.xlsx",
+      "format": "xlsx",
+      "expected_policy": "expected-blocked",
+      "native_open_allowed": false,
+      "traps": [
+        "formula",
+        "WEBSERVICE",
+        "external workbook reference",
+        "DDE-like formula"
+      ]
+    },
+    {
+      "path": "blocked-comments-theme.xlsx",
+      "format": "xlsx",
+      "expected_policy": "expected-blocked",
+      "native_open_allowed": false,
+      "traps": [
+        "comment author",
+        "comment text",
+        "VML",
+        "theme part"
+      ]
+    }
+  ]
+}

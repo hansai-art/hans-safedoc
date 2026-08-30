@@ -33,7 +33,7 @@ describe('E09 Shadow Vault', () =>
     expect(built.ok).toBe(true);
     if (!built.ok) return;
     expect(
-      new TextDecoder().decode(await readFile(join(built.value.root, 'DOC-000001/raw-name.md'))),
+      new TextDecoder().decode(await readFile(join(built.value.root, 'DOC-000001/DOC-000001.md'))),
     ).toContain('PB:PERSON');
     expect(
       await readFile(join(built.value.root, 'path-map.enc')).catch(() => undefined),

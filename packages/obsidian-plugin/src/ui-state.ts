@@ -16,13 +16,13 @@ export interface WorkflowBlockers {
 export function disabledReasons(blockers: WorkflowBlockers): readonly string[] {
   const reasons: string[] = [];
   if ((blockers.pendingCandidates ?? 0) > 0)
-    reasons.push(`仍有 ${blockers.pendingCandidates} 個未審核候選`);
-  if ((blockers.secrets ?? 0) > 0) reasons.push(`有 ${blockers.secrets} 個 Secret`);
+    reasons.push(`仍有 ${blockers.pendingCandidates} 個項目尚未確認`);
+  if ((blockers.secrets ?? 0) > 0) reasons.push(`有 ${blockers.secrets} 個機密字串`);
   if ((blockers.unsupportedFiles ?? 0) > 0)
     reasons.push(`有 ${blockers.unsupportedFiles} 個不支援附件未排除`);
   if (blockers.sourceChanged) reasons.push('原始文件已變更');
-  if (blockers.mappingUnlocked === false) reasons.push('Mapping 尚未解鎖');
-  if (blockers.residualScanComplete === false) reasons.push('Residual Scan 尚未完成');
+  if (blockers.mappingUnlocked === false) reasons.push('安全代碼對照資料尚未解鎖');
+  if (blockers.residualScanComplete === false) reasons.push('殘留敏感資料檢查尚未完成');
   return reasons;
 }
 /** Sensitive commands are derived from lock state, never cached by the view. */
@@ -30,9 +30,17 @@ export function commandPresentation(
   state: ClientUiState,
   action: WorkspaceAction,
 ): CommandPresentation {
-  const ariaLabel = `Privacy Bridge: ${action}`;
+  const actionLabel: Readonly<Record<WorkspaceAction, string>> = {
+    scan: '掃描',
+    review: '檢查',
+    export: '輸出',
+    backup: '備份',
+    restore: '還原',
+    recovery: '修復',
+  };
+  const ariaLabel = `Hans SafeDoc：${actionLabel[action]}`;
   if (state === 'UNLOCKED' || action === 'recovery') return { enabled: true, ariaLabel };
-  return { enabled: false, disabledReason: '請先解鎖 Client 才能執行此操作。', ariaLabel };
+  return { enabled: false, disabledReason: '請先解鎖敏感資料工作區才能執行此操作。', ariaLabel };
 }
 export function clearSensitiveUiState(): {
   readonly selectedEntityId: undefined;

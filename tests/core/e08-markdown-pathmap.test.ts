@@ -17,7 +17,7 @@ describe('E08 Markdown and Path Map', () =>
     if (!map.ok) return;
     const rewritten = rewriteWikilinks(source, 'Notes/One.md', map.value);
     expect(rewritten.ok && rewritten.value).toBe(
-      `${bom}---\r\nname: Alice\r\n---\r\n[[../DOC-000002/Other#title|Alice]]  \r\n`,
+      `${bom}---\r\nname: Alice\r\n---\r\n[[../DOC-000002/DOC-000002#title|Alice]]  \r\n`,
     );
     expect(parseMarkdownRegions(source).some((r) => r.kind === 'FRONTMATTER_VALUE')).toBe(true);
     expect(
