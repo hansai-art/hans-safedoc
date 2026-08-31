@@ -1,29 +1,6 @@
 # Hans SafeDoc
 
-Hans SafeDoc is a desktop-only Obsidian plugin for reviewing and pseudonymizing local documents without overwriting the originals. It supports read-only MD, TXT, CSV, DOCX, and XLSX sources and creates a new safe copy only after item-by-item review and artifact verification.
-
-## Installation
-
-1. After the Obsidian directory review is approved, open **Settings → Community plugins → Browse** and search for **Hans SafeDoc**.
-2. Select **Install**, then **Enable**.
-3. If directory installation is not yet available, download `main.js`, `manifest.json`, and `styles.css` from the GitHub Release matching `manifest.version`, then place them in `<Vault>/.obsidian/plugins/hans-safedoc/` and restart Obsidian.
-
-## Basic usage
-
-1. Open a Markdown note or choose a supported local file.
-2. Review every suspected sensitive value and every mandatory Office surface.
-3. Inspect the preview, then create a safe copy.
-4. Open the output in its native application and verify it before sharing.
-
-## Privacy and limitations
-
-- Document processing is local and includes no telemetry or network requests.
-- The plugin reads only the selected source and writes a new safe copy outside the vault; it never overwrites the source.
-- Detection can miss names, organizations, and context-specific identifiers. Manual review is always required and does not constitute a legal determination of anonymization.
-- DOCX and XLSX use a narrow fail-closed profile. Macros, formulas, external content, tracked changes, and unknown OOXML structures are blocked.
-- PDF, legacy `.doc` and `.xls`, mobile Obsidian, and unsupported formats are not processed directly.
-
-## 繁體中文
+[繁體中文](#安裝前先看)｜[English](#english)
 
 Hans SafeDoc 是 Obsidian 電腦版的本機文件去識別化外掛。它只讀取來源，讓使用者逐項審核疑似敏感資料，再建立新的安全副本；原始文件不會被覆寫。
 
@@ -136,3 +113,28 @@ MASTER-SPEC
 - Crypto test vector
 - 規格檔案 Hash
 - Legacy seed 是否成功納入
+
+## English
+
+Hans SafeDoc is a desktop-only Obsidian plugin for reviewing and pseudonymizing local documents without overwriting the originals. It supports read-only MD, TXT, CSV, DOCX, and XLSX sources and creates a new safe copy only after item-by-item review and artifact verification.
+
+### Installation
+
+1. After the Obsidian directory review is approved, open **Settings → Community plugins → Browse** and search for **Hans SafeDoc**.
+2. Select **Install**, then **Enable**.
+3. If directory installation is not yet available, download `main.js`, `manifest.json`, and `styles.css` from the GitHub Release matching `manifest.version`, then place them in `<Vault>/.obsidian/plugins/hans-safedoc/` and restart Obsidian.
+
+### Basic usage
+
+1. Open a Markdown note or choose a supported local file.
+2. Review every suspected sensitive value and every mandatory Office surface.
+3. Inspect the preview, then create a safe copy.
+4. Open the output in its native application and verify it before sharing.
+
+### Privacy and limitations
+
+- Document processing is local and includes no telemetry or network requests.
+- The plugin reads only the selected source and writes a new safe copy outside the vault; it never overwrites the source.
+- Detection can miss names, organizations, and context-specific identifiers. Manual review is always required and does not constitute a legal determination of anonymization.
+- DOCX and XLSX use a narrow fail-closed profile. Macros, formulas, external content, tracked changes, and unknown OOXML structures are blocked.
+- PDF, legacy `.doc` and `.xls`, mobile Obsidian, and unsupported formats are not processed directly.
