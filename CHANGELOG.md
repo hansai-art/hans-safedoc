@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.8 — 2026-08-31
+
+- 為CycloneDX SBOM加入確定性`serialNumber`，並改用GitHub官方`actions/attest`產生SBOM attestation。
+
 ## 1.2.7 — 2026-08-31
 
 - 將最終顯示名稱、Obsidian技術ID與公開網址統一為`Hans SafeDoc`／`hans-safedoc`。

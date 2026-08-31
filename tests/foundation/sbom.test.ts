@@ -31,5 +31,6 @@ describe('pnpm SBOM generation', () => {
       ]),
     );
     expect(bom.metadata.component).toMatchObject({ name: 'hans-safedoc', type: 'application' });
+    expect(bom.serialNumber).toMatch(/^urn:uuid:[0-9a-f-]{36}$/u);
   });
 });

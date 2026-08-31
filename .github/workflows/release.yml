@@ -38,7 +38,7 @@ jobs:
             artifacts/release/manifest.json
             artifacts/release/styles.css
       - name: Attest SBOM for direct Community assets
-        uses: actions/attest-sbom@v4
+        uses: actions/attest@v4
         with:
           subject-path: |
             artifacts/release/main.js

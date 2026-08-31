@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { execFile } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
@@ -85,9 +86,17 @@ export async function generateSbom({ root, outputFile }) {
 
   const rootManifest = JSON.parse(await readFile(resolve(root, 'package.json'), 'utf8'));
   const rootRef = packageUrl(rootManifest.name, rootManifest.version);
+  const serialHex = createHash('sha256')
+    .update([rootRef, ...packages.keys()].sort().join('\n'))
+    .digest('hex');
+  const serialNumber = `urn:uuid:${serialHex.slice(0, 8)}-${serialHex.slice(8, 12)}-5${serialHex.slice(
+    13,
+    16,
+  )}-a${serialHex.slice(17, 20)}-${serialHex.slice(20, 32)}`;
   const bom = {
     bomFormat: 'CycloneDX',
     specVersion: '1.6',
+    serialNumber,
     version: 1,
     metadata: {
       component: {
