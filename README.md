@@ -4,6 +4,22 @@
 
 Hans SafeDoc 是 Obsidian 電腦版的本機文件去識別化外掛。它只讀取來源，讓使用者逐項審核疑似敏感資料，再建立新的安全副本；原始文件不會被覆寫。
 
+## 產品畫面
+
+### 支援範圍與安全限制
+
+![Hans SafeDoc 新手教學顯示支援格式、偵測範圍與安全限制](assets/screenshots/hans-safedoc-onboarding.png)
+
+### 轉換前後
+
+| 純合成原始文件 | Hans SafeDoc 安全副本 |
+|---|---|
+| ![含假姓名、假電話與 example.invalid Email 的合成 DOCX](assets/screenshots/hans-safedoc-before-docx.png) | ![電話與 Email 已換成安全代碼、原版面仍可由 Word 開啟](assets/screenshots/hans-safedoc-after-docx.png) |
+
+### 人工確認
+
+![Hans SafeDoc 批次安全代碼化前顯示合成候選摘要，Office 強制項目仍需逐項確認](assets/screenshots/hans-safedoc-review-confirmation.png)
+
 ## 安裝前先看
 
 > Hans SafeDoc 會盡量找出疑似敏感資料，但不能保證完整，也不構成法律上的匿名化認定。處理正式資料前請保留來源備份、逐項人工確認，並先用合成文件熟悉流程。
