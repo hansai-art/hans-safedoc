@@ -2,8 +2,8 @@
 
 ## Identity
 
-- Product: Hans SafeDoc / repository `hansai-art/privacy-bridge`
-- Release line: `1.2.0`
+- Product: Hans SafeDoc / repository `hansai-art/safedoc`
+- Release line: `1.2.x`
 - Clean-room assembly date: 2026-08-31
 - Clean-room working directory: `/Users/jugang11/src/privacy-bridge-cleanroom`（本機路徑不構成公開source identity）
 

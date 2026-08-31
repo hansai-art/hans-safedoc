@@ -1,6 +1,6 @@
 {
-  "name": "privacy-bridge",
-  "version": "1.2.4",
+  "name": "safedoc",
+  "version": "1.2.5",
   "private": true,
   "license": "MIT",
   "type": "module",

@@ -6,7 +6,7 @@ Hans SafeDoc is a desktop-only Obsidian plugin for reviewing and pseudonymizing 
 
 1. After the Obsidian directory review is approved, open **Settings → Community plugins → Browse** and search for **Hans SafeDoc**.
 2. Select **Install**, then **Enable**.
-3. If directory installation is not yet available, download `main.js`, `manifest.json`, and `styles.css` from the GitHub Release matching `manifest.version`, then place them in `<Vault>/.obsidian/plugins/privacy-bridge/` and restart Obsidian.
+3. If directory installation is not yet available, download `main.js`, `manifest.json`, and `styles.css` from the GitHub Release matching `manifest.version`, then place them in `<Vault>/.obsidian/plugins/safedoc/` and restart Obsidian.
 
 ## Basic usage
 
@@ -75,7 +75,7 @@ MD／TXT／CSV／DOCX／XLSX 的固定規則可獨立使用，不需要安裝 Ol
 官方公開 listing 已建立，目錄自動審查仍在進行；「Add to Obsidian」啟用前仍使用下列手動安裝方式。
 
 1. 從 GitHub Release 下載與 `manifest.version` 完全相同版本的 `main.js`、`manifest.json`、`styles.css`。
-2. 將三個檔案放到 `<Obsidian Vault>/.obsidian/plugins/privacy-bridge/`。
+2. 將三個檔案放到 `<Obsidian Vault>/.obsidian/plugins/safedoc/`。
 3. 重新啟動 Obsidian，在第三方外掛頁面啟用「Hans SafeDoc」。
 4. 先用內建合成練習筆記完成完整流程，再處理自己的文件。
 

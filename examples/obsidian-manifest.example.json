@@ -1,9 +1,9 @@
 {
-  "id": "privacy-bridge",
-  "name": "Privacy Bridge",
+  "id": "safedoc",
+  "name": "Hans SafeDoc",
   "version": "0.1.0",
   "minAppVersion": "1.8.0",
   "description": "Detect, review, pseudonymize, export, and restore sensitive Markdown data locally.",
-  "author": "Privacy Bridge contributors",
+  "author": "Hans Lin",
   "isDesktopOnly": true
 }

@@ -17,7 +17,7 @@ afterEach(async () => {
 
 describe('pnpm SBOM generation', () => {
   it('uses pnpm dependency resolution and writes a valid nonempty CycloneDX SBOM', async () => {
-    const directory = await mkdtemp(join(tmpdir(), 'privacy-bridge-sbom-'));
+    const directory = await mkdtemp(join(tmpdir(), 'safedoc-sbom-'));
     temporaryPaths.push(directory);
     const outputFile = join(directory, 'sbom.cdx.json');
 
@@ -30,6 +30,6 @@ describe('pnpm SBOM generation', () => {
         expect.objectContaining({ type: 'library', purl: expect.stringMatching(/^pkg:npm\//) }),
       ]),
     );
-    expect(bom.metadata.component).toMatchObject({ name: 'privacy-bridge', type: 'application' });
+    expect(bom.metadata.component).toMatchObject({ name: 'safedoc', type: 'application' });
   });
 });

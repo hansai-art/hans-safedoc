@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.5 — 2026-08-31
+
+- 將Obsidian公開技術ID、安裝路徑與repository identity由舊名`privacy-bridge`更正為`safedoc`；產品顯示名稱維持Hans SafeDoc。
+
 ## 1.2.4 — 2026-08-31
 
 - 新增英文安裝、使用與隱私說明，修正Obsidian CSS lint，並為三個Community release assets產生GitHub artifact attestations。
