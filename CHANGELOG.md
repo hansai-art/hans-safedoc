@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.6
+
+- Use the exact public product name `SafeDoc`; the archived Community entry permanently reserves its former display name.
+
 ## 1.2.5 — 2026-08-31
 
 - 將Obsidian公開技術ID、安裝路徑與repository identity由舊名`privacy-bridge`更正為`safedoc`；產品顯示名稱維持Hans SafeDoc。
