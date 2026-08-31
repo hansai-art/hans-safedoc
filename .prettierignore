@@ -14,3 +14,4 @@ Thumbs.db
 privacy-bridge-secure-store/
 .migration/
 *.tmp
+packages/core/src/generated-schema-validators.mjs

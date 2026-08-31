@@ -11,7 +11,7 @@ describe('ACC-FIL-007 supported encodings', () => {
       writeFile(join(root, 'lf.md'), 'one\ntwo\n'),
       writeFile(join(root, 'bom.md'), Buffer.from([0xef, 0xbb, 0xbf, 0x61, 0x0d, 0x0a])),
     ]);
-    const inventory = await createInventory(createNodeSourceAdapter(root));
+    const inventory = await createInventory(createNodeSourceAdapter(root, '.test-config'));
     expect(
       inventory.ok &&
         inventory.value.documents.map(({ relativePath, bom, lineEnding }) => ({

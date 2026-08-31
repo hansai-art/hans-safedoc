@@ -325,12 +325,13 @@ function assertLocator(value: unknown, artifact: boolean): FormatLocatorV11 | Ar
     'propertyQName',
     'commentId',
     'relationshipId',
-  ])
-    if (
-      key in record &&
-      (typeof record[key] !== 'string' || record[key]!.length < 1 || record[key]!.length > 200)
-    )
-      throw new TypeError(`Invalid ${key}`);
+  ]) {
+    if (key in record) {
+      const entry = record[key];
+      if (typeof entry !== 'string' || entry.length < 1 || entry.length > 200)
+        throw new TypeError(`Invalid ${key}`);
+    }
+  }
   if (
     'cellRef' in record &&
     (typeof record.cellRef !== 'string' || !/^[A-Z]{1,3}[1-9][0-9]*$/u.test(record.cellRef))
@@ -374,7 +375,7 @@ function assertLocator(value: unknown, artifact: boolean): FormatLocatorV11 | Ar
 }
 
 export function assertFormatLocatorV11(value: unknown): FormatLocatorV11 {
-  return assertLocator(value, false) as FormatLocatorV11;
+  return assertLocator(value, false);
 }
 
 export function assertArtifactLocatorV11(value: unknown): ArtifactLocatorV11 {

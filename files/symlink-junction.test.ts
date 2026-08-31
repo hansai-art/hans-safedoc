@@ -10,7 +10,7 @@ describe('ACC-FIL-005 symlink boundary', () => {
     const outside = await mkdtemp(join(tmpdir(), 'pb-outside-'));
     await writeFile(join(outside, 'secret.md'), 'secret');
     await symlink(outside, join(root, 'escape'));
-    const inventory = await createInventory(createNodeSourceAdapter(root));
+    const inventory = await createInventory(createNodeSourceAdapter(root, '.test-config'));
     expect(inventory.ok && inventory.value.documents).toEqual([]);
     expect(inventory.ok && inventory.value.blockers).toContain('PB-FILE-003');
     await Promise.all([rm(root, { recursive: true }), rm(outside, { recursive: true })]);

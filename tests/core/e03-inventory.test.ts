@@ -12,7 +12,7 @@ describe('E03 inventory', () => {
     await writeFile(join(root, '.hidden.md'), '# hidden');
     await writeFile(join(root, 'note.md'), '# note');
     await writeFile(join(root, 'image.png'), 'x');
-    const result = await createInventory(createNodeSourceAdapter(root));
+    const result = await createInventory(createNodeSourceAdapter(root, '.obsidian'));
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.value.documents.map((item) => item.relativePath)).toEqual([
@@ -27,7 +27,7 @@ describe('E03 inventory', () => {
     const outside = await mkdtemp(join(tmpdir(), 'pb-outside-'));
     await writeFile(join(outside, 'secret.md'), 'secret');
     await symlink(outside, join(root, 'escape'));
-    const result = await createInventory(createNodeSourceAdapter(root));
+    const result = await createInventory(createNodeSourceAdapter(root, '.obsidian'));
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.value.blockers).toContain('PB-FILE-003');

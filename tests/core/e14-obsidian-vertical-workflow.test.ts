@@ -44,6 +44,7 @@ describe('Obsidian current-note vertical workflow', () => {
       if (!prepared.ok) return;
       const result = await publishPreparedDocument({
         vaultRoot,
+        configDir: '.test-config',
         outputParent,
         relativePath,
         currentContent: source,
@@ -134,6 +135,7 @@ describe('Obsidian current-note vertical workflow', () => {
 
       const published = await publishPreparedDocument({
         vaultRoot,
+        configDir: '.test-config',
         outputParent,
         relativePath: 'review.md',
         currentContent: `${source}changed`,

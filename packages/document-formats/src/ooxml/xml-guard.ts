@@ -67,7 +67,7 @@ export function assertKnownCommonThemeXml(xml: string): void {
     if (!nameMatch) throw new Error('Theme element name is invalid');
     const qualifiedName = nameMatch[1]!;
     const [prefix, localName] = qualifiedName.split(':');
-    if (prefix !== 'a' || !(localName! in commonThemeAttributes))
+    if (prefix !== 'a' || !localName || !(localName in commonThemeAttributes))
       throw new Error(`Unknown theme element: ${qualifiedName}`);
     const attributesText = opening.slice(nameMatch[0].length);
     const attributes = [...attributesText.matchAll(/([\w:.-]+)\s*=\s*(["'])(.*?)\2/gu)];
@@ -75,7 +75,7 @@ export function assertKnownCommonThemeXml(xml: string): void {
     if (residue) throw new Error('Theme attribute syntax is invalid');
     if (new Set(attributes.map((attribute) => attribute[1])).size !== attributes.length)
       throw new Error('Duplicate theme attribute');
-    const allowed = new Set(commonThemeAttributes[localName!]!);
+    const allowed = new Set(commonThemeAttributes[localName]);
     for (const attribute of attributes) {
       if (!allowed.has(attribute[1]!)) throw new Error(`Unknown theme attribute: ${attribute[1]}`);
     }

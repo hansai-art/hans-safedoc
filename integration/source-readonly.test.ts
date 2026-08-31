@@ -13,7 +13,7 @@ describe('ACC-FND-003 source readonly job', () => {
     const before = createHash('sha256')
       .update(await readFile(note))
       .digest('hex');
-    const inventory = await createInventory(createNodeSourceAdapter(root));
+    const inventory = await createInventory(createNodeSourceAdapter(root, '.test-config'));
     expect(inventory.ok && inventory.value.documents).toHaveLength(1);
     expect(
       createHash('sha256')

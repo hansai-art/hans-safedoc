@@ -511,19 +511,6 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
           'click',
           () => void this.actions.revealOutputFile(this.outputFile!),
         );
-        const copy = actions.createEl('button', { text: '複製檔案位置' });
-        const status = actions.createEl('span', {
-          cls: 'privacy-bridge-copy-status',
-          attr: { 'aria-live': 'polite' },
-        });
-        copy.addEventListener('click', async () => {
-          try {
-            await navigator.clipboard.writeText(this.outputFile!);
-            status.textContent = '已複製';
-          } catch {
-            status.textContent = '無法複製，請使用「顯示輸出位置」';
-          }
-        });
       });
       output.createEl('details', { cls: 'privacy-bridge-output-details' }, (details) => {
         details.createEl('summary', { text: '查看安全檔案位置與上傳說明' });

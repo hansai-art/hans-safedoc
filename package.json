@@ -1,6 +1,6 @@
 {
-  "name": "safedoc",
-  "version": "1.2.6",
+  "name": "hans-safedoc",
+  "version": "1.2.7",
   "private": true,
   "license": "MIT",
   "type": "module",
@@ -14,7 +14,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "acceptance": "node scripts/run-acceptance.mjs",
-    "build": "pnpm --filter @privacy-bridge/obsidian-plugin build",
+    "build": "node scripts/generate-schema-validators.mjs --check && pnpm --filter @privacy-bridge/obsidian-plugin build",
     "validate:schemas": "pnpm --filter @privacy-bridge/schemas validate",
     "scan:network": "node scripts/network-scan.mjs",
     "scan:secrets": "node scripts/secret-scan.mjs",

@@ -11,7 +11,7 @@ describe('ACC-FIL-002 system exclusions', () => {
       await mkdir(join(root, name));
       await writeFile(join(root, name, 'hidden.md'), '# hidden');
     }
-    const inventory = await createInventory(createNodeSourceAdapter(root));
+    const inventory = await createInventory(createNodeSourceAdapter(root, '.obsidian'));
     expect(inventory.ok && inventory.value.excluded).toEqual([
       '.git',
       '.obsidian',

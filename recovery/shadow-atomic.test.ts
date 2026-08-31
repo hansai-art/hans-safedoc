@@ -17,6 +17,7 @@ it('ACC-EXP-003: rejected Shadow build leaves no partial final or staging direct
     const result = await buildShadowVault({
       jobId: 'PB-20260828-0123456789',
       sourceRoot: source,
+      configDir: '.test-config',
       outputParent: output,
       pathMap: map.value,
       documents: [

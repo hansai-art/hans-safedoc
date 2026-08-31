@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.7 — 2026-08-31
+
+- 將最終顯示名稱、Obsidian技術ID與公開網址統一為`Hans SafeDoc`／`hans-safedoc`。
+- 修正Community build輸出位置、移除剪貼簿與dynamic-code行為、支援自訂`Vault.configDir`，並讓公開Release只包含Obsidian三個必要附件。
+
 ## 1.2.6
 
 - Use the exact public product name `SafeDoc`; the archived Community entry permanently reserves its former display name.

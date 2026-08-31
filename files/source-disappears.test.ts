@@ -5,6 +5,7 @@ describe('ACC-FIL-012 source disappears', () => {
   it('returns a safe file error and no partial plaintext inventory when a source read fails', async () => {
     const adapter: SourceAdapter = {
       root: '/fixture',
+      configDir: '.test-config',
       list: async () => ['missing.md'],
       stat: async () => ({ isDirectory: false, isSymbolicLink: false, size: 4, mtimeMs: 0 }),
       readBytes: async () => {

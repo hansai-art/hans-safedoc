@@ -144,32 +144,32 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
     this.addRibbonIcon('shield-check', '處理目前文件', () => this.scanCurrentNote());
     this.addCommand({
       id: 'open-dashboard',
-      name: 'Hans SafeDoc：開啟工作區',
+      name: '開啟工作區',
       callback: () => this.activateWorkspace(),
     });
     this.addCommand({
       id: 'scan-current-note',
-      name: 'Hans SafeDoc：掃描目前 MD 筆記',
+      name: '掃描目前 MD 筆記',
       callback: () => this.scanCurrentNote(),
     });
     this.addCommand({
       id: 'create-new-job',
-      name: 'Hans SafeDoc：建立安全輸出',
+      name: '建立安全輸出',
       callback: () => this.exportCurrentNote(),
     });
     this.addCommand({
       id: 'lock-current-client',
-      name: 'Hans SafeDoc：鎖定工作區',
+      name: '鎖定工作區',
       callback: () => this.lockWorkspace(),
     });
     this.addCommand({
       id: 'resume-interrupted-job',
-      name: 'Hans SafeDoc：繼續未完成工作',
+      name: '繼續未完成工作',
       callback: () => this.activateWorkspace(),
     });
     this.addCommand({
       id: 'open-getting-started',
-      name: 'Hans SafeDoc：開啟新手教學',
+      name: '開啟新手教學',
       callback: () => this.openFirstRunGuide(),
     });
     this.app.workspace.onLayoutReady(() => {
@@ -261,11 +261,11 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
   }
   private async chooseExternalFile(): Promise<void> {
     if (!this.ensureSecurityNoticeAccepted()) return;
-    const input = document.createElement('input');
+    const input = document.body.createEl('input');
     input.type = 'file';
     input.accept = FILE_PICKER_EXTENSIONS.map((extension) => `.${extension}`).join(',');
     input.hidden = true;
-    document.body.append(input);
+
     let view: PrivacyBridgeWorkspaceView | null = null;
     try {
       const selected = await new Promise<File | undefined>((resolveSelection) => {
@@ -517,6 +517,7 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
     }
     const result = await publishPreparedDocument({
       vaultRoot,
+      configDir: this.app.vault.configDir,
       outputParent: resolve(dirname(vaultRoot), 'Hans SafeDoc Outputs'),
       relativePath: active.file.path,
       currentContent: active.content,

@@ -113,23 +113,9 @@ export class PrivacyBridgeHelpView extends ItemView {
       ])
         steps.createEl('li', { text: step });
     });
-    tutorial.createEl('h3', { text: '複製給其他工具的提示詞' });
+    tutorial.createEl('h3', { text: '給其他工具的提示詞' });
     tutorial.createEl('pre', { cls: 'privacy-bridge-help-prompt', text: EXTERNAL_TOOL_PROMPT });
-    const copy = tutorial.createEl('button', { text: '複製提示詞' });
-    const copyStatus = tutorial.createEl('span', {
-      cls: 'privacy-bridge-copy-status',
-      attr: { 'aria-live': 'polite' },
-    });
-    copy.addEventListener('click', () => {
-      void navigator.clipboard
-        .writeText(EXTERNAL_TOOL_PROMPT)
-        .then(() => {
-          copyStatus.textContent = '已複製';
-        })
-        .catch(() => {
-          copyStatus.textContent = '複製失敗，請手動選取提示詞。';
-        });
-    });
+    tutorial.createEl('p', { text: '需要使用時，請手動選取上方提示詞。' });
     tutorial.createEl('h2', { text: '如何安全還原' });
     tutorial.createEl('p', {
       cls: 'privacy-bridge-tutorial-warning',

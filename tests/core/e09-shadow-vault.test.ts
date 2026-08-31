@@ -24,6 +24,7 @@ describe('E09 Shadow Vault', () =>
     const built = await buildShadowVault({
       jobId: 'PB-20260828-0123456789',
       sourceRoot: source,
+      configDir: '.obsidian',
       outputParent: output,
       pathMap: map.value,
       documents: [
@@ -56,6 +57,7 @@ describe('ACC-EXP-003 ACC-EXP-005 Shadow edge boundaries', () =>
     const built = await buildShadowVault({
       jobId: 'PB-20260828-0123456789',
       sourceRoot: source,
+      configDir: '.obsidian',
       outputParent: output,
       pathMap: map.value,
       documents: [

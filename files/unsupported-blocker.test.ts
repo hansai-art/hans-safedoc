@@ -10,7 +10,7 @@ describe('ACC-FIL-004 unsupported blocker', () => {
     await Promise.all(
       ['a.pdf', 'b.png', 'c.docx', 'd.bin'].map((name) => writeFile(join(root, name), 'x')),
     );
-    const inventory = await createInventory(createNodeSourceAdapter(root));
+    const inventory = await createInventory(createNodeSourceAdapter(root, '.test-config'));
     expect(inventory.ok && inventory.value.unsupported).toEqual([
       'a.pdf',
       'b.png',

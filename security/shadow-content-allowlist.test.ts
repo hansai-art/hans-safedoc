@@ -18,6 +18,7 @@ it('ACC-EXP-005: publishes only sanitized Markdown, never secure map or .obsidia
     const built = await buildShadowVault({
       jobId: 'PB-20260828-0123456789',
       sourceRoot: source,
+      configDir: '.test-config',
       outputParent: output,
       pathMap: map.value,
       documents: [

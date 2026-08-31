@@ -42,6 +42,7 @@ async function outputPath(parent: string, jobId: string): Promise<string> {
 export async function buildShadowVault(input: {
   readonly jobId: string;
   readonly sourceRoot: string;
+  readonly configDir: string;
   readonly outputParent: string;
   readonly documents: readonly ShadowDocument[];
   readonly pathMap: readonly PathMapEntry[];
@@ -69,9 +70,9 @@ export async function buildShadowVault(input: {
         !mappedSource?.ok ||
         source.value !== mappedSource.value ||
         !source.value.toLowerCase().endsWith('.md') ||
-        source.value.split('/').some((segment) => segment.toLowerCase() === '.obsidian') ||
+        source.value.split('/').some((segment) => segment === input.configDir) ||
         !path.value.endsWith('.md') ||
-        path.value.split('/').some((segment) => segment.toLowerCase() === '.obsidian') ||
+        path.value.split('/').some((segment) => segment === input.configDir) ||
         hash(document.content) !== document.sourceSha256
       )
         return err(error('PB-FILE-004'));

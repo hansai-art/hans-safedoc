@@ -76,8 +76,8 @@ describe('Hans SafeDoc v1.2 Obsidian integration contract', () => {
     expect(workspace).toContain('this.actions.chooseFile()');
   });
 
-  it('publishes the SafeDoc identity with aligned 1.2.5 metadata', () => {
-    const packageJson = JSON.parse(read('package.json')) as { version: string };
+  it('publishes the Hans SafeDoc identity with aligned 1.2.7 metadata', () => {
+    const packageJson = JSON.parse(read('package.json')) as { name: string; version: string };
     const pluginPackage = JSON.parse(read('packages/obsidian-plugin/package.json')) as {
       version: string;
     };
@@ -90,20 +90,21 @@ describe('Hans SafeDoc v1.2 Obsidian integration contract', () => {
     };
     const rootManifest = JSON.parse(read('manifest.json')) as typeof pluginManifest;
     const versions = JSON.parse(read('versions.json')) as Record<string, string>;
-    expect(packageJson.version).toBe('1.2.6');
-    expect(pluginPackage.version).toBe('1.2.6');
+    expect(packageJson).toMatchObject({ name: 'hans-safedoc', version: '1.2.7' });
+    expect(pluginPackage.version).toBe('1.2.7');
     expect(pluginManifest).toMatchObject({
-      id: 'safedoc',
-      name: 'SafeDoc',
-      version: '1.2.6',
+      id: 'hans-safedoc',
+      name: 'Hans SafeDoc',
+      version: '1.2.7',
     });
     expect(rootManifest).toEqual(pluginManifest);
     expect(pluginManifest.description).toContain('MD, TXT, CSV, DOCX, and XLSX');
-    expect(versions['1.2.6']).toBe(pluginManifest.minAppVersion);
-    expect(read('README.md')).toContain('.obsidian/plugins/safedoc/');
+    expect(versions['1.2.7']).toBe(pluginManifest.minAppVersion);
+    expect(read('README.md')).toContain('.obsidian/plugins/hans-safedoc/');
     expect(read('README.md')).not.toContain('.obsidian/plugins/privacy-bridge/');
-    expect(read('docs/CLEANROOM-SOURCE-PROVENANCE.md')).toContain('hansai-art/safedoc');
+    expect(read('docs/CLEANROOM-SOURCE-PROVENANCE.md')).toContain('hansai-art/hans-safedoc');
     expect(read('packages/obsidian-plugin/src/main.ts')).toContain("id: 'scan-current-note'");
+    expect(read('packages/obsidian-plugin/src/help-view.ts')).not.toContain('navigator.clipboard');
     for (const path of [
       'packages/obsidian-plugin/src/help-view.ts',
       'packages/obsidian-plugin/src/first-run-modal.ts',
@@ -166,6 +167,15 @@ describe('Hans SafeDoc v1.2 Obsidian integration contract', () => {
     expect(read('scripts/clean-machine-check.mjs')).toContain("['pnpm', ['run', 'sbom']]");
   });
 
+  it('places Community build assets in the repository root dist directory', () => {
+    for (const asset of ['main.js', 'manifest.json', 'styles.css']) {
+      expect(read(`dist/${asset}`)).toBe(read(`packages/obsidian-plugin/dist/${asset}`));
+    }
+    const bundle = read('dist/main.js');
+    expect(bundle).not.toMatch(/\beval\s*\(/u);
+    expect(bundle).not.toMatch(/\bnew Function\s*\(/u);
+  });
+
   it('publishes an explicit version tag as a public release with direct Community assets', () => {
     const workflow = read('.github/workflows/release.yml');
     expect(workflow).toContain("tags: ['*.*.*']");
@@ -176,10 +186,20 @@ describe('Hans SafeDoc v1.2 Obsidian integration contract', () => {
     expect(workflow).toContain('pnpm install --frozen-lockfile');
     expect(workflow).toContain('pnpm run ci');
     expect(workflow).toContain('actions/attest-build-provenance@v4');
+    expect(workflow).toContain('actions/attest-sbom@v4');
+    expect(workflow).toContain('actions/upload-artifact@v7');
     expect(workflow).toContain('artifacts/release/main.js');
     expect(workflow).toContain('artifacts/release/manifest.json');
     expect(workflow).toContain('artifacts/release/styles.css');
     expect(workflow).toContain('gh release create "$GITHUB_REF_NAME"');
+    const publicAssets = workflow.slice(
+      workflow.indexOf('gh release create'),
+      workflow.indexOf('--verify-tag'),
+    );
+    expect(publicAssets).not.toContain('artifact-manifest.json');
+    expect(publicAssets).not.toContain('sbom.cdx.json');
+    expect(publicAssets).not.toContain('.zip');
+    expect(workflow).toContain('--notes-file artifacts/release/COMMUNITY-RELEASE-NOTES.md');
     const formatCheck = JSON.parse(read('package.json')).scripts['format:check'];
     expect(formatCheck).toContain('.github/workflows/ci.yml');
     expect(formatCheck).toContain('.github/workflows/release.yml');

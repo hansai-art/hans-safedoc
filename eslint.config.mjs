@@ -7,6 +7,7 @@ export default tseslint.config(
     ignores: [
       'dist/**',
       'packages/obsidian-plugin/dist/**',
+      'packages/core/src/generated-schema-validators.mjs',
       'coverage/**',
       'artifacts/**',
       'node_modules/**',

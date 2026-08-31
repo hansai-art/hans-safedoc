@@ -5,6 +5,7 @@ import { err, error, ok, type Result } from './index.js';
 
 export interface SourceAdapter {
   readonly root: string;
+  readonly configDir: string;
   list(path: string): Promise<readonly string[]>;
   readBytes(path: string): Promise<Uint8Array>;
   stat(path: string): Promise<{
@@ -36,11 +37,11 @@ export type InventoryScope =
   | { readonly kind: 'FOLDER'; readonly path: string }
   | { readonly kind: 'WHOLE_VAULT' }
   | { readonly kind: 'EXTERNAL_FOLDER'; readonly path: string };
-const SYSTEM = new Set(['.obsidian', '.trash', '.git', 'privacy-bridge staging']);
-export function createNodeSourceAdapter(root: string): SourceAdapter {
+export function createNodeSourceAdapter(root: string, configDir: string): SourceAdapter {
   const resolved = resolve(root);
   return {
     root: resolved,
+    configDir,
     list: async (path) => (await readdir(path)).sort(),
     readBytes: async (path) => new Uint8Array(await readFile(path)),
     stat: async (path) => {
@@ -57,6 +58,12 @@ export function createNodeSourceAdapter(root: string): SourceAdapter {
 }
 export async function createInventory(adapter: SourceAdapter): Promise<Result<FileInventory>> {
   const root = await adapter.realpath(adapter.root);
+  const systemDirectories = new Set([
+    adapter.configDir,
+    '.trash',
+    '.git',
+    'privacy-bridge staging',
+  ]);
   const documents: InventoryDocument[] = [];
   const unsupported: string[] = [];
   const excluded: string[] = [];
@@ -71,8 +78,8 @@ export async function createInventory(adapter: SourceAdapter): Promise<Result<Fi
         continue;
       }
       if (entry.isDirectory) {
-        if (SYSTEM.has(basename(absolute))) excluded.push(rel);
-        else if ((await adapter.list(absolute)).includes('.obsidian')) {
+        if (systemDirectories.has(basename(absolute))) excluded.push(rel);
+        else if ((await adapter.list(absolute)).includes(adapter.configDir)) {
           // A nested Obsidian configuration marks a separate Vault boundary.
           excluded.push(rel);
           blockers.add('PB-FILE-005');
@@ -118,6 +125,7 @@ export async function createInventory(adapter: SourceAdapter): Promise<Result<Fi
 export async function createScopedInventory(
   vaultRoot: string,
   scope: InventoryScope,
+  configDir: string,
 ): Promise<Result<FileInventory>> {
   try {
     const vault = await realpath(vaultRoot);
@@ -134,7 +142,7 @@ export async function createScopedInventory(
       if (!entry.isFile() || !selected.toLowerCase().endsWith('.md'))
         return err(error('PB-FILE-002'));
       const parent = resolve(selected, '..');
-      const inventory = await createInventory(createNodeSourceAdapter(parent));
+      const inventory = await createInventory(createNodeSourceAdapter(parent, configDir));
       if (!inventory.ok) return inventory;
       const name = basename(selected);
       return ok({
@@ -143,7 +151,7 @@ export async function createScopedInventory(
       });
     }
     if (!entry.isDirectory()) return err(error('PB-FILE-002'));
-    return createInventory(createNodeSourceAdapter(selected));
+    return createInventory(createNodeSourceAdapter(selected, configDir));
   } catch {
     return err(error('PB-FILE-002'));
   }

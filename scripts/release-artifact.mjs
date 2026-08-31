@@ -221,4 +221,19 @@ await writeFile(
   resolve(outdir, `${archiveName}.sha256`),
   `${createHash('sha256').update(readBackArchive).digest('hex')}  ${archiveName}\n`,
 );
+const communityAssets = ['main.js', 'manifest.json', 'styles.css'];
+const communityChecksums = await Promise.all(
+  communityAssets.map(
+    async (name) =>
+      `${createHash('sha256')
+        .update(await readFile(resolve(outdir, name)))
+        .digest('hex')}  ${name}`,
+  ),
+);
+await writeFile(
+  resolve(outdir, 'COMMUNITY-RELEASE-NOTES.md'),
+  `Community installation uses only \`main.js\`, \`manifest.json\`, and \`styles.css\`.\n\n` +
+    `### SHA-256\n\n\`\`\`text\n${communityChecksums.join('\n')}\n\`\`\`\n\n` +
+    `The three assets have GitHub build-provenance and SBOM attestations. The complete checksums, SBOM, and validated archive are retained in the release workflow artifact.\n`,
+);
 console.log(`Release artifact prepared and read-back validated in ${outdir}`);

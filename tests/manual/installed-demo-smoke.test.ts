@@ -38,6 +38,7 @@ run('installed synthetic demo smoke test', () => {
       expect(prepared.value.previewHunks).toHaveLength(10);
       const result = await publishPreparedDocument({
         vaultRoot,
+        configDir: '.test-config',
         outputParent,
         relativePath,
         currentContent: source,

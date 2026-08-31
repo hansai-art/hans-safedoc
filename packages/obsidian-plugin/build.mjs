@@ -6,9 +6,12 @@ await import('../../scripts/generate-ooxml-contracts.mjs');
 
 const root = resolve(import.meta.dirname);
 const outdir = resolve(root, 'dist');
+const communityOutdir = resolve(root, '../..', 'dist');
 
 await rm(outdir, { recursive: true, force: true });
+await rm(communityOutdir, { recursive: true, force: true });
 await mkdir(outdir, { recursive: true });
+await mkdir(communityOutdir, { recursive: true });
 await build({
   entryPoints: [resolve(root, 'src/main.ts')],
   bundle: true,
@@ -25,3 +28,5 @@ await build({
 });
 await cp(resolve(root, 'manifest.json'), resolve(outdir, 'manifest.json'));
 await cp(resolve(root, 'styles.css'), resolve(outdir, 'styles.css'));
+for (const asset of ['main.js', 'manifest.json', 'styles.css'])
+  await cp(resolve(outdir, asset), resolve(communityOutdir, asset));

@@ -133,6 +133,7 @@ export function buildPreviewHunks(
 
 export interface PublishPreparedDocumentInput {
   readonly vaultRoot: string;
+  readonly configDir: string;
   readonly outputParent: string;
   readonly relativePath: string;
   readonly currentContent: string;
@@ -231,6 +232,7 @@ export async function publishPreparedDocument(
   const shadow = await buildShadowVault({
     jobId: input.prepared.jobId,
     sourceRoot: input.vaultRoot,
+    configDir: input.configDir,
     outputParent: input.outputParent,
     documents: [
       {

@@ -211,7 +211,7 @@ function parseXml(xml: string, part: string, blockers: Set<string>): XmlNode | u
   let nodes = 0;
   const token = /<[^>]*>|[^<]+/gu;
   for (const match of xml.matchAll(token)) {
-    const value = match[0]!;
+    const value = match[0];
     if (!value.startsWith('<')) {
       if (value.length > MAX_XML_TEXT) blockers.add(`xml-text-limit:${part}`);
       if (stack.length) stack[stack.length - 1]!.node.text.push(value);
@@ -430,8 +430,10 @@ function parseRelationships(
       }
       if (ids.has(id)) blockers.add(`relationship-duplicate-id:${entry.name}:${id}`);
       ids.add(id);
-      if (mode !== 'Internal' && mode !== 'External')
+      if (mode !== 'Internal' && mode !== 'External') {
         blockers.add(`relationship-target-mode:${entry.name}:${id}`);
+        continue;
+      }
       const relationship = {
         source,
         relsPart: entry.name,
@@ -439,7 +441,7 @@ function parseRelationships(
         type,
         target,
         targetMode: mode,
-      } as Relationship;
+      };
       if (mode === 'Internal') {
         const resolved = resolveTarget(source, target);
         if (!resolved) blockers.add(`relationship-target-invalid:${entry.name}:${id}`);

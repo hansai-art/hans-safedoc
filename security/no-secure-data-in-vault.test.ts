@@ -21,6 +21,7 @@ describe('ACC-STR-003 secure data boundary', () => {
     const build = await buildShadowVault({
       jobId: 'PB-20260828-0123456789',
       sourceRoot: source,
+      configDir: '.test-config',
       outputParent: output,
       documents: [
         {

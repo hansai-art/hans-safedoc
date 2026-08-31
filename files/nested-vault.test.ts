@@ -9,7 +9,7 @@ describe('ACC-FIL-006 nested vault boundary', () => {
     const root = await mkdtemp(join(tmpdir(), 'pb-nested-'));
     await mkdir(join(root, 'nested', '.obsidian'), { recursive: true });
     await writeFile(join(root, 'nested', 'secret.md'), '# nested');
-    const inventory = await createInventory(createNodeSourceAdapter(root));
+    const inventory = await createInventory(createNodeSourceAdapter(root, '.obsidian'));
     expect(inventory.ok && inventory.value.documents).toEqual([]);
     await rm(root, { recursive: true });
   });

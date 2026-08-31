@@ -316,6 +316,15 @@ export function buildSafePackage(input: SafePackageInput): Result<SafePackage> {
     return err(error('PB-EXPORT-005'));
   return ok({ bytes, packageHash, manifest });
 }
+function isStringRecord(value: unknown): value is Record<string, string> {
+  return (
+    !!value &&
+    typeof value === 'object' &&
+    !Array.isArray(value) &&
+    Object.values(value).every((entry) => typeof entry === 'string')
+  );
+}
+
 export function validateSafePackage(bytes: Uint8Array): Result<true> {
   if (bytes.length > SAFE_PACKAGE_LIMIT) return err(error('PB-EXPORT-005'));
   const parsed = readZip(bytes);
@@ -324,13 +333,15 @@ export function validateSafePackage(bytes: Uint8Array): Result<true> {
   if (byName.size !== parsed.value.length || [...FIXED_ENTRIES].some((name) => !byName.has(name)))
     return err(error('PB-EXPORT-005'));
   try {
-    const manifest = JSON.parse(decoder.decode(byName.get('manifest.json')!.bytes));
-    const checksums = JSON.parse(decoder.decode(byName.get('checksums.json')!.bytes)) as Record<
-      string,
-      string
-    >;
+    const manifestEntry = byName.get('manifest.json');
+    const checksumsEntry = byName.get('checksums.json');
+    if (!manifestEntry || !checksumsEntry) return err(error('PB-EXPORT-005'));
+    const manifestJson: unknown = JSON.parse(decoder.decode(manifestEntry.bytes));
+    const manifest = parseExportManifest(manifestJson);
+    const checksums: unknown = JSON.parse(decoder.decode(checksumsEntry.bytes));
     if (
-      !parseExportManifest(manifest).ok ||
+      !manifest.ok ||
+      !isStringRecord(checksums) ||
       Object.keys(checksums).length !== parsed.value.length - 2
     )
       return err(error('PB-EXPORT-005'));
@@ -341,7 +352,8 @@ export function validateSafePackage(bytes: Uint8Array): Result<true> {
         checksums[entry.name] !== sha256(entry.bytes)
       )
         return err(error('PB-EXPORT-005'));
-    if (packageDigest(parsed.value) !== manifest.packageHash) return err(error('PB-EXPORT-005'));
+    if (packageDigest(parsed.value) !== manifest.value.packageHash)
+      return err(error('PB-EXPORT-005'));
   } catch {
     return err(error('PB-EXPORT-005'));
   }

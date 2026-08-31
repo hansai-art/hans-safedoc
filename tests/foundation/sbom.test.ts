@@ -30,6 +30,6 @@ describe('pnpm SBOM generation', () => {
         expect.objectContaining({ type: 'library', purl: expect.stringMatching(/^pkg:npm\//) }),
       ]),
     );
-    expect(bom.metadata.component).toMatchObject({ name: 'safedoc', type: 'application' });
+    expect(bom.metadata.component).toMatchObject({ name: 'hans-safedoc', type: 'application' });
   });
 });

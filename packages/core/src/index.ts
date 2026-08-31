@@ -1,5 +1,14 @@
-import Ajv2020Import from 'ajv/dist/2020.js';
-import addFormatsImport from 'ajv-formats';
+import {
+  validateCandidate,
+  validateClientProfile,
+  validateDictionaryRecord,
+  validateEncryptedEnvelope,
+  validateExportManifest,
+  validateJob,
+  validateResultPackage,
+  validateStore,
+  type StandaloneSchemaValidator,
+} from './generated-schema-validators.mjs';
 import {
   createCipheriv,
   createDecipheriv,
@@ -9,7 +18,7 @@ import {
   randomBytes,
   scrypt,
 } from 'node:crypto';
-import { schemaCatalog } from './schema-catalog.js';
+
 export {
   createInventory,
   createNodeSourceAdapter,
@@ -168,22 +177,29 @@ export interface CryptoProvider {
   sha256(input: Uint8Array): Promise<Uint8Array>;
 }
 
-const Ajv2020 = Ajv2020Import as unknown as new (options: {
-  allErrors: boolean;
-  strict: boolean;
-}) => {
-  addSchema(schema: unknown): void;
-  getSchema(id: string): ((value: unknown) => boolean) | undefined;
-};
-const addFormats = addFormatsImport as unknown as (instance: unknown) => void;
-const ajv = new Ajv2020({ allErrors: true, strict: true });
-addFormats(ajv);
-for (const schema of schemaCatalog) ajv.addSchema(schema);
 type JsonRecord = Record<string, unknown>;
-function parseSchema<T>(schemaFile: string, value: unknown): Result<T> {
-  const validate = ajv.getSchema(`https://privacy-bridge.local/schemas/${schemaFile}`);
-  if (!validate || !validate(value)) return err(error('PB-SCHEMA-001'));
-  return ok(value as T);
+type SchemaFile =
+  | 'store.schema.json'
+  | 'client-profile.schema.json'
+  | 'job.schema.json'
+  | 'candidate.schema.json'
+  | 'export-manifest.schema.json'
+  | 'result-package.schema.json'
+  | 'dictionary.schema.json'
+  | 'encrypted-envelope.schema.json';
+const schemaValidators: Readonly<Record<SchemaFile, StandaloneSchemaValidator>> = {
+  'store.schema.json': validateStore,
+  'client-profile.schema.json': validateClientProfile,
+  'job.schema.json': validateJob,
+  'candidate.schema.json': validateCandidate,
+  'export-manifest.schema.json': validateExportManifest,
+  'result-package.schema.json': validateResultPackage,
+  'dictionary.schema.json': validateDictionaryRecord,
+  'encrypted-envelope.schema.json': validateEncryptedEnvelope,
+};
+function parseSchema(schemaFile: SchemaFile, value: unknown): Result<JsonRecord> {
+  if (!schemaValidators[schemaFile](value)) return err(error('PB-SCHEMA-001'));
+  return ok(value);
 }
 export type Store = JsonRecord;
 export type ClientProfile = JsonRecord;
@@ -193,19 +209,15 @@ export type ExportManifest = JsonRecord;
 export type ResultPackage = JsonRecord;
 export type DictionaryRecord = JsonRecord;
 export type EncryptedEnvelopeRecord = JsonRecord;
-export const parseStore = (v: unknown) => parseSchema<Store>('store.schema.json', v);
-export const parseClientProfile = (v: unknown) =>
-  parseSchema<ClientProfile>('client-profile.schema.json', v);
-export const parseJob = (v: unknown) => parseSchema<Job>('job.schema.json', v);
-export const parseCandidate = (v: unknown) => parseSchema<Candidate>('candidate.schema.json', v);
-export const parseExportManifest = (v: unknown) =>
-  parseSchema<ExportManifest>('export-manifest.schema.json', v);
-export const parseResultPackage = (v: unknown) =>
-  parseSchema<ResultPackage>('result-package.schema.json', v);
-export const parseDictionaryRecord = (v: unknown) =>
-  parseSchema<DictionaryRecord>('dictionary.schema.json', v);
+export const parseStore = (v: unknown) => parseSchema('store.schema.json', v);
+export const parseClientProfile = (v: unknown) => parseSchema('client-profile.schema.json', v);
+export const parseJob = (v: unknown) => parseSchema('job.schema.json', v);
+export const parseCandidate = (v: unknown) => parseSchema('candidate.schema.json', v);
+export const parseExportManifest = (v: unknown) => parseSchema('export-manifest.schema.json', v);
+export const parseResultPackage = (v: unknown) => parseSchema('result-package.schema.json', v);
+export const parseDictionaryRecord = (v: unknown) => parseSchema('dictionary.schema.json', v);
 export const parseEncryptedEnvelope = (v: unknown) =>
-  parseSchema<EncryptedEnvelopeRecord>('encrypted-envelope.schema.json', v);
+  parseSchema('encrypted-envelope.schema.json', v);
 
 export interface SemVer {
   readonly major: number;

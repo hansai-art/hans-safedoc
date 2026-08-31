@@ -97,7 +97,7 @@ describe('E14 Obsidian workflow integration', () => {
     expect(workspace).toContain('顯示前後 3 行');
     expect(workspace).toContain('展開這一段');
     expect(workspace).toContain('privacy-bridge-type-filter');
-    expect(workspace).toContain('privacy-bridge-copy-status');
+    expect(workspace).not.toContain('privacy-bridge-copy-status');
     expect(workspace).toContain('privacy-bridge-primary-actions');
     const renderBody = workspace.slice(workspace.indexOf('private render(): void'));
     expect(renderBody.indexOf('this.renderPrimaryActions')).toBeGreaterThan(-1);
@@ -114,7 +114,8 @@ describe('E14 Obsidian workflow integration', () => {
     expect(workspace).toContain('完成：安全檔案已建立');
     expect(workspace).toContain('開啟安全預覽');
     expect(workspace).toContain('顯示輸出位置');
-    expect(workspace).toContain('複製檔案位置');
+    expect(workspace).not.toContain('navigator.clipboard');
+    expect(workspace).not.toContain('複製檔案位置');
     expect(workspace).toContain('只上傳這份安全代碼化檔案');
     expect(workspace).not.toContain('只上傳這份安全代碼化的 MD 文件');
     expect(workspace).toContain("cls: 'mod-cta'");
@@ -163,7 +164,8 @@ describe('E14 Obsidian workflow integration', () => {
     expect(help).toContain('如何轉換、輸出並交給其他工具');
     expect(help).toContain('如何安全還原');
     expect(help).toContain('目前測試版尚未開放安全還原');
-    expect(help).toContain('複製給其他工具的提示詞');
+    expect(help).toContain('給其他工具的提示詞');
+    expect(help).toContain('請手動選取上方提示詞');
     expect(help).not.toContain('innerHTML');
     expect(help).not.toContain('匿名');
   });

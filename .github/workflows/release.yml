@@ -37,6 +37,21 @@ jobs:
             artifacts/release/main.js
             artifacts/release/manifest.json
             artifacts/release/styles.css
+      - name: Attest SBOM for direct Community assets
+        uses: actions/attest-sbom@v4
+        with:
+          subject-path: |
+            artifacts/release/main.js
+            artifacts/release/manifest.json
+            artifacts/release/styles.css
+          sbom-path: artifacts/release/sbom.cdx.json
+      - name: Retain complete supply-chain evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: hans-safedoc-${{ github.ref_name }}-supply-chain
+          path: artifacts/release/
+          if-no-files-found: error
+          retention-days: 90
       - name: Publish direct Community assets and provenance
         env:
           GH_TOKEN: ${{ github.token }}
@@ -45,11 +60,6 @@ jobs:
             artifacts/release/main.js \
             artifacts/release/manifest.json \
             artifacts/release/styles.css \
-            artifacts/release/hans-safedoc-"$GITHUB_REF_NAME".zip \
-            artifacts/release/hans-safedoc-"$GITHUB_REF_NAME".zip.sha256 \
-            artifacts/release/SHA256SUMS.txt \
-            artifacts/release/artifact-manifest.json \
-            artifacts/release/sbom.cdx.json \
             --verify-tag \
-            --generate-notes \
+            --notes-file artifacts/release/COMMUNITY-RELEASE-NOTES.md \
             --title "Hans SafeDoc $GITHUB_REF_NAME"

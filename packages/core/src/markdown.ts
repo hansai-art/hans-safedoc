@@ -65,7 +65,7 @@ export function parseMarkdownRegions(source: string): readonly MarkdownRegion[] 
         source,
         'FRONTMATTER_VALUE',
         start + m[1]!.length + m[2]!.length,
-        start + m[0]!.length,
+        start + m[0].length,
       );
     }
   }
@@ -114,7 +114,7 @@ export function parseWikilinks(source: string): readonly Wikilink[] {
       target: { start: content, end: targetEnd },
       ...(m[3] === undefined
         ? {}
-        : { display: { start: targetEnd + 1, end: targetEnd + 1 + m[3]!.length } }),
+        : { display: { start: targetEnd + 1, end: targetEnd + 1 + m[3].length } }),
       embed: m[1] === '!',
     });
   }

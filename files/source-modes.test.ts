@@ -15,13 +15,22 @@ describe('ACC-FIL-001 source modes', () => {
       writeFile(join(folder, 'child.md'), '# child'),
       writeFile(join(external, 'external.md'), '# external'),
     ]);
-    const active = await createScopedInventory(root, {
-      kind: 'ACTIVE_NOTE',
-      path: join(root, 'root.md'),
-    });
-    const folderInventory = await createScopedInventory(root, { kind: 'FOLDER', path: folder });
-    const whole = await createScopedInventory(root, { kind: 'WHOLE_VAULT' });
-    const outside = await createScopedInventory(root, { kind: 'EXTERNAL_FOLDER', path: external });
+    const active = await createScopedInventory(
+      root,
+      { kind: 'ACTIVE_NOTE', path: join(root, 'root.md') },
+      '.test-config',
+    );
+    const folderInventory = await createScopedInventory(
+      root,
+      { kind: 'FOLDER', path: folder },
+      '.test-config',
+    );
+    const whole = await createScopedInventory(root, { kind: 'WHOLE_VAULT' }, '.test-config');
+    const outside = await createScopedInventory(
+      root,
+      { kind: 'EXTERNAL_FOLDER', path: external },
+      '.test-config',
+    );
     expect(active.ok && active.value.documents.map((d) => d.relativePath)).toEqual(['root.md']);
     expect(
       folderInventory.ok && folderInventory.value.documents.map((d) => d.relativePath),

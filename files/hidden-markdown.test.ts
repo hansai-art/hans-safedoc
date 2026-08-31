@@ -9,7 +9,7 @@ describe('ACC-FIL-003 hidden Markdown', () => {
     const root = await mkdtemp(join(tmpdir(), 'pb-hidden-'));
     await mkdir(join(root, '.notes'));
     await writeFile(join(root, '.notes', 'private.md'), '# valid');
-    const inventory = await createInventory(createNodeSourceAdapter(root));
+    const inventory = await createInventory(createNodeSourceAdapter(root, '.test-config'));
     expect(inventory.ok && inventory.value.documents.map((d) => d.relativePath)).toEqual([
       '.notes/private.md',
     ]);
