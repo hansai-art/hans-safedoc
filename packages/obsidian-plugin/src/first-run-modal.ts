@@ -79,7 +79,7 @@ export class PrivacyBridgeFirstRunModal extends Modal {
     const checkbox = label.createEl('input', {
       attr: { type: 'checkbox', 'aria-label': '我理解以上限制' },
     });
-    label.createEl('span', { text: '我理解以上限制' });
+    label.createSpan({ text: '我理解以上限制' });
     const continueButton = article.createEl('button', {
       text: '繼續',
       cls: 'mod-cta',
@@ -146,7 +146,7 @@ export class PrivacyBridgeFirstRunModal extends Modal {
       text: '固定規則可處理目前支援的 MD、TXT、CSV、DOCX 與 XLSX 安全子集。系統不會下載模型，也不會讀取既有模型檔；人名與組織仍可能漏掉，輸出前必須人工檢查。',
     });
     const actions = article.createDiv({ cls: 'privacy-bridge-onboarding-actions' });
-    const status = actions.createEl('span', {
+    const status = actions.createSpan({
       cls: 'privacy-bridge-copy-status',
       attr: { 'aria-live': 'polite' },
     });
@@ -190,7 +190,7 @@ export class PrivacyBridgeFirstRunModal extends Modal {
       text: '建立安全練習筆記並開始',
       cls: 'mod-cta',
     });
-    const status = actions.createEl('span', {
+    const status = actions.createSpan({
       cls: 'privacy-bridge-copy-status',
       attr: { 'aria-live': 'polite' },
     });

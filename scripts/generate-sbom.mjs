@@ -74,11 +74,17 @@ async function validateCycloneDxSchema(bom) {
 
 export async function generateSbom({ root, outputFile }) {
   // A frozen install is the dependency-resolution gate; no npm fallback or ignored errors.
-  await executePnpm(['install', '--frozen-lockfile', '--ignore-scripts'], { cwd: root });
-  const { stdout } = await executePnpm(['list', '--recursive', '--json', '--depth', 'Infinity'], {
+  await executePnpm(['install', '--frozen-lockfile', '--ignore-scripts'], {
     cwd: root,
     maxBuffer: 16 * 1024 * 1024,
   });
+  const { stdout } = await executePnpm(
+    ['list', '--prod', '--recursive', '--json', '--depth', 'Infinity'],
+    {
+      cwd: root,
+      maxBuffer: 16 * 1024 * 1024,
+    },
+  );
   const workspaceTrees = JSON.parse(stdout);
   const packages = new Map();
   const edges = new Map();

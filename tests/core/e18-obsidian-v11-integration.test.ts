@@ -76,7 +76,7 @@ describe('Hans SafeDoc v1.2 Obsidian integration contract', () => {
     expect(workspace).toContain('this.actions.chooseFile()');
   });
 
-  it('publishes the Hans SafeDoc identity with aligned 1.2.8 metadata', () => {
+  it('publishes the Hans SafeDoc identity with aligned release metadata', () => {
     const packageJson = JSON.parse(read('package.json')) as { name: string; version: string };
     const pluginPackage = JSON.parse(read('packages/obsidian-plugin/package.json')) as {
       version: string;
@@ -90,16 +90,16 @@ describe('Hans SafeDoc v1.2 Obsidian integration contract', () => {
     };
     const rootManifest = JSON.parse(read('manifest.json')) as typeof pluginManifest;
     const versions = JSON.parse(read('versions.json')) as Record<string, string>;
-    expect(packageJson).toMatchObject({ name: 'hans-safedoc', version: '1.2.8' });
-    expect(pluginPackage.version).toBe('1.2.8');
+    expect(packageJson.name).toBe('hans-safedoc');
+    expect(pluginPackage.version).toBe(packageJson.version);
     expect(pluginManifest).toMatchObject({
       id: 'hans-safedoc',
       name: 'Hans SafeDoc',
-      version: '1.2.8',
+      version: packageJson.version,
     });
     expect(rootManifest).toEqual(pluginManifest);
     expect(pluginManifest.description).toContain('MD, TXT, CSV, DOCX, and XLSX');
-    expect(versions['1.2.8']).toBe(pluginManifest.minAppVersion);
+    expect(versions[packageJson.version]).toBe(pluginManifest.minAppVersion);
     expect(read('README.md')).toContain('.obsidian/plugins/hans-safedoc/');
     expect(read('README.md')).not.toContain('.obsidian/plugins/privacy-bridge/');
     expect(read('docs/CLEANROOM-SOURCE-PROVENANCE.md')).toContain('hansai-art/hans-safedoc');

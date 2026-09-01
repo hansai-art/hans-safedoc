@@ -1,4 +1,5 @@
 import js from '@eslint/js';
+import obsidianmd from 'eslint-plugin-obsidianmd';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
@@ -26,6 +27,19 @@ export default tseslint.config(
     rules: {
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/consistent-type-imports': 'error',
+    },
+  },
+  {
+    files: ['packages/obsidian-plugin/src/**/*.ts'],
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    plugins: { obsidianmd },
+    rules: {
+      'obsidianmd/prefer-create-el': 'error',
     },
   },
 );

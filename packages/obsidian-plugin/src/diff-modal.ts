@@ -76,7 +76,7 @@ export class PrivacyBridgeDiffModal extends Modal {
         const previous = navigation.createEl('button', { text: '上一處' });
         previous.disabled = this.activeIndex === 0;
         previous.addEventListener('click', () => this.moveTo(this.activeIndex - 1));
-        navigation.createEl('span', {
+        navigation.createSpan({
           text: hunks.length === 0 ? '沒有變更' : `第 ${this.activeIndex + 1} / ${hunks.length} 處`,
           attr: { 'aria-live': 'polite' },
         });

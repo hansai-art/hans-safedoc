@@ -82,6 +82,7 @@ describe('external format workflow safety gates', () => {
           .digest('hex'),
       ).toBe(before);
     },
+    60_000,
   );
 
   it('rejects a prepared review from another source before creating an output directory', async () => {

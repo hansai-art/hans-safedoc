@@ -1,9 +1,29 @@
+interface DomElementInfo {
+  cls?: string | string[];
+  text?: string | DocumentFragment;
+  attr?: Record<string, string | number | boolean | null>;
+  title?: string;
+  parent?: Node;
+  value?: string;
+  type?: string;
+  prepend?: boolean;
+  placeholder?: string;
+  href?: string;
+}
+
 interface HTMLElement {
   empty(): void;
-  createDiv(options?: { cls?: string }, callback?: (element: HTMLElement) => void): HTMLElement;
+  createDiv(
+    options?: DomElementInfo | string,
+    callback?: (element: HTMLDivElement) => void,
+  ): HTMLDivElement;
+  createSpan(
+    options?: DomElementInfo | string,
+    callback?: (element: HTMLSpanElement) => void,
+  ): HTMLSpanElement;
   createEl<K extends keyof HTMLElementTagNameMap>(
     tag: K,
-    options?: { text?: string; cls?: string; attr?: Record<string, string> },
+    options?: DomElementInfo | string,
     callback?: (element: HTMLElementTagNameMap[K]) => void,
   ): HTMLElementTagNameMap[K];
 }

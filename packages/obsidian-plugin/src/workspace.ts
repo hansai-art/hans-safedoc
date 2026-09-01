@@ -251,8 +251,7 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
       overview.createEl('p', {
         text: `已轉換 ${accepted.length} · 保留原文 ${ignored} · 需要人工確認 0`,
       });
-      overview.createEl(
-        'div',
+      overview.createDiv(
         {
           cls: 'privacy-bridge-type-filter',
           attr: { role: 'group', 'aria-label': '依資料類型篩選變更' },
@@ -289,7 +288,7 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
     if (lines.length === 0) return;
     const state = this.expandedGaps.get(key);
     parent.createDiv({ cls: 'privacy-bridge-collapsed-lines' }, (gap) => {
-      gap.createEl('span', { text: `已收合 ${lines.length} 行${noun}` });
+      gap.createSpan({ text: `已收合 ${lines.length} 行${noun}` });
       if (state) {
         const visible =
           state === 'ALL' || lines.length <= 6
@@ -376,7 +375,7 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
         });
         previous.disabled = this.activeHunkIndex === 0;
         previous.addEventListener('click', () => this.moveToHunk(this.activeHunkIndex - 1));
-        navigation.createEl('span', {
+        navigation.createSpan({
           cls: 'privacy-bridge-preview-position',
           text:
             hunks.length === 0 ? '沒有變更' : `第 ${this.activeHunkIndex + 1} / ${hunks.length} 處`,
@@ -427,11 +426,11 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
                 text: `第 ${hunk.lineNumber} 行 · ${hunk.types.map(displayTypeName).join(' · ')}`,
               });
               article.createDiv({ cls: 'privacy-bridge-diff-before' }, (row) => {
-                row.createEl('span', { text: '− 原始' });
+                row.createSpan({ text: '− 原始' });
                 row.createEl('code', { text: hunk.beforeLine });
               });
               article.createDiv({ cls: 'privacy-bridge-diff-after' }, (row) => {
-                row.createEl('span', { text: '+ 轉換後' });
+                row.createSpan({ text: '+ 轉換後' });
                 row.createEl('code', { text: hunk.displayAfterLine });
                 row.createEl('details', { cls: 'privacy-bridge-token-details' }, (details) => {
                   details.createEl('summary', { text: '查看完整代碼' });
@@ -722,7 +721,7 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
           this.mandatoryReviewRecords.forEach((record) => {
             list.createEl('li', { cls: 'privacy-bridge-candidate' }, (item) => {
               const acknowledged = this.mandatoryReviewIds.has(record.id);
-              item.createEl('span', {
+              item.createSpan({
                 cls: 'privacy-bridge-candidate-label',
                 text: `${record.label}：${record.value}（${acknowledged ? '已確認保留' : '待逐項確認'}）`,
               });
@@ -752,7 +751,7 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
           this.candidates.forEach((candidate) => {
             list.createEl('li', { cls: 'privacy-bridge-candidate' }, (item) => {
               const decision = this.decisions.get(candidate.candidateId);
-              item.createEl('span', {
+              item.createSpan({
                 cls: 'privacy-bridge-candidate-label',
                 text: `${displayTypeName(candidate.primaryType)}：${candidate.surfaceText}（${
                   candidate.handling === 'BLOCK_EXPORT'
