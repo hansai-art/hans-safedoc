@@ -1,4 +1,6 @@
 import { createHash } from 'node:crypto';
+import { rm } from 'node:fs/promises';
+import { homedir } from 'node:os';
 import { dirname, extname, resolve } from 'node:path';
 import {
   Modal,
@@ -14,7 +16,21 @@ import {
   type CsvDialect,
   type CsvDialectCandidate,
 } from '../../document-formats/src/csv/adapter.js';
-import type { DetectedCandidate } from '@privacy-bridge/core';
+import {
+  DICTIONARY_LIMITS,
+  defaultSecureStorePath,
+  listSafeJobRecords,
+  loadSafeJobRecord,
+  matchDictionary,
+  mergeCandidateDetections,
+  saveSafeJobRecord,
+  validateDictionaryImport,
+  validateSecureStorePath,
+  type DesktopPlatform,
+  type DetectedCandidate,
+  type Dictionary,
+  type SafeJobSummary,
+} from '@privacy-bridge/core';
 import type { ExternalReviewDocument } from './external-format-workflow.js';
 import {
   explainExternalFileError,
@@ -22,6 +38,8 @@ import {
   publishExternalReviewedDocument,
 } from './external-format-workflow.js';
 import { assertDesktopRuntime } from './index.js';
+import { createAnalysisBundle, type AnalysisBundle } from './analysis-request.js';
+import { restoreSafeResultFile } from './restore-workflow.js';
 import { PrivacyBridgePreviewView, PRIVACY_BRIDGE_PREVIEW_VIEW } from './preview-view.js';
 import { PrivacyBridgeDiffModal } from './diff-modal.js';
 import { PrivacyBridgeFirstRunModal } from './first-run-modal.js';
@@ -110,11 +128,111 @@ class CsvDialectModal extends Modal {
   }
 }
 
+interface StorePassphraseSelection {
+  readonly passphrase: string;
+  readonly jobId?: string;
+}
+
+class StorePassphraseModal extends Modal {
+  private settled = false;
+  private passphraseInput: HTMLInputElement | undefined;
+  private confirmationInput: HTMLInputElement | undefined;
+
+  constructor(
+    app: App,
+    private readonly mode: 'CREATE' | 'RESTORE',
+    private readonly jobs: readonly SafeJobSummary[],
+    private readonly finish: (selection: StorePassphraseSelection | undefined) => void,
+  ) {
+    super(app);
+  }
+
+  override onOpen(): void {
+    this.contentEl.empty();
+    this.contentEl.createEl('h2', {
+      text: this.mode === 'CREATE' ? '設定這次 Job 的還原密碼' : '驗證並還原 AI 結果',
+    });
+    this.contentEl.createEl('p', {
+      text:
+        this.mode === 'CREATE'
+          ? '密碼只用來加密儲存在系統應用程式資料夾的本機對照表，不會寫入 Vault、外掛設定或安全輸出。Hans SafeDoc 無法替你找回遺失的密碼。'
+          : '選擇建立安全輸出時的 Job，並輸入當時設定的密碼。密碼不會儲存。',
+    });
+    let jobSelect: HTMLSelectElement | undefined;
+    if (this.mode === 'RESTORE') {
+      const label = this.contentEl.createEl('label', { text: '本機 Job' });
+      jobSelect = label.createEl('select');
+      for (const job of this.jobs)
+        jobSelect.createEl('option', {
+          text: `${job.jobId} · ${new Date(job.createdAt).toLocaleString('zh-TW')}`,
+          value: job.jobId,
+        });
+    }
+    const passphraseLabel = this.contentEl.createEl('label', { text: '密碼（12–256 個字元）' });
+    this.passphraseInput = passphraseLabel.createEl('input', {
+      type: 'password',
+      attr: {
+        autocomplete: this.mode === 'CREATE' ? 'new-password' : 'current-password',
+        spellcheck: 'false',
+      },
+    });
+    if (this.mode === 'CREATE') {
+      const confirmationLabel = this.contentEl.createEl('label', { text: '再次輸入密碼' });
+      this.confirmationInput = confirmationLabel.createEl('input', {
+        type: 'password',
+        attr: { autocomplete: 'new-password', spellcheck: 'false' },
+      });
+    }
+    const status = this.contentEl.createEl('p', { attr: { 'aria-live': 'polite' } });
+    const cancel = this.contentEl.createEl('button', { text: '取消' });
+    const confirm = this.contentEl.createEl('button', {
+      text: this.mode === 'CREATE' ? '加密儲存並建立輸出' : '驗證並建立還原副本',
+      cls: 'mod-cta',
+    });
+    const validate = () => {
+      const passphrase = this.passphraseInput?.value ?? '';
+      const length = [...passphrase].length;
+      const matches = this.mode === 'RESTORE' || passphrase === this.confirmationInput?.value;
+      confirm.disabled = length < 12 || length > 256 || !matches;
+      status.textContent =
+        this.mode === 'CREATE' && length >= 12 && !matches ? '兩次輸入的密碼不一致。' : '';
+    };
+    this.passphraseInput.addEventListener('input', validate);
+    this.confirmationInput?.addEventListener('input', validate);
+    cancel.addEventListener('click', () => this.close());
+    confirm.addEventListener('click', () => {
+      const passphrase = this.passphraseInput?.value ?? '';
+      this.settled = true;
+      this.finish({ passphrase, ...(jobSelect ? { jobId: jobSelect.value } : {}) });
+      this.close();
+    });
+    validate();
+    queueMicrotask(() => this.passphraseInput?.focus());
+  }
+
+  override onClose(): void {
+    if (this.passphraseInput) this.passphraseInput.value = '';
+    if (this.confirmationInput) this.confirmationInput.value = '';
+    this.contentEl.empty();
+    if (!this.settled) this.finish(undefined);
+  }
+}
+
 export default class ObsidianPrivacyBridgePlugin extends Plugin {
   private reviewSession: ReviewSession | undefined;
+  private sessionDictionary: Dictionary | undefined;
   private diffModal: PrivacyBridgeDiffModal | undefined;
   private firstRunModal: PrivacyBridgeFirstRunModal | undefined;
   private noviceSettings: NoviceSettings = normalizeNoviceSettings(undefined);
+
+  private discardPrepared(session: ReviewSession | undefined): void {
+    session?.prepared?.tokenKey.fill(0);
+    if (session) session.prepared = undefined;
+  }
+  private clearReviewSession(): void {
+    this.discardPrepared(this.reviewSession);
+    this.reviewSession = undefined;
+  }
 
   override async onload(): Promise<void> {
     assertDesktopRuntime({ isMobile: Platform.isMobile });
@@ -124,6 +242,8 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
       (leaf) =>
         new PrivacyBridgeWorkspaceView(leaf, {
           chooseFile: () => this.chooseExternalFile(),
+          importDictionary: () => this.importDictionary(),
+          restoreResult: () => this.restoreResult(),
           scanCurrentNote: async () => {
             await this.scanCurrentNote();
           },
@@ -156,6 +276,16 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
       id: 'create-new-job',
       name: '建立安全輸出',
       callback: () => this.exportCurrentNote(),
+    });
+    this.addCommand({
+      id: 'restore-ai-result',
+      name: '還原 AI 處理結果',
+      callback: () => this.restoreResult(),
+    });
+    this.addCommand({
+      id: 'import-session-dictionary',
+      name: '匯入工作階段客戶字典',
+      callback: () => this.importDictionary(),
     });
     this.addCommand({
       id: 'lock-current-client',
@@ -194,7 +324,8 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
       this.noviceSettings.securityNoticeVersion === SECURITY_NOTICE_VERSION
     )
       return true;
-    this.reviewSession = undefined;
+    this.clearReviewSession();
+    this.sessionDictionary = undefined;
     this.openFirstRunGuide();
     new Notice('請先閱讀並接受目前版本的安全限制，Hans SafeDoc 尚未讀取文件。');
     return false;
@@ -219,10 +350,179 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
   private async disableLocalModel(): Promise<void> {
     await this.setLocalModelEnabled(false);
   }
+  private secureStoreRoot(vaultRoot: string): string {
+    const platform = process.platform;
+    if (platform !== 'darwin' && platform !== 'win32' && platform !== 'linux')
+      throw new Error('此桌面作業系統尚未支援安全 Job Store。');
+    const candidate = defaultSecureStorePath(platform as DesktopPlatform, homedir());
+    const parent = dirname(vaultRoot);
+    const validated = validateSecureStorePath({
+      candidate,
+      vaultRoot,
+      shadowRoots: [resolve(parent, 'Hans SafeDoc Outputs')],
+      resultRoots: [resolve(parent, 'Hans SafeDoc Restored')],
+    });
+    if (!validated.ok) throw new Error('安全 Job Store 不得位於 Vault 或輸出資料夾內。');
+    return validated.value;
+  }
+  private requestStorePassphrase(
+    mode: 'CREATE' | 'RESTORE',
+    jobs: readonly SafeJobSummary[] = [],
+  ): Promise<StorePassphraseSelection | undefined> {
+    return new Promise((resolveSelection) =>
+      new StorePassphraseModal(this.app, mode, jobs, resolveSelection).open(),
+    );
+  }
+  private async chooseRestoreFile(): Promise<string | undefined> {
+    const input = document.body.createEl('input');
+    input.type = 'file';
+    input.accept = '.json,application/json';
+    input.hidden = true;
+    try {
+      const selected = await new Promise<File | undefined>((resolveSelection) => {
+        input.addEventListener('change', () => resolveSelection(input.files?.[0]), { once: true });
+        input.addEventListener('cancel', () => resolveSelection(undefined), { once: true });
+        input.click();
+      });
+      if (!selected) return undefined;
+      const desktopRequire = (
+        window as unknown as {
+          require?: (module: string) => {
+            webUtils?: { getPathForFile(file: File): string };
+          };
+        }
+      ).require;
+      return desktopRequire?.('electron').webUtils?.getPathForFile(selected) || undefined;
+    } finally {
+      input.remove();
+    }
+  }
+  private async restoreResult(): Promise<void> {
+    if (!this.ensureSecurityNoticeAccepted()) return;
+    const vaultRoot = this.app.vault.adapter.getBasePath?.();
+    if (!vaultRoot) {
+      new Notice('無法確認 Obsidian 資料庫路徑，未讀取結果檔。');
+      return;
+    }
+    const sourcePath = await this.chooseRestoreFile();
+    if (!sourcePath) return;
+    let secureRoot: string;
+    try {
+      secureRoot = this.secureStoreRoot(vaultRoot);
+    } catch (cause) {
+      new Notice(cause instanceof Error ? cause.message : '無法開啟安全 Job Store。');
+      return;
+    }
+    const listed = await listSafeJobRecords(secureRoot);
+    if (!listed.ok || listed.value.length === 0) {
+      new Notice('找不到可用的本機 Job 對照表，未讀取或還原結果。');
+      return;
+    }
+    const selection = await this.requestStorePassphrase('RESTORE', listed.value);
+    if (!selection?.jobId) return;
+    const loaded = await loadSafeJobRecord(secureRoot, selection.jobId, selection.passphrase);
+    if (!loaded.ok) {
+      new Notice('密碼錯誤，或 Job 對照表完整性驗證失敗；沒有建立還原檔。');
+      return;
+    }
+    try {
+      const output = await restoreSafeResultFile({
+        sourcePath,
+        outputParent: resolve(dirname(vaultRoot), 'Hans SafeDoc Restored'),
+        job: loaded.value,
+      });
+      const view = await this.activateWorkspace();
+      view?.setRestoredOutputResult(output, loaded.value.jobId);
+      new Notice('安全代碼與 Job 完整性驗證通過，已建立新的還原副本。');
+    } catch (cause) {
+      const message = cause instanceof Error ? cause.message : '未知錯誤';
+      const view = await this.activateWorkspace();
+      view?.setError(`沒有建立還原檔：${message}`);
+      new Notice('還原驗證未通過，沒有建立任何結果檔。');
+    } finally {
+      loaded.value.tokenKey.fill(0);
+    }
+  }
+  private async importDictionary(): Promise<void> {
+    if (!this.ensureSecurityNoticeAccepted()) return;
+    const input = document.body.createEl('input');
+    input.type = 'file';
+    input.accept = '.json,application/json';
+    input.hidden = true;
+    try {
+      const selected = await new Promise<File | undefined>((resolveSelection) => {
+        input.addEventListener('change', () => resolveSelection(input.files?.[0]), { once: true });
+        input.addEventListener('cancel', () => resolveSelection(undefined), { once: true });
+        input.click();
+      });
+      if (!selected) return;
+      if (selected.size > DICTIONARY_LIMITS.bytes) {
+        new Notice('字典超過 25 MB，未讀取檔案。');
+        return;
+      }
+      const parsed = validateDictionaryImport(new Uint8Array(await selected.arrayBuffer()));
+      if (!parsed.ok) {
+        new Notice(`字典格式或安全限制驗證失敗：${parsed.error.code}。`);
+        return;
+      }
+      this.clearReviewSession();
+      this.sessionDictionary = parsed.value;
+      const view = await this.activateWorkspace();
+      view?.resetSelection();
+      view?.setDictionaryState(parsed.value.entries.length);
+      new Notice(
+        `已載入 ${parsed.value.entries.length} 筆客戶字典；只保留於本次工作階段，請重新掃描文件。`,
+      );
+    } finally {
+      input.remove();
+    }
+  }
+  private async bindPublishedOutput(input: {
+    readonly outputFile: string;
+    readonly outputRoot?: string;
+    readonly secureRoot: string;
+    readonly passphrase: string;
+    readonly prepared: PreparedReviewedDocument;
+  }): Promise<AnalysisBundle> {
+    let bundle: AnalysisBundle | undefined;
+    try {
+      bundle = await createAnalysisBundle({
+        outputFile: input.outputFile,
+        prepared: input.prepared,
+      });
+      const saved = await saveSafeJobRecord({
+        secureRoot: input.secureRoot,
+        jobId: input.prepared.jobId,
+        sourceSha256: input.prepared.sourceSha256,
+        packageHash: bundle.packageHash,
+        documentIds: [input.prepared.documentId],
+        tokenKey: input.prepared.tokenKey,
+        entities: input.prepared.mapping,
+        passphrase: input.passphrase,
+      });
+      if (!saved.ok) throw new Error(`加密 Job 對照表未建立：${saved.error.code}`);
+      input.prepared.tokenKey.fill(0);
+      return bundle;
+    } catch (cause) {
+      if (input.outputRoot) await rm(input.outputRoot, { recursive: true, force: true });
+      else {
+        if (bundle) {
+          await rm(bundle.safePackageFile, { force: true });
+          await rm(bundle.analysisRequestFile, { force: true });
+        }
+        await rm(input.outputFile, { force: true });
+      }
+      throw cause;
+    }
+  }
   private async detectCandidates(source: string): Promise<readonly DetectedCandidate[]> {
     const deterministic = scanSyntheticDocument(source);
     if (!deterministic.ok) throw new Error(`掃描失敗：${deterministic.error.code}`);
-    return deterministic.value;
+    if (!this.sessionDictionary) return deterministic.value;
+    return mergeCandidateDetections(
+      deterministic.value,
+      matchDictionary(source, this.sessionDictionary),
+    );
   }
   private async useOwnMarkdown(): Promise<void> {
     await this.completeOnboarding();
@@ -257,7 +557,9 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
     if (!leaf) return null;
     if (!existing) await leaf.setViewState({ type: PRIVACY_BRIDGE_VIEW, active: true });
     await this.app.workspace.revealLeaf(leaf);
-    return leaf.view instanceof PrivacyBridgeWorkspaceView ? leaf.view : null;
+    const view = leaf.view instanceof PrivacyBridgeWorkspaceView ? leaf.view : null;
+    view?.setDictionaryState(this.sessionDictionary?.entries.length ?? 0);
+    return view;
   }
   private async chooseExternalFile(): Promise<void> {
     if (!this.ensureSecurityNoticeAccepted()) return;
@@ -274,7 +576,7 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
         input.click();
       });
       if (!selected) return;
-      this.reviewSession = undefined;
+      this.clearReviewSession();
       view = await this.activateWorkspace();
       view?.resetSelection();
       const desktopRequire = (
@@ -316,6 +618,7 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
         new Notice(opened.message);
         return;
       }
+      this.clearReviewSession();
       this.reviewSession = {
         file: undefined,
         externalDocument: opened.document,
@@ -336,7 +639,7 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
       );
     } catch (error) {
       const message = explainExternalFileError(error);
-      this.reviewSession = undefined;
+      this.clearReviewSession();
       view ??= await this.activateWorkspace();
       view?.resetSelection();
       view?.setError(message);
@@ -367,6 +670,7 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
       view.setError(error instanceof Error ? error.message : '掃描失敗。');
       return false;
     }
+    this.clearReviewSession();
     this.reviewSession = {
       file: active.file,
       externalDocument: undefined,
@@ -386,7 +690,7 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
     const candidate = session?.candidates.find((item) => item.candidateId === candidateId);
     if (!session || !candidate || candidate.handling === 'BLOCK_EXPORT') return;
     session.decisions = { ...session.decisions, [candidateId]: decision };
-    session.prepared = undefined;
+    this.discardPrepared(session);
     session.exported = false;
     const view = await this.activateWorkspace();
     view?.setReviewDecision(candidateId, decision);
@@ -396,7 +700,7 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
     if (!session?.externalDocument?.mandatoryReviewRecords.some((record) => record.id === recordId))
       return;
     session.mandatoryReviewIds.add(recordId);
-    session.prepared = undefined;
+    this.discardPrepared(session);
     session.exported = false;
     const view = await this.activateWorkspace();
     view?.setMandatoryReviewAcknowledged(recordId);
@@ -416,7 +720,7 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
       ...session.decisions,
       ...Object.fromEntries(accepted.map((candidateId) => [candidateId, 'ACCEPTED' as const])),
     };
-    session.prepared = undefined;
+    this.discardPrepared(session);
     session.exported = false;
     view.setAllReviewDecisions(accepted);
     if (
@@ -471,6 +775,7 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
       );
       return;
     }
+    this.discardPrepared(session);
     session.prepared = prepared.value;
     view.setPreview(
       prepared.value.sourceContent,
@@ -488,31 +793,63 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
       view?.setError('請先完成掃描、逐項審核與轉換預覽。');
       return;
     }
+    if (session.exported) {
+      new Notice('這個 Job 已完成輸出；若要建立另一個獨立 Job，請重新掃描文件。');
+      return;
+    }
+    const vaultRoot = this.app.vault.adapter.getBasePath?.();
+    if (!vaultRoot) {
+      view.setError('無法確認 Obsidian 資料庫路徑。');
+      return;
+    }
+    const selection = await this.requestStorePassphrase('CREATE');
+    if (!selection) return;
+    let secureRoot: string;
+    try {
+      secureRoot = this.secureStoreRoot(vaultRoot);
+    } catch (cause) {
+      view.setError(cause instanceof Error ? cause.message : '無法建立安全 Job Store。');
+      return;
+    }
     if (session.externalDocument) {
       try {
-        const vaultRoot = this.app.vault.adapter.getBasePath?.();
-        if (!vaultRoot) throw new Error('無法確認 Obsidian 資料庫路徑');
         const outputFile = await publishExternalReviewedDocument({
           document: session.externalDocument,
           prepared: session.prepared,
           mandatoryReviewIds: [...session.mandatoryReviewIds],
           outputParent: resolve(dirname(vaultRoot), 'Hans SafeDoc Outputs'),
         });
-        view.setOutputResult(outputFile);
+        const bundle = await this.bindPublishedOutput({
+          outputFile,
+          secureRoot,
+          passphrase: selection.passphrase,
+          prepared: session.prepared,
+        });
+        view.setOutputResult(
+          outputFile,
+          session.prepared.jobId,
+          bundle.safePackageFile,
+          bundle.analysisRequestFile,
+        );
         session.exported = true;
-        await this.openSanitizedPreview(session.prepared.sanitizedContent);
-        new Notice('Hans SafeDoc 已完成 adapter 改寫、重新開啟與殘留檢查，安全副本已建立。');
-      } catch (error) {
-        const message = error instanceof Error ? error.message : '未知錯誤';
+        try {
+          await this.openSanitizedPreview(session.prepared.sanitizedContent);
+        } catch {
+          new Notice('輸出已安全建立，但無法自動開啟預覽；可從輸出位置手動檢查。');
+        }
+        new Notice(
+          `安全副本、分析請求與加密 Job 對照表已建立（${session.prepared.jobId}）。請妥善保管還原密碼。`,
+        );
+      } catch (cause) {
+        const message = cause instanceof Error ? cause.message : '未知錯誤';
         view.setError(`安全副本未建立：${message}`);
         new Notice('驗證未通過，未顯示或發布安全副本。');
       }
       return;
     }
     const active = await this.activeMarkdown(session.file);
-    const vaultRoot = this.app.vault.adapter.getBasePath?.();
-    if (!active || !vaultRoot) {
-      view.setError('來源筆記或 Obsidian 資料庫路徑已無法讀取。');
+    if (!active) {
+      view.setError('來源筆記已無法讀取。');
       return;
     }
     const result = await publishPreparedDocument({
@@ -535,14 +872,39 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
     const current = await this.app.vault.read(active.file);
     const currentHash = createHash('sha256').update(current, 'utf8').digest('hex');
     if (currentHash !== result.value.sourceSha256) {
-      view.setError('來源文件在處理期間已變更，輸出結果不採用。');
+      await rm(result.value.outputRoot, { recursive: true, force: true });
+      view.setError('來源文件在處理期間已變更，已移除本次輸出。');
       new Notice('來源文件在處理期間已變更。');
       return;
     }
-    view.setOutputResult(result.value.outputFile);
-    session.exported = true;
-    await this.openSanitizedPreview(session.prepared.sanitizedContent);
-    new Notice('Hans SafeDoc 安全代碼化輸出已完成。');
+    try {
+      const bundle = await this.bindPublishedOutput({
+        outputFile: result.value.outputFile,
+        outputRoot: result.value.outputRoot,
+        secureRoot,
+        passphrase: selection.passphrase,
+        prepared: session.prepared,
+      });
+      view.setOutputResult(
+        result.value.outputFile,
+        session.prepared.jobId,
+        bundle.safePackageFile,
+        bundle.analysisRequestFile,
+      );
+      session.exported = true;
+      try {
+        await this.openSanitizedPreview(session.prepared.sanitizedContent);
+      } catch {
+        new Notice('輸出已安全建立，但無法自動開啟預覽；可從輸出位置手動檢查。');
+      }
+      new Notice(
+        `安全代碼化輸出、分析請求與加密 Job 對照表已完成（${session.prepared.jobId}）。請妥善保管還原密碼。`,
+      );
+    } catch (cause) {
+      const message = cause instanceof Error ? cause.message : '未知錯誤';
+      view.setError(`安全輸出未完成：${message}`);
+      new Notice('Job 綁定驗證未通過，已移除本次輸出。');
+    }
   }
   private async openSanitizedPreview(content: string): Promise<void> {
     await this.openDocumentPreview(content);
@@ -589,7 +951,8 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
   private async lockWorkspace(): Promise<void> {
     this.diffModal?.close();
     this.diffModal = undefined;
-    this.reviewSession = undefined;
+    this.clearReviewSession();
+    this.sessionDictionary = undefined;
     for (const leaf of this.app.workspace.getLeavesOfType(PRIVACY_BRIDGE_VIEW))
       (leaf as WorkspaceLeaf & { view?: PrivacyBridgeWorkspaceView }).view?.setClientState(
         'LOCKED',
@@ -602,7 +965,8 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
     this.firstRunModal = undefined;
     this.diffModal?.close();
     this.diffModal = undefined;
-    this.reviewSession = undefined;
+    this.clearReviewSession();
+    this.sessionDictionary = undefined;
   }
   private async revealOutputFile(path: string): Promise<void> {
     const desktopRequire = (

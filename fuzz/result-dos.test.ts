@@ -8,6 +8,7 @@ it('ACC-IMP-008: rejects oversized and deeply nested Result JSON before dangerou
     packageHash: 'a'.repeat(64),
     tokenKey: randomBytes(32),
     documentIds: new Set<string>(),
+    knownTokens: new Set<string>(),
   };
   expect(validateResultBytes(new Uint8Array(RESULT_LIMIT + 1), expected)).toMatchObject({
     ok: false,

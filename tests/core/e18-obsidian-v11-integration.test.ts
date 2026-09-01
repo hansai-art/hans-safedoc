@@ -11,7 +11,7 @@ import {
 const root = resolve(import.meta.dirname, '../..');
 const read = (path: string) => readFileSync(resolve(root, path), 'utf8');
 
-describe('Hans SafeDoc v1.2 Obsidian integration contract', () => {
+describe('Hans SafeDoc v1.3 Obsidian integration contract', () => {
   it('centralizes the exact supported, blocked, and agent-only format policy', () => {
     expect(SUPPORTED_EXTERNAL_EXTENSIONS).toEqual(['md', 'txt', 'csv', 'docx', 'xlsx']);
     expect(FILE_FORMAT_SUPPORT).toEqual(
@@ -131,6 +131,22 @@ describe('Hans SafeDoc v1.2 Obsidian integration contract', () => {
     const main = read('packages/obsidian-plugin/src/main.ts');
     expect(main).toContain("resolve(dirname(vaultRoot), 'Hans SafeDoc Outputs')");
     expect(main).not.toContain("resolve(dirname(vaultRoot), 'Privacy Bridge Outputs')");
+  });
+
+  it('ships encrypted local Job restore and session-only dictionary controls', () => {
+    const main = read('packages/obsidian-plugin/src/main.ts');
+    const workspace = read('packages/obsidian-plugin/src/workspace.ts');
+    expect(main).toContain('saveSafeJobRecord');
+    expect(main).toContain('loadSafeJobRecord');
+    expect(main).toContain("id: 'restore-ai-result'");
+    expect(main).toContain("id: 'import-session-dictionary'");
+    expect(main).toContain('sessionDictionary = undefined');
+    expect(main).toContain('tokenKey.fill(0)');
+    expect(main).toContain('密碼不會儲存');
+    expect(workspace).toContain('還原 AI 結果');
+    expect(workspace).toContain('匯入客戶字典');
+    expect(read('README.md')).toContain('同一 Job 內');
+    expect(read('README.md')).toContain('不同 Job');
   });
 
   it('fails release artifact creation on a dirty tree before touching output and keeps individual assets', () => {

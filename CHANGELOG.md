@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.3.0 — 2026-09-01
+
+- 新增加密 Safe Job Store：每次輸出使用獨立 10 碼 Job ID 與 token key，Mapping 以使用者密碼透過 scrypt 衍生 AES-256-GCM 金鑰後存於 Vault 外；密碼、Mapping 與 key 不進 Vault、安全輸出或外掛設定。
+- 新增結構化 Result JSON 安全還原：嚴格驗證 schema、Job、Safe Package 雜湊、匿名文件 ID、HMAC 安全代碼與已知 Mapping，阻擋未知／偽造／缺損代碼，並只建立不覆寫的 Result Vault。
+- 新增工作階段 JSON 客戶字典，可精確比對姓名、組織、專案、產品、部門、系統與自訂詞；字典只存在記憶體，且不得降級固定規則的 `BLOCK_EXPORT` 風險。
+- 新增 19 個正向與 5 個一般營運文字的臺灣繁中合成基線；它是版本化回歸底線，不宣稱真實資料準確率。
+- 修正正式 Job ID 原先只有 5 碼、與 schema 規定 10 碼不一致的問題，並在鎖定、重掃與卸載時覆寫記憶體中的 token key。
+
+## 1.2.9 — 2026-09-01
+
+- 修正 Obsidian Community scanner 相容性；產品功能與 1.2.8 相同。
+
 ## 1.2.8 — 2026-08-31
 
 - 為CycloneDX SBOM加入確定性`serialNumber`，並改用GitHub官方`actions/attest`產生SBOM attestation。

@@ -1,6 +1,6 @@
 import type { CandidateType } from '@privacy-bridge/core';
 
-export const SECURITY_NOTICE_VERSION = '1.2.0';
+export const SECURITY_NOTICE_VERSION = '1.3.0';
 
 export type FileSupportMode = 'SUPPORTED_READ_ONLY' | 'LOCAL_AGENT_TO_MD_ONLY' | 'BLOCKED';
 
@@ -98,18 +98,19 @@ export const AGENT_LOCAL_PROMPT = `請在本機協助我使用 Hans SafeDoc 處�
 5. 只有重新開檔與殘留檢查都通過後，才可回報安全副本路徑；同時確認原始文件未改變。
 6. 不得讀取未指定檔案、其他 Obsidian Vault、對照資料、字典、金鑰或憑證。`;
 
-export const EXTERNAL_AI_PROMPT = `請只處理我指定的 Hans SafeDoc 安全輸出。不要讀取其他 Obsidian Vault、原始筆記、Hans SafeDoc 對照資料、字典、金鑰或其他未指定檔案。
+export const EXTERNAL_AI_PROMPT = `請只處理我指定的 Hans SafeDoc 安全分析包（Safe Package）ZIP 與配對的 analysis-request.json。安全分析包只含已代碼化的分析內容與驗證資訊，不含原文對照。不要讀取其他 Obsidian Vault、原始筆記、原生安全副本、Hans SafeDoc 對照資料、字典、金鑰或其他未指定檔案。
 
-檔案：〔貼上 Hans SafeDoc Outputs 內安全檔案的路徑，或直接附加該檔案〕
+安全分析包：〔貼上 Hans SafeDoc Outputs 內 .safe-package.zip 的路徑，或直接附加該檔案〕
+分析請求：〔貼上同時產生的 .analysis-request.json 路徑，或直接附加該檔案〕
 任務：〔清楚填寫要 AI Agent 執行的分析、摘要、翻譯或改寫工作〕
 
 執行規則：
 1. 完整保留每一個形如 ⟦PB:…⟧ 的安全代碼，其字元、大小寫、順序與出現次數都不得改變。
 2. 不得修改、拆開、刪除、合併、重新產生或猜測安全代碼代表的原始資料，也不得嘗試還原個資。
-3. 除任務明確要求外，保留原有 Markdown 標題、清單、表格、引用、連結與程式碼區塊結構。
-4. 僅根據這份安全檔案完成任務；不得用網路、其他檔案或外部資料補猜被代碼取代的內容。
+3. 只引用 analysis-request.json 明列的 jobId、sourcePackageHash 與 allowedDocumentIds；不得自行產生或修改這些綁定值。
+4. 僅根據這份安全分析包完成任務；不得用網路、其他檔案或外部資料補猜被代碼取代的內容。
 5. 完成後先自行核對所有安全代碼是否逐字一致。若無法保證完整保留，請停止處理並回報「安全代碼完整性無法確認」，不要輸出可能損壞的文件。
-6. 只輸出任務要求的最終結果；若要求回傳完整 Markdown，請輸出完整內容，不要省略段落，也不要在外層加 Markdown 程式碼圍欄。`;
+6. 只輸出一個符合 result-package.schema.json 的 UTF-8 JSON object，不要使用 Markdown 程式碼圍欄、不要加入說明文字、不要加入 schema 未允許的欄位。每筆 findingId 必須是 UUIDv4，entityRefs 只能使用安全檔案中完整出現的代碼。`;
 
 export const ALPHA_BUILT_IN_TYPES = [
   'TW_ID',
@@ -165,7 +166,7 @@ export const MODEL_POLICY = {
   offlineInstallSupported: false,
   distributionEnabled: false,
   summary:
-    '正式版不提供模型安裝。自建模型未達既定品質門檻，第三方模型也未通過正式分發的授權與來源審查；目前只使用可稽核的本機固定規則。人名、組織與客戶自訂詞仍須人工檢查。',
+    '正式版不提供模型安裝。自建模型未達既定品質門檻，第三方模型也未通過正式分發的授權與來源審查；目前使用可稽核的本機固定規則，並可由使用者選擇匯入只存在於工作階段的精確比對客戶字典。',
 } as const;
 
 export const SUPPORT_GROUPS = [
@@ -192,6 +193,7 @@ export const SUPPORT_LIMITATIONS = [
   '信用卡、機密字串與無法判定類型的識別碼不會自動轉換。只要發現這類資料，系統就會停止輸出，必須先人工處理。',
   '疑似護照號碼與健保卡純數字在缺少同一行文字、欄位名稱或標籤提示時，可能不會被列為待確認項目。',
   '格式、證號檢查或文字前後關係不足時，仍可能漏掉資料或判斷錯誤。安全輸出前必須人工檢查。',
+  '客戶字典只做精確文字與明列別名比對，不做模糊猜測；字典只保留於目前工作階段，鎖定或關閉外掛後必須重新匯入。',
 ] as const;
 
 export const NOVICE_DEMO_FOLDER = 'Hans SafeDoc 安全練習';

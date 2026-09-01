@@ -25,6 +25,8 @@ function displaySourceName(path: string | undefined): string {
 
 export interface PrivacyBridgeWorkspaceActions {
   chooseFile(): Promise<void>;
+  importDictionary(): Promise<void>;
+  restoreResult(): Promise<void>;
   scanCurrentNote(): Promise<void>;
   reviewCandidate(candidateId: string, decision: CandidateDecision): Promise<void>;
   acknowledgeMandatoryReview(recordId: string): Promise<void>;
@@ -60,9 +62,14 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
   private expandedGaps = new Map<string, 'CONTEXT' | 'ALL'>();
   private hunkObserver: IntersectionObserver | undefined;
   private outputFile: string | undefined;
+  private outputKind: 'SAFE' | 'RESTORED' | undefined;
+  private outputJobId: string | undefined;
+  private analysisRequestFile: string | undefined;
+  private safePackageFile: string | undefined;
   private statusMessage: string | undefined;
   private errorMessage: string | undefined;
   private batchConfirmation = false;
+  private dictionaryEntries = 0;
 
   constructor(
     leaf: WorkspaceLeaf,
@@ -92,7 +99,12 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
       this.mandatoryReviewIds.clear();
       this.clearPreview();
       this.outputFile = undefined;
+      this.outputKind = undefined;
+      this.outputJobId = undefined;
+      this.analysisRequestFile = undefined;
+      this.safePackageFile = undefined;
       this.errorMessage = undefined;
+      this.dictionaryEntries = 0;
     }
     this.render();
   }
@@ -109,6 +121,10 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
     this.mandatoryReviewIds.clear();
     this.clearPreview();
     this.outputFile = undefined;
+    this.outputKind = undefined;
+    this.outputJobId = undefined;
+    this.analysisRequestFile = undefined;
+    this.safePackageFile = undefined;
     this.statusMessage = undefined;
     this.errorMessage = undefined;
     this.batchConfirmation = false;
@@ -135,6 +151,11 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
     this.outputFile = undefined;
     this.statusMessage = `找到 ${candidates.length} 個敏感項目與 ${this.mandatoryReviewRecords.length} 個強制人工確認項目。`;
     this.errorMessage = undefined;
+    this.render();
+  }
+  setDictionaryState(entries: number): void {
+    if (this.dictionaryEntries === entries) return;
+    this.dictionaryEntries = entries;
     this.render();
   }
   setReviewDecision(candidateId: string, decision: CandidateDecision): void {
@@ -184,9 +205,28 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
     this.statusMessage = '預覽已建立，確認後可輸出到 Obsidian 資料庫外。';
     this.render();
   }
-  setOutputResult(outputFile: string): void {
+  setOutputResult(
+    outputFile: string,
+    jobId?: string,
+    safePackageFile?: string,
+    analysisRequestFile?: string,
+  ): void {
     this.outputFile = outputFile;
+    this.outputKind = 'SAFE';
+    this.outputJobId = jobId;
+    this.analysisRequestFile = analysisRequestFile;
+    this.safePackageFile = safePackageFile;
     this.statusMessage = '安全代碼化輸出已完成，來源文件未修改。';
+    this.errorMessage = undefined;
+    this.render();
+  }
+  setRestoredOutputResult(outputFile: string, jobId: string): void {
+    this.outputFile = outputFile;
+    this.outputKind = 'RESTORED';
+    this.outputJobId = jobId;
+    this.analysisRequestFile = undefined;
+    this.safePackageFile = undefined;
+    this.statusMessage = '驗證與還原完成，輸入結果檔未修改。';
     this.errorMessage = undefined;
     this.render();
   }
@@ -478,25 +518,41 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
   }
   private renderOutputResult(section: HTMLElement): void {
     if (!this.outputFile) return;
+    const restored = this.outputKind === 'RESTORED';
     section.createDiv({ cls: 'privacy-bridge-output' }, (output) => {
-      output.createEl('h3', { text: '完成：安全檔案已建立' });
+      output.createEl('h3', {
+        text: restored ? '完成：還原副本已建立' : '完成：安全檔案已建立',
+      });
       output.createEl('p', {
         cls: 'privacy-bridge-output-status',
-        text: '來源文件未修改。你現在可以先預覽安全檔案，或直接找到輸出位置。',
+        text: restored
+          ? '安全代碼與本機 Job 完整性已驗證；AI 回傳檔沒有修改，原文只寫入這份新副本。'
+          : '來源文件未修改。你現在可以先預覽安全檔案，或直接找到輸出位置。',
       });
       output.createDiv({ cls: 'privacy-bridge-output-actions' }, (actions) => {
         const another = actions.createEl('button', {
-          text: '處理另一份檔案',
+          text: restored ? '還原另一份 AI 結果' : '處理另一份檔案',
           cls: 'mod-cta',
         });
-        another.addEventListener('click', () => void this.actions.chooseFile());
-        const preview = actions.createEl('button', {
-          text: '開啟安全預覽',
-        });
-        preview.addEventListener('click', () => void this.actions.openSafeOutputPreview());
+        another.addEventListener(
+          'click',
+          () => void (restored ? this.actions.restoreResult() : this.actions.chooseFile()),
+        );
+        if (!restored) {
+          const preview = actions.createEl('button', {
+            text: '開啟安全預覽',
+          });
+          preview.addEventListener('click', () => void this.actions.openSafeOutputPreview());
+          const restore = actions.createEl('button', { text: '還原 AI 結果' });
+          restore.addEventListener('click', () => void this.actions.restoreResult());
+        }
         const nativeOpen = actions.createEl('button', {
-          text: '用預設程式開啟安全檔案',
-          attr: { 'aria-label': '用系統預設程式開啟安全代碼化輸出檔' },
+          text: restored ? '用預設程式開啟還原副本' : '用預設程式開啟安全檔案',
+          attr: {
+            'aria-label': restored
+              ? '用系統預設程式開啟還原副本'
+              : '用系統預設程式開啟安全代碼化輸出檔',
+          },
         });
         nativeOpen.addEventListener(
           'click',
@@ -512,14 +568,29 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
         );
       });
       output.createEl('details', { cls: 'privacy-bridge-output-details' }, (details) => {
-        details.createEl('summary', { text: '查看安全檔案位置與上傳說明' });
-        details.createEl('p', {
-          text: '只上傳這份安全代碼化檔案，並要求其他工具完整保留所有安全代碼。',
+        details.createEl('summary', {
+          text: restored ? '查看還原副本位置' : '查看安全檔案位置與上傳說明',
         });
+        details.createEl('p', {
+          text: restored
+            ? '還原副本可能再次包含個資，請勿上傳雲端；原始 AI 回傳檔仍保持不變。'
+            : '把安全分析包（Safe Package）ZIP 與分析請求 JSON 一起交給其他工具；要求它只回傳符合 result-package.schema.json 的 UTF-8 JSON。原生安全副本用於本機檢查，不是 Result JSON 的綁定來源。',
+        });
+        if (this.outputJobId) details.createEl('p', { text: `Job：${this.outputJobId}` });
         details.createEl('p', {
           cls: 'privacy-bridge-output-path',
-          text: `安全檔案：${this.outputFile}`,
+          text: `${restored ? '還原副本' : '安全檔案'}：${this.outputFile}`,
         });
+        if (!restored && this.analysisRequestFile)
+          details.createEl('p', {
+            cls: 'privacy-bridge-output-path',
+            text: `安全分析包：${this.safePackageFile}`,
+          });
+        if (!restored && this.analysisRequestFile)
+          details.createEl('p', {
+            cls: 'privacy-bridge-output-path',
+            text: `分析請求：${this.analysisRequestFile}`,
+          });
       });
     });
   }
@@ -599,6 +670,19 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
         attr: { 'aria-label': '掃描目前的 MD 筆記' },
       });
       scan.addEventListener('click', () => void this.actions.scanCurrentNote());
+      const restore = actions.createEl('button', {
+        text: '還原 AI 結果',
+        attr: { 'aria-label': '驗證安全代碼並建立新的還原副本' },
+      });
+      restore.addEventListener('click', () => void this.actions.restoreResult());
+      const dictionary = actions.createEl('button', {
+        text:
+          this.dictionaryEntries > 0
+            ? `更換客戶字典（${this.dictionaryEntries} 筆）`
+            : '匯入客戶字典',
+        attr: { 'aria-label': '匯入只保留於本次工作階段的 JSON 客戶字典' },
+      });
+      dictionary.addEventListener('click', () => void this.actions.importDictionary());
     });
     if (this.batchConfirmation) {
       section.createDiv({ cls: 'privacy-bridge-batch-confirmation' }, (confirmation) => {
@@ -658,6 +742,11 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
     });
     section.createDiv({ cls: 'privacy-bridge-header' }, (header) => {
       header.createEl('h2', { text: 'Hans SafeDoc' });
+      if (this.dictionaryEntries > 0)
+        header.createSpan({
+          text: `工作階段字典 ${this.dictionaryEntries} 筆`,
+          attr: { 'aria-label': '客戶字典只在目前工作階段記憶體中，不會寫入 Vault' },
+        });
       const tutorial = header.createEl('button', {
         text: '新手教學',
         attr: { 'aria-label': '在中央分頁開啟 Hans SafeDoc 新手教學' },
@@ -682,7 +771,7 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
     }
     if (this.outputFile) {
       this.renderOutputResult(section);
-      this.renderCompletedDetails(section);
+      if (this.outputKind === 'SAFE') this.renderCompletedDetails(section);
       return;
     }
     this.renderPrimaryActions(section, pendingCandidates, pendingMandatory, hasBlocked, reasons);

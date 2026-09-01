@@ -31,6 +31,7 @@ it('ACC-IMP-004: rejects Result token from another job and source package hash m
       packageHash: 'a'.repeat(64),
       tokenKey: key,
       documentIds: new Set([documentId]),
+      knownTokens: new Set([token]),
     }),
   ).toMatchObject({ ok: false, error: { code: 'PB-IMPORT-002' } });
 });

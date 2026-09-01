@@ -5,6 +5,15 @@ import { describe, expect, it } from 'vitest';
 import { openReadOnlySource, SourceChangedError } from '@privacy-bridge/document-formats';
 
 describe('read-only source', () => {
+  it('rejects a source above the configured byte limit before returning bytes', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'hsd-source-limit-'));
+    const path = join(dir, 'result.json');
+    await writeFile(path, '12345');
+    await expect(openReadOnlySource(path, { maxBytes: 4 })).rejects.toThrow(
+      'Source is not a permitted regular file.',
+    );
+  });
+
   it('exposes reads only and preserves bytes, size and mtime', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'hsd-source-'));
     const path = join(dir, 'source.txt');

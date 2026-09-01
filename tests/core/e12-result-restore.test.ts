@@ -44,6 +44,7 @@ describe('ACC-IMP-003 ACC-IMP-005 Result all-or-nothing guards', () =>
       packageHash: 'a'.repeat(64),
       tokenKey: key,
       documentIds: new Set([documentId]),
+      knownTokens: new Set([token]),
     });
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error.code).toBe('PB-IMPORT-003');
