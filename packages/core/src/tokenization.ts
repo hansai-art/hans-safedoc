@@ -1,12 +1,20 @@
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { encodeCrockfordBase32, err, error, ok, tokenFor, type Result } from './index.js';
 import type { CandidateType } from './detection.js';
+const canonicalTwPhone = (value: string): string => {
+  const digits = value.replace(/[^0-9]/gu, '');
+  if (digits.startsWith('886')) return `+${digits}`;
+  if (digits.startsWith('0')) return `+886${digits.slice(1)}`;
+  return digits;
+};
 export const canonicalize = (type: CandidateType, value: string) =>
   type === 'TW_ID' || type === 'TW_ARC'
     ? value.toUpperCase().replace(/[\s-]/g, '')
-    : type === 'EMAIL'
-      ? `${value.slice(0, value.lastIndexOf('@'))}@${value.slice(value.lastIndexOf('@') + 1).toLowerCase()}`
-      : value.normalize('NFC');
+    : type === 'TW_MOBILE' || type === 'TW_LANDLINE' || type === 'TW_PHONE_SERVICE'
+      ? canonicalTwPhone(value)
+      : type === 'EMAIL'
+        ? `${value.slice(0, value.lastIndexOf('@'))}@${value.slice(value.lastIndexOf('@') + 1).toLowerCase()}`
+        : value.normalize('NFC');
 export const createEntityId = () => encodeCrockfordBase32(randomBytes(10));
 export function verifyToken(
   value: string,

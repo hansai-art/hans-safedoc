@@ -14,6 +14,7 @@ export function validateResultBytes(
     packageHash: string;
     tokenKey: Uint8Array;
     documentIds: ReadonlySet<string>;
+    knownTokens: ReadonlySet<string>;
   },
 ): Result<Record<string, unknown>> {
   if (bytes.byteLength > RESULT_LIMIT) return err(error('PB-IMPORT-005'));
@@ -39,13 +40,19 @@ export function validateResultBytes(
       if (!expected.documentIds.has(evidence.documentId as string))
         return err(error('PB-IMPORT-003'));
     for (const token of finding.entityRefs as string[])
-      if (!verifyToken(token, expected.tokenKey, expected.jobId).ok)
+      if (
+        !expected.knownTokens.has(token) ||
+        !verifyToken(token, expected.tokenKey, expected.jobId).ok
+      )
         return err(error('PB-IMPORT-003'));
     for (const text of [
       finding.summary,
       ...((finding.evidence ?? []) as Record<string, unknown>[]).map((item) => item.excerpt),
     ]) {
-      if (typeof text !== 'string' || !tokensBelongToJob(text, expected.tokenKey, expected.jobId))
+      if (
+        typeof text !== 'string' ||
+        !tokensBelongToJob(text, expected.tokenKey, expected.jobId, expected.knownTokens)
+      )
         return err(error('PB-IMPORT-003'));
     }
   }
@@ -74,11 +81,17 @@ function withinJsonDepth(bytes: Uint8Array): boolean {
   }
   return !quoted && !escaped && depth === 0;
 }
-function tokensBelongToJob(value: string, key: Uint8Array, jobId: string): boolean {
+function tokensBelongToJob(
+  value: string,
+  key: Uint8Array,
+  jobId: string,
+  knownTokens: ReadonlySet<string>,
+): boolean {
   const starts = value.match(/⟦PB:/gu) ?? [];
   const tokens = value.match(/⟦PB:[^⟧]*⟧/gu) ?? [];
   return (
-    starts.length === tokens.length && tokens.every((token) => verifyToken(token, key, jobId).ok)
+    starts.length === tokens.length &&
+    tokens.every((token) => knownTokens.has(token) && verifyToken(token, key, jobId).ok)
   );
 }
 export function escapeResultMarkdown(value: string): string {

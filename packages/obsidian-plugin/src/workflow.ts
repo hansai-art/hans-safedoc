@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from 'node:crypto';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import {
@@ -6,12 +6,15 @@ import {
   buildShadowVault,
   createPathMap,
   detectAll,
+  encodeCrockfordBase32,
   err,
   error,
   ok,
+  preferredDisplay,
   tokenizeDocument,
   type DetectedCandidate,
   type Result,
+  type SafeJobEntity,
 } from '@privacy-bridge/core';
 
 export type CandidateDecision = 'ACCEPTED' | 'IGNORED';
@@ -26,6 +29,8 @@ export interface PreparedReviewedDocument {
   readonly previewHunks: readonly PreviewHunk[];
   readonly sourceSha256: string;
   readonly documentId: string;
+  readonly tokenKey: Uint8Array;
+  readonly mapping: readonly SafeJobEntity[];
 }
 
 export interface PreviewChange {
@@ -152,7 +157,7 @@ const sha256 = (value: string) => createHash('sha256').update(value, 'utf8').dig
 
 function createJobId(now = new Date()): string {
   const date = now.toISOString().slice(0, 10).replaceAll('-', '');
-  const suffix = [...randomBytes(5)].map((byte) => String(byte % 10)).join('');
+  const suffix = encodeCrockfordBase32(randomBytes(10)).slice(0, 10);
   return `PB-${date}-${suffix}`;
 }
 
@@ -174,8 +179,9 @@ export function prepareReviewedDocument(
       candidate.handling === 'TOKENIZE' && decisions[candidate.candidateId] === 'ACCEPTED',
   );
   const jobId = createJobId();
+  const tokenKey = new Uint8Array(randomBytes(32));
   const assignments = assignEntityTokens(
-    randomBytes(32),
+    tokenKey,
     jobId,
     accepted.map((candidate) => ({
       type: candidate.primaryType,
@@ -196,6 +202,25 @@ export function prepareReviewedDocument(
   const tokens = new Map(
     accepted.map((candidate, index) => [candidate.candidateId, assignments[index]!.token]),
   );
+  const displaysByToken = new Map<string, string[]>();
+  for (const [index, candidate] of accepted.entries()) {
+    const token = assignments[index]!.token;
+    displaysByToken.set(token, [...(displaysByToken.get(token) ?? []), candidate.surfaceText]);
+  }
+  const mapping: SafeJobEntity[] = [];
+  for (const [index, assignment] of assignments.entries()) {
+    if (mapping.some((entity) => entity.token === assignment.token)) continue;
+    const display = preferredDisplay(displaysByToken.get(assignment.token) ?? []);
+    if (!display.ok) {
+      tokenKey.fill(0);
+      return display;
+    }
+    mapping.push({
+      token: assignment.token,
+      type: accepted[index]!.primaryType,
+      preferredDisplay: display.value,
+    });
+  }
   const previewChanges: readonly PreviewChange[] = candidates.map((candidate) => ({
     candidateId: candidate.candidateId,
     type: candidate.primaryType,
@@ -213,7 +238,9 @@ export function prepareReviewedDocument(
     previewChanges,
     previewHunks: buildPreviewHunks(source, previewChanges),
     sourceSha256: sha256(source),
-    documentId: assignments[0]?.entityId ?? sha256(source).slice(0, 16),
+    documentId: randomUUID(),
+    tokenKey,
+    mapping,
   });
 }
 

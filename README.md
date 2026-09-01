@@ -12,8 +12,8 @@ Hans SafeDoc 是 Obsidian 電腦版的本機文件去識別化外掛。它只讀
 
 ### 轉換前後
 
-| 純合成原始文件 | Hans SafeDoc 安全副本 |
-|---|---|
+| 純合成原始文件                                                                                           | Hans SafeDoc 安全副本                                                                                  |
+| -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | ![含假姓名、假電話與 example.invalid Email 的合成 DOCX](assets/screenshots/hans-safedoc-before-docx.png) | ![電話與 Email 已換成安全代碼、原版面仍可由 Word 開啟](assets/screenshots/hans-safedoc-after-docx.png) |
 
 ### 人工確認
@@ -29,11 +29,12 @@ Hans SafeDoc 是 Obsidian 電腦版的本機文件去識別化外掛。它只讀
 1. 選擇檔案，或打開一篇 MD 後掃描目前筆記。
 2. 逐項決定接受或保留；批次接受也必須由使用者明確確認。
 3. 檢查轉換預覽。來源若在審核期間改變，流程會失效並要求重來。
-4. 只有 adapter 重新開檔與殘留檢查通過後，才會在 Obsidian Vault 外建立安全副本。
+4. 設定本次 Job 的還原密碼。密碼不會儲存，遺失後無法找回。
+5. 只有 adapter 重新開檔與殘留檢查通過後，才會在 Obsidian Vault 外建立安全副本；加密對照表另存於作業系統應用程式資料夾，不會進入 Vault 或安全輸出。
 
 ## 格式範圍
 
-v1.2 支援下列唯讀來源：
+v1.3 支援下列唯讀來源：
 
 - Markdown（`.md`）：嚴格 UTF-8，輸出新副本。
 - 純文字（`.txt`）：嚴格 UTF-8；UTF-16、NUL 與不安全編碼會阻擋。
@@ -45,7 +46,7 @@ PDF 不由外掛直接解析。必須先由本機 AI Agent 以確定性工具逐
 
 舊版 `.doc`／`.xls`、RTF、ODT／ODS、圖片、音訊、影片、Obsidian 畫布（Canvas）、Obsidian 資料庫檢視（Bases）、壓縮檔與其他未列格式都會阻擋。Obsidian 手機版不支援。
 
-專案、產品、部門、系統與自訂詞需要明確客戶字典；目前尚未開放。人名與組織目前也必須人工檢查。自動偵測不保證完整，也不是法律上的匿名化判定。
+人名、組織、專案、產品、部門、系統與自訂詞可匯入工作階段 JSON 客戶字典做精確比對；格式範例見 `examples/dictionary.simple.example.json`。字典不做模糊猜測、不寫入 Vault 或外掛設定，鎖定工作區或關閉外掛後會清除，且所有結果仍必須人工確認。自動偵測不保證完整，也不是法律上的匿名化判定。
 
 ## 正式版只使用固定規則
 
@@ -53,15 +54,24 @@ MD／TXT／CSV／DOCX／XLSX 的固定規則可獨立使用，不需要安裝 Ol
 
 - release source與artifact不含model catalog、模型檔、downloader、model manager或ONNX runtime。
 - 舊模型研究證據保留於原工作區，不進clean-room source或產品功能。
-- 文件掃描、預覽與輸出維持全程本機、零遙測；人名與組織可能漏判，輸出前必須人工檢查。
+- 文件掃描、預覽、Job 對照與還原維持全程本機、零遙測；人名與組織可能漏判，輸出前必須人工檢查。
+
+## 加密 Job 與安全還原
+
+- 建立安全輸出前必須設定 12–256 個字元的密碼。密碼只用來透過 scrypt 衍生 AES-256-GCM 金鑰，不會被儲存。
+- 安全代碼對照、原文顯示值與 token key 只存在 Vault 外的加密 Job Store；安全輸出與客戶字典都不包含 Mapping。
+- 同一 Job 內，相同類型與正規化後相同的資料會得到相同安全代碼；不同 Job 會使用不同 key 與代碼，避免不必要的長期串聯。目前外掛每次輸出建立獨立 Job，因此不把 PII 代碼當成跨系統交易索引；需要跨 Log 關聯時，應優先在來源系統建立不含個資的穩定 correlation ID。
+- 每份安全輸出會附帶不含 Mapping 的安全分析包（Safe Package）`.safe-package.zip` 與 `.analysis-request.json`；交給其他工具時必須兩份一起提供，並要求只回傳符合 `result-package.schema.json` 的 UTF-8 JSON。原生安全副本保留給本機版面檢查，不作為 Result JSON 的雜湊綁定來源。
+- 「還原 AI 結果」只接受上述結構化 Result JSON。Job、安全分析包雜湊、匿名文件 ID、schema 或安全代碼任一不符，都會使整包還原停止。
+- 還原結果永遠寫入新的 `Hans SafeDoc Restored/<Job>-results[-N]/`，不覆寫原始文件、安全輸出或 AI 回傳檔。還原副本再次包含個資，不應上傳雲端。
 
 ## 給 AI Agent：在本機操作 Hans SafeDoc
 
 請複製首次教學或內建說明中的完整「本機操作」指令。指令會要求 Agent：原始文件不上雲、PDF 先在本機逐頁轉 MD、CSV 只用確定性 parser 判斷、遇人工審核立即停下、不得替使用者批次確認，且只有重新開檔與殘留檢查通過後才能回報安全副本。
 
-## 給其他 AI：只處理安全輸出
+## 給其他 AI：只處理安全分析包
 
-請複製首次教學或內建說明中的完整「安全輸出」指令。它會限制 AI 只讀指定安全檔案、不得還原個資，並要求逐字保留每一個 `⟦PB:…⟧` 安全代碼；完整性無法確認時必須停止。
+請複製首次教學或內建說明中的完整指令，並只提供配對的 `.safe-package.zip` 與 `.analysis-request.json`。指令會限制 AI 不得讀取原始檔或還原個資、要求逐字保留每一個 `⟦PB:…⟧` 安全代碼，且只回傳符合 `result-package.schema.json` 的單一 UTF-8 JSON；完整性無法確認時必須停止。
 
 ## 安裝步驟
 
@@ -81,9 +91,10 @@ MD／TXT／CSV／DOCX／XLSX 的固定規則可獨立使用，不需要安裝 Ol
 5. `schemas/`：18 份 machine-readable data contracts
 6. `docs/THREAT-MODEL-V1.1.md`：Hans SafeDoc 1.1 Phase 1 威脅模型
 7. `docs/UX-STATE-MAP.md`：畫面、狀態與按鈕規則
-8. `docs/MIGRATION-AND-RECOVERY.md`：備份、復原、刪除與遷移
-9. `docs/RELEASE-CHECKLIST-V1.1.md`：v1.1 Phase 1 Release Gates
-10. `docs/ENGINEER-EXECUTION-PROTOCOL.md`：不中斷執行規則
+8. `docs/TAIWAN-SYNTHETIC-BASELINE.md`：版本化臺灣繁中合成偵測基線
+9. `docs/MIGRATION-AND-RECOVERY.md`：備份、復原、刪除與遷移
+10. `docs/RELEASE-CHECKLIST-V1.1.md`：v1.1 Phase 1 Release Gates
+11. `docs/ENGINEER-EXECUTION-PROTOCOL.md`：不中斷執行規則
 
 ## 規格優先順序
 
@@ -145,12 +156,15 @@ Hans SafeDoc is a desktop-only Obsidian plugin for reviewing and pseudonymizing 
 1. Open a Markdown note or choose a supported local file.
 2. Review every suspected sensitive value and every mandatory Office surface.
 3. Inspect the preview, then create a safe copy.
-4. Open the output in its native application and verify it before sharing.
+4. Set and retain the per-Job restore passphrase, then open the output in its native application and verify it before sharing.
+5. To restore an AI-returned result, require one UTF-8 JSON object matching `result-package.schema.json`, then choose the original Job and passphrase; Hans SafeDoc validates the Safe Package hash, document IDs, schema, and every token before writing a new Result Vault.
 
 ### Privacy and limitations
 
 - Document processing is local and includes no telemetry or network requests.
 - The plugin reads only the selected source and writes a new safe copy outside the vault; it never overwrites the source.
+- Token mappings are encrypted outside the vault with a passphrase-derived key. The passphrase is never stored and cannot be recovered by the plugin.
+- A session-only exact-match customer dictionary can cover names, organizations, and internal terms without installing a model.
 - Detection can miss names, organizations, and context-specific identifiers. Manual review is always required and does not constitute a legal determination of anonymization.
 - DOCX and XLSX use a narrow fail-closed profile. Macros, formulas, external content, tracked changes, and unknown OOXML structures are blocked.
 - PDF, legacy `.doc` and `.xls`, mobile Obsidian, and unsupported formats are not processed directly.

@@ -32,6 +32,7 @@ it('ACC-IMP-001: validates exact UTF-8 Result schema and enters RESULT_IMPORTED'
       packageHash: 'a'.repeat(64),
       tokenKey: key,
       documentIds: new Set([documentId]),
+      knownTokens: new Set([token]),
     }).ok,
   ).toBe(true);
   expect(transitionJob('EXPORTED', 'RESULT_IMPORTED')).toEqual({

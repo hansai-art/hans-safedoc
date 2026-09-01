@@ -116,7 +116,7 @@ describe('E14 Obsidian workflow integration', () => {
     expect(workspace).toContain('顯示輸出位置');
     expect(workspace).not.toContain('navigator.clipboard');
     expect(workspace).not.toContain('複製檔案位置');
-    expect(workspace).toContain('只上傳這份安全代碼化檔案');
+    expect(workspace).toContain('把安全分析包（Safe Package）ZIP 與分析請求 JSON 一起交給其他工具');
     expect(workspace).not.toContain('只上傳這份安全代碼化的 MD 文件');
     expect(workspace).toContain("cls: 'mod-cta'");
     expect(workspace).toContain('查看安全檔案位置與上傳說明');
@@ -163,7 +163,8 @@ describe('E14 Obsidian workflow integration', () => {
     );
     expect(help).toContain('如何轉換、輸出並交給其他工具');
     expect(help).toContain('如何安全還原');
-    expect(help).toContain('目前測試版尚未開放安全還原');
+    expect(help).toContain('未知、缺損或偽造代碼會使整包流程停止');
+    expect(help).toContain('Hans SafeDoc Restored');
     expect(help).toContain('給其他工具的提示詞');
     expect(help).toContain('請手動選取上方提示詞');
     expect(help).not.toContain('innerHTML');

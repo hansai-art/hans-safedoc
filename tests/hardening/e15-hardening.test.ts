@@ -36,6 +36,7 @@ describe('E15 security and property hardening', () => {
       packageHash: 'a'.repeat(64),
       tokenKey: new Uint8Array(32),
       documentIds: new Set<string>(),
+      knownTokens: new Set<string>(),
     };
     expect(validateResultBytes(new Uint8Array(25 * 1024 * 1024 + 1), expected).ok).toBe(false);
     fc.assert(

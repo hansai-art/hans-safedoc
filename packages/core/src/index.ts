@@ -34,10 +34,12 @@ export {
   isValidTwTaxId,
   type DetectedCandidate,
   type CandidateType,
+  type Handling,
 } from './detection.js';
 export {
   DICTIONARY_LIMITS,
   matchDictionary,
+  mergeCandidateDetections,
   mergeDictionaries,
   validateDictionaryImport,
   type Dictionary,
@@ -51,6 +53,15 @@ export {
   type ClientDictionaryContext,
   type SaveClientDictionaryInput,
 } from './client-dictionary-store.js';
+export {
+  listSafeJobRecords,
+  loadSafeJobRecord,
+  saveSafeJobRecord,
+  type SafeJobEntity,
+  type SafeJobRecord,
+  type SafeJobSummary,
+  type SaveSafeJobRecordInput,
+} from './safe-job-store.js';
 export { appendAudit, verifyAudit, type AuditEvent } from './audit.js';
 export {
   ClientSession,

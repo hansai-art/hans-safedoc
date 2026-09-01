@@ -31,6 +31,7 @@ it('ACC-IMP-005: rejects unknown document references and duplicate finding IDs b
       packageHash: 'a'.repeat(64),
       tokenKey: key,
       documentIds: new Set([known]),
+      knownTokens: new Set([token]),
     }),
   ).toMatchObject({ ok: false, error: { code: 'PB-IMPORT-003' } });
 });

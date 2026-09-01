@@ -1,0 +1,23 @@
+{
+  "entries": [
+    {
+      "term": "王小明",
+      "type": "PERSON",
+      "aliases": ["小明"],
+      "caseSensitive": true,
+      "handling": "TOKENIZE"
+    },
+    {
+      "term": "星河科技股份有限公司",
+      "type": "ORGANIZATION",
+      "aliases": ["星河科技"],
+      "caseSensitive": false,
+      "handling": "TOKENIZE"
+    },
+    {
+      "term": "極光計畫",
+      "type": "PROJECT",
+      "handling": "TOKENIZE"
+    }
+  ]
+}

@@ -20,6 +20,7 @@ it('ACC-IMP-002: rejects malformed PB delimiters and unsupported Result fields a
       packageHash: 'a'.repeat(64),
       tokenKey: randomBytes(32),
       documentIds: new Set(),
+      knownTokens: new Set(),
     }),
   ).toMatchObject({ ok: false, error: { code: 'PB-IMPORT-001' } });
 });

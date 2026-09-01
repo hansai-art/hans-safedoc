@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
 // This batch is intentionally explicit: an acceptance row has exactly one executable test file.
 const acceptanceTests = Object.freeze({
@@ -159,9 +160,9 @@ for (const [id, path] of Object.entries(acceptanceTests)) {
     );
 }
 
-const result = spawnSync('pnpm', ['exec', 'vitest', 'run', ...Object.values(acceptanceTests)], {
+const vitest = fileURLToPath(new URL('../node_modules/vitest/vitest.mjs', import.meta.url));
+const result = spawnSync(process.execPath, [vitest, 'run', ...Object.values(acceptanceTests)], {
   stdio: 'inherit',
-  shell: process.platform === 'win32',
 });
 if (result.status !== 0) process.exit(result.status ?? 1);
 const acceptanceCount = Object.keys(acceptanceTests).length;

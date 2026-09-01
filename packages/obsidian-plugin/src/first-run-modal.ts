@@ -71,7 +71,7 @@ export class PrivacyBridgeFirstRunModal extends Modal {
         '正式資料建議使用專用的 Obsidian 資料庫與使用者設定檔，只啟用允許的外掛，並關閉 Obsidian 同步功能。',
         '外掛不會上傳文件內容或使用情況；正式版也不提供模型下載或匯入。',
         '安全代碼化輸出建立在 Obsidian 資料庫外，來源 MD／TXT／CSV／DOCX／XLSX 不會被修改。',
-        '測試版尚未開放安全還原，不得用尋找取代自行換回個資。',
+        '建立輸出時必須設定至少 12 個字元的還原密碼；密碼不會儲存，遺失後 Hans SafeDoc 無法替你找回。',
       ])
         list.createEl('li', { text: item });
     });
@@ -99,7 +99,7 @@ export class PrivacyBridgeFirstRunModal extends Modal {
   }
 
   private renderSupport(article: HTMLElement): void {
-    this.createStepTitle(article, '目前 Hans SafeDoc v1.2 可用');
+    this.createStepTitle(article, '目前 Hans SafeDoc v1.3 可用');
     article.createEl('p', {
       text: '請從「選擇檔案」進入。來源保持唯讀，所有偵測項目都必須人工確認；只有格式 adapter 改寫、重新開啟與殘留檢查全部通過後，才會顯示安全副本。',
     });
@@ -113,9 +113,9 @@ export class PrivacyBridgeFirstRunModal extends Modal {
     article.createEl('ul', {}, (list) => {
       for (const limitation of SUPPORT_LIMITATIONS) list.createEl('li', { text: limitation });
     });
-    article.createEl('h3', { text: '有條件支援，目前測試版尚未開放' });
+    article.createEl('h3', { text: '工作階段客戶字典' });
     article.createEl('p', {
-      text: `${DICTIONARY_ONLY_LABELS.join('、')}可由未來的客戶字典明確比對。正式版不提供模型安裝，這些類型目前必須人工檢查。`,
+      text: `${DICTIONARY_ONLY_LABELS.join('、')}可由 JSON 客戶字典精確比對。字典不寫入 Obsidian 資料庫或外掛設定，鎖定或關閉後會清除；仍須人工確認每個結果。`,
     });
     article.createEl('h3', { text: '檔案格式（同一份中央矩陣）' });
     article.createEl('ul', {}, (list) => {
@@ -134,7 +134,7 @@ export class PrivacyBridgeFirstRunModal extends Modal {
     article.createEl('pre', { text: `A：${AGENT_LOCAL_PROMPT}\nB：${EXTERNAL_AI_PROMPT}` });
     article.createEl('h3', { text: '其他尚未開放的流程' });
     article.createEl('p', {
-      text: '不支援 Obsidian 手機版、掃描整個 Obsidian 資料庫或安全還原。',
+      text: '不支援 Obsidian 手機版或掃描整個 Obsidian 資料庫。安全還原只接受符合 result-package.schema.json 的單一 UTF-8 JSON，不接受 Markdown、Office、PDF 或其他格式。',
     });
     this.renderNavigation(article, 0, 2, '下一步：模型說明');
   }
@@ -143,7 +143,7 @@ export class PrivacyBridgeFirstRunModal extends Modal {
     this.createStepTitle(article, '正式版不提供模型安裝');
     article.createEl('p', { text: MODEL_POLICY.summary });
     article.createEl('p', {
-      text: '固定規則可處理目前支援的 MD、TXT、CSV、DOCX 與 XLSX 安全子集。系統不會下載模型，也不會讀取既有模型檔；人名與組織仍可能漏掉，輸出前必須人工檢查。',
+      text: '固定規則可處理目前支援的 MD、TXT、CSV、DOCX 與 XLSX 安全子集。系統不會下載模型，也不會讀取既有模型檔；需要人名、組織或內部專有詞時，可另行匯入工作階段客戶字典，輸出前仍必須人工檢查。',
     });
     const actions = article.createDiv({ cls: 'privacy-bridge-onboarding-actions' });
     const status = actions.createSpan({
@@ -181,7 +181,7 @@ export class PrivacyBridgeFirstRunModal extends Modal {
         '掃描分散在段落、清單、引用和表格中的 10 支假手機與 10 個測試用電子郵件。',
         '在右側逐項審核或批次確認。',
         '比較原始內容與安全代碼化內容。',
-        '建立 Obsidian 資料庫外的輸出，確認來源筆記保持不變。',
+        '設定本次 Job 的還原密碼，建立 Obsidian 資料庫外的輸出，確認來源筆記保持不變。',
       ])
         list.createEl('li', { text: item });
     });
