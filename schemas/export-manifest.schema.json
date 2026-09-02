@@ -62,12 +62,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "documentId",
-          "relativePath",
-          "sha256",
-          "size"
-        ],
+        "required": ["documentId", "relativePath", "sha256", "size"],
         "properties": {
           "documentId": {
             "type": "string",
@@ -134,11 +129,7 @@
     "exclusions": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "unsupported",
-        "system",
-        "user"
-      ],
+      "required": ["unsupported", "system", "user"],
       "properties": {
         "unsupported": {
           "type": "integer",
@@ -151,6 +142,16 @@
         "user": {
           "type": "integer",
           "minimum": 0
+        }
+      }
+    },
+    "privacyPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["addressMode"],
+      "properties": {
+        "addressMode": {
+          "enum": ["FULL_REDACTION", "KEEP_CITY", "KEEP_DISTRICT"]
         }
       }
     }

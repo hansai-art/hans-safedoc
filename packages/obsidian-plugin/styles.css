@@ -37,12 +37,28 @@
 }
 
 .privacy-bridge-batch-confirmation,
-.privacy-bridge-output {
+.privacy-bridge-output,
+.privacy-bridge-address-policy,
+.privacy-bridge-safe-handoff {
   margin: 12px 0;
   padding: 12px;
   border: 1px solid var(--background-modifier-border);
   border-radius: var(--radius-s);
   background: var(--background-secondary);
+}
+
+.privacy-bridge-safe-handoff {
+  border-left: 4px solid var(--color-green);
+}
+
+.privacy-bridge-safe-handoff h4 {
+  margin: 0 0 8px;
+}
+
+.privacy-bridge-address-policy label,
+.privacy-bridge-address-policy select {
+  display: block;
+  width: 100%;
 }
 
 .privacy-bridge-preview {

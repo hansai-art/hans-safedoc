@@ -11,7 +11,9 @@ import {
   error,
   ok,
   preferredDisplay,
+  splitTaiwanAddressForPrivacy,
   tokenizeDocument,
+  type AddressPrivacyMode,
   type DetectedCandidate,
   type Result,
   type SafeJobEntity,
@@ -31,6 +33,12 @@ export interface PreparedReviewedDocument {
   readonly documentId: string;
   readonly tokenKey: Uint8Array;
   readonly mapping: readonly SafeJobEntity[];
+  readonly addressPrivacyMode: AddressPrivacyMode;
+  readonly addressFallbackCount: number;
+}
+
+export interface PrepareReviewedDocumentOptions {
+  readonly addressPrivacyMode?: AddressPrivacyMode;
 }
 
 export interface PreviewChange {
@@ -169,6 +177,7 @@ export function prepareReviewedDocument(
   source: string,
   candidates: readonly DetectedCandidate[],
   decisions: CandidateDecisions,
+  options: PrepareReviewedDocumentOptions = {},
 ): Result<PreparedReviewedDocument> {
   if (candidates.some((candidate) => candidate.handling === 'BLOCK_EXPORT'))
     return err(error('PB-DEMO-SECRET-BLOCK'));
@@ -177,6 +186,17 @@ export function prepareReviewedDocument(
   const accepted = candidates.filter(
     (candidate) =>
       candidate.handling === 'TOKENIZE' && decisions[candidate.candidateId] === 'ACCEPTED',
+  );
+  const addressPrivacyMode = options.addressPrivacyMode ?? 'FULL_REDACTION';
+  const privacySplits = accepted.map((candidate) =>
+    candidate.primaryType === 'TW_ADDRESS'
+      ? splitTaiwanAddressForPrivacy(candidate.surfaceText, addressPrivacyMode)
+      : {
+          mode: 'FULL_REDACTION' as const,
+          publicPrefix: '',
+          protectedDetail: candidate.surfaceText,
+          fellBackToFullRedaction: false,
+        },
   );
   const jobId = createJobId();
   const tokenKey = new Uint8Array(randomBytes(32));
@@ -191,9 +211,11 @@ export function prepareReviewedDocument(
   const sanitized = tokenizeDocument(
     source,
     accepted.map((candidate, index) => ({
-      start: candidate.start,
+      start: candidate.start + privacySplits[index]!.publicPrefix.length,
       end: candidate.end,
-      sourceTextHash: candidate.sourceTextHash,
+      sourceTextHash: createHash('sha256')
+        .update(privacySplits[index]!.protectedDetail, 'utf8')
+        .digest('hex'),
       token: assignments[index]!.token,
       handling: 'TOKENIZE' as const,
     })),
@@ -203,9 +225,12 @@ export function prepareReviewedDocument(
     accepted.map((candidate, index) => [candidate.candidateId, assignments[index]!.token]),
   );
   const displaysByToken = new Map<string, string[]>();
-  for (const [index, candidate] of accepted.entries()) {
+  for (const [index] of accepted.entries()) {
     const token = assignments[index]!.token;
-    displaysByToken.set(token, [...(displaysByToken.get(token) ?? []), candidate.surfaceText]);
+    displaysByToken.set(token, [
+      ...(displaysByToken.get(token) ?? []),
+      privacySplits[index]!.protectedDetail,
+    ]);
   }
   const mapping: SafeJobEntity[] = [];
   for (const [index, assignment] of assignments.entries()) {
@@ -225,7 +250,10 @@ export function prepareReviewedDocument(
     candidateId: candidate.candidateId,
     type: candidate.primaryType,
     before: candidate.surfaceText,
-    after: tokens.get(candidate.candidateId) ?? candidate.surfaceText,
+    after:
+      candidate.primaryType === 'TW_ADDRESS' && tokens.has(candidate.candidateId)
+        ? `${splitTaiwanAddressForPrivacy(candidate.surfaceText, addressPrivacyMode).publicPrefix}${tokens.get(candidate.candidateId)}`
+        : (tokens.get(candidate.candidateId) ?? candidate.surfaceText),
     decision: decisions[candidate.candidateId]!,
     start: candidate.start,
     end: candidate.end,
@@ -241,6 +269,8 @@ export function prepareReviewedDocument(
     documentId: randomUUID(),
     tokenKey,
     mapping,
+    addressPrivacyMode,
+    addressFallbackCount: privacySplits.filter((split) => split.fellBackToFullRedaction).length,
   });
 }
 

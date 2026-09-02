@@ -1,7 +1,7 @@
 {
   "id": "hans-safedoc",
   "name": "Hans SafeDoc",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "minAppVersion": "1.8.0",
   "description": "Read-only local pseudonymization for MD, TXT, CSV, DOCX, and XLSX with manual review.",
   "author": "Hans Lin",

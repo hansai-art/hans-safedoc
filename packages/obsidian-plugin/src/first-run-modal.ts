@@ -99,7 +99,7 @@ export class PrivacyBridgeFirstRunModal extends Modal {
   }
 
   private renderSupport(article: HTMLElement): void {
-    this.createStepTitle(article, '目前 Hans SafeDoc v1.3 可用');
+    this.createStepTitle(article, '目前 Hans SafeDoc v1.4 可用');
     article.createEl('p', {
       text: '請從「選擇檔案」進入。來源保持唯讀，所有偵測項目都必須人工確認；只有格式 adapter 改寫、重新開啟與殘留檢查全部通過後，才會顯示安全副本。',
     });
@@ -115,7 +115,11 @@ export class PrivacyBridgeFirstRunModal extends Modal {
     });
     article.createEl('h3', { text: '工作階段客戶字典' });
     article.createEl('p', {
-      text: `${DICTIONARY_ONLY_LABELS.join('、')}可由 JSON 客戶字典精確比對。字典不寫入 Obsidian 資料庫或外掛設定，鎖定或關閉後會清除；仍須人工確認每個結果。`,
+      text: `${DICTIONARY_ONLY_LABELS.join('、')}可由 JSON、CSV 或逐行貼上建立的客戶字典精確比對。字典不寫入 Obsidian 資料庫或外掛設定，鎖定或關閉後會清除；仍須人工確認每個結果。`,
+    });
+    article.createEl('h3', { text: '地址隱私層級' });
+    article.createEl('p', {
+      text: '臺灣地址預設完整保護；需要區域分析時可明確選擇保留縣市或行政區。無法安全拆分時會自動回到完整保護，保留越多地理資訊，重新識別風險越高。',
     });
     article.createEl('h3', { text: '檔案格式（同一份中央矩陣）' });
     article.createEl('ul', {}, (list) => {

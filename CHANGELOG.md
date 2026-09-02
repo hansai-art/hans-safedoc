@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.4.0 — 2026-09-02
+
+- 新增 Job 級 Address Generalization：預設完整保護，也可明確選擇保留縣市或保留縣市與行政區；無法安全拆分時自動回到完整保護，詳細地址只進 Vault 外加密 Mapping。
+- 新增 Customer Dictionary Wizard，可從 JSON、CSV 或逐行貼上建立工作階段 Exact Match 字典，並在載入前預覽 Alias、短詞與衝突。
+- 新增 Safe to Upload 預檢，重新驗證 Safe Package、analysis-request.json、Package Hash、Result Schema 範本與 Mapping 排除邊界後，才顯示可交付狀態。
+- 新增 Result JSON Dry Run：寫檔前驗證 Job、Package Hash、Document ID、Token HMAC 與 Mapping，顯示友善錯誤並要求再次確認；還原仍只建立不覆寫的新 Result Vault。
+- 維持正式版零模型、零遙測、無雲端 API、同 Job 一致與 Cross-job unlinkability；不新增固定個資 Hash 或跨 Job 追蹤索引。
+
 ## 1.3.0 — 2026-09-01
 
 - 新增加密 Safe Job Store：每次輸出使用獨立 10 碼 Job ID 與 token key，Mapping 以使用者密碼透過 scrypt 衍生 AES-256-GCM 金鑰後存於 Vault 外；密碼、Mapping 與 key 不進 Vault、安全輸出或外掛設定。

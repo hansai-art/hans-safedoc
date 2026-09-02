@@ -11,7 +11,7 @@ import {
 const root = resolve(import.meta.dirname, '../..');
 const read = (path: string) => readFileSync(resolve(root, path), 'utf8');
 
-describe('Hans SafeDoc v1.3 Obsidian integration contract', () => {
+describe('Hans SafeDoc v1.4 Obsidian integration contract', () => {
   it('centralizes the exact supported, blocked, and agent-only format policy', () => {
     expect(SUPPORTED_EXTERNAL_EXTENSIONS).toEqual(['md', 'txt', 'csv', 'docx', 'xlsx']);
     expect(FILE_FORMAT_SUPPORT).toEqual(
@@ -163,7 +163,7 @@ describe('Hans SafeDoc v1.3 Obsidian integration contract', () => {
     expect(packageJson.scripts.ci).toContain('pnpm acceptance');
     expect(packageJson.scripts['format:check']).not.toMatch(/'[^']*\*[^']*'/u);
     expect(workflow).toContain('- run: pnpm acceptance');
-    expect(workflow).toMatch(/supply-chain-and-release:[\s\S]*pnpm build[\s\S]*pnpm sbom/u);
+    expect(workflow).toMatch(/supply-chain-and-release:[\s\S]*pnpm build[\s\S]*pnpm run sbom/u);
     expect(script).toContain("execFileSync('pnpm', ['acceptance']");
     expect(script.indexOf("execFileSync('pnpm', ['acceptance']")).toBeLessThan(removeOutput);
     expect(script).toContain("resolve(root, 'manifest.json')");

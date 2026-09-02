@@ -37,6 +37,11 @@ export {
   type Handling,
 } from './detection.js';
 export {
+  splitTaiwanAddressForPrivacy,
+  type AddressPrivacyMode,
+  type TaiwanAddressPrivacySplit,
+} from './address-privacy.js';
+export {
   DICTIONARY_LIMITS,
   matchDictionary,
   mergeCandidateDetections,
@@ -130,12 +135,14 @@ export {
 export {
   SAFE_PACKAGE_LIMIT,
   buildSafePackage,
+  inspectSafePackage,
   normalizeSafeEntryPath,
   validateSafePackage,
   type SafePackage,
   type SafePackageDocument,
   type SafePackageEntity,
   type SafePackageInput,
+  type SafePackageInspection,
 } from './safe-package.js';
 export {
   copyOnWriteMigrate,

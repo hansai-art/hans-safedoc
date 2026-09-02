@@ -34,7 +34,7 @@ Hans SafeDoc 是 Obsidian 電腦版的本機文件去識別化外掛。它只讀
 
 ## 格式範圍
 
-v1.3 支援下列唯讀來源：
+v1.4 支援下列唯讀來源：
 
 - Markdown（`.md`）：嚴格 UTF-8，輸出新副本。
 - 純文字（`.txt`）：嚴格 UTF-8；UTF-16、NUL 與不安全編碼會阻擋。
@@ -47,6 +47,12 @@ PDF 不由外掛直接解析。必須先由本機 AI Agent 以確定性工具逐
 舊版 `.doc`／`.xls`、RTF、ODT／ODS、圖片、音訊、影片、Obsidian 畫布（Canvas）、Obsidian 資料庫檢視（Bases）、壓縮檔與其他未列格式都會阻擋。Obsidian 手機版不支援。
 
 人名、組織、專案、產品、部門、系統與自訂詞可匯入工作階段 JSON 客戶字典做精確比對；格式範例見 `examples/dictionary.simple.example.json`。字典不做模糊猜測、不寫入 Vault 或外掛設定，鎖定工作區或關閉外掛後會清除，且所有結果仍必須人工確認。自動偵測不保證完整，也不是法律上的匿名化判定。
+
+v1.4 的 Customer Dictionary Wizard 也可讀取 CSV，或讓使用者逐行貼上名稱並選擇資料類型；載入前會預覽項目、Alias 與短詞提醒。正式字典仍只存在目前工作階段，不會寫入 Vault、安全分析包或外掛設定。
+
+## 地址隱私層級
+
+臺灣地址預設使用「完整保護」，也可針對單一 Job 明確選擇「保留縣市」或「保留縣市與行政區」。保留越多地理資訊，重新識別風險越高；如果固定規則無法安全拆出指定層級，系統會自動改回完整地址保護。被保護的詳細地址只存在 Vault 外加密 Mapping，Safe Package 只記錄不含原文的政策名稱。
 
 ## 正式版只使用固定規則
 
@@ -62,7 +68,9 @@ MD／TXT／CSV／DOCX／XLSX 的固定規則可獨立使用，不需要安裝 Ol
 - 安全代碼對照、原文顯示值與 token key 只存在 Vault 外的加密 Job Store；安全輸出與客戶字典都不包含 Mapping。
 - 同一 Job 內，相同類型與正規化後相同的資料會得到相同安全代碼；不同 Job 會使用不同 key 與代碼，避免不必要的長期串聯。目前外掛每次輸出建立獨立 Job，因此不把 PII 代碼當成跨系統交易索引；需要跨 Log 關聯時，應優先在來源系統建立不含個資的穩定 correlation ID。
 - 每份安全輸出會附帶不含 Mapping 的安全分析包（Safe Package）`.safe-package.zip` 與 `.analysis-request.json`；交給其他工具時必須兩份一起提供，並要求只回傳符合 `result-package.schema.json` 的 UTF-8 JSON。原生安全副本保留給本機版面檢查，不作為 Result JSON 的雜湊綁定來源。
+- 只有 Safe Package 結構、Checksum、Package Hash、配對的分析請求與 Result Schema 範本全部重新讀取驗證通過，介面才會顯示 `Safe to Upload`；該狀態只適用於畫面列出的兩個配對檔案，不適用於原始檔、原生安全副本、Mapping、Job Store 或還原結果。
 - 「還原 AI 結果」只接受上述結構化 Result JSON。Job、安全分析包雜湊、匿名文件 ID、schema 或安全代碼任一不符，都會使整包還原停止。
+- 寫入前會先執行不產生檔案的 Dry Run，列出 Job、Package Hash、匿名文件 ID、Token HMAC 與 Mapping 驗證結果；使用者再次確認後，系統會重新讀取及驗證 Result JSON 才開始建立副本。
 - 還原結果永遠寫入新的 `Hans SafeDoc Restored/<Job>-results[-N]/`，不覆寫原始文件、安全輸出或 AI 回傳檔。還原副本再次包含個資，不應上傳雲端。
 
 ## 給 AI Agent：在本機操作 Hans SafeDoc

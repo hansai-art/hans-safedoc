@@ -49,7 +49,7 @@ jobs:
       - run: pnpm scan:network
       - run: pnpm scan:secrets
       - run: pnpm scan:licenses
-      - run: pnpm sbom
+      - run: pnpm run sbom
       - run: pnpm release:artifact
       - uses: actions/upload-artifact@v4
         with:

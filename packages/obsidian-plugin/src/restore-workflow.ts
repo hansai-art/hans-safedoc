@@ -18,6 +18,64 @@ export interface RestoreSafeResultFileInput {
   readonly job: SafeJobRecord;
 }
 
+export interface RestoreDryRunReport {
+  readonly status: 'READY_TO_RESTORE';
+  readonly jobId: string;
+  readonly packageHash: string;
+  readonly sourceResultSha256: string;
+  readonly findingCount: number;
+  readonly checks: readonly string[];
+}
+
+async function validateRestoreSource(input: RestoreSafeResultFileInput) {
+  if (extname(input.sourcePath).toLowerCase() !== '.json') throw new Error('PB-IMPORT-001');
+  const source = await openReadOnlySource(input.sourcePath, { maxBytes: RESULT_LIMIT });
+  const bytes = new Uint8Array(await source.read());
+  const validated = validateResultBytes(bytes, {
+    jobId: input.job.jobId,
+    packageHash: input.job.packageHash,
+    tokenKey: input.job.tokenKey,
+    documentIds: new Set(input.job.documentIds),
+    knownTokens: new Set(input.job.entities.map((entity) => entity.token)),
+  });
+  if (!validated.ok) throw new Error(validated.error.code);
+  await source.recheck('before-staging-write');
+  return { source, bytes, result: validated.value };
+}
+
+export async function dryRunSafeResultFile(
+  input: RestoreSafeResultFileInput,
+): Promise<RestoreDryRunReport> {
+  const validated = await validateRestoreSource(input);
+  return {
+    status: 'READY_TO_RESTORE',
+    jobId: input.job.jobId,
+    packageHash: input.job.packageHash,
+    sourceResultSha256: resultHash(validated.bytes),
+    findingCount: (validated.result.findings as readonly unknown[]).length,
+    checks: [
+      'UTF-8 JSON 與 result-package.schema.json',
+      'Job ID 與 Safe Package Hash',
+      '匿名 Document ID',
+      '所有 Token 的格式、HMAC 與本機 Mapping',
+      'Result JSON 在驗證期間未變更',
+    ],
+  };
+}
+
+export function explainRestoreError(code: string): string {
+  if (code.includes('PB-IMPORT-001'))
+    return 'Result JSON 格式或 Schema 不正確，請要求 AI 依 analysis-request.json 重新產生。';
+  if (code.includes('PB-IMPORT-002'))
+    return 'Result JSON 的 Job ID 或 Safe Package Hash 不符，請選擇原本配對的 Job。';
+  if (code.includes('PB-IMPORT-003'))
+    return '發現未知、被修改、偽造或來自其他 Job 的 Token，整包結果已拒絕。';
+  if (code.includes('PB-IMPORT-005'))
+    return 'Result JSON 超過大小、數量或結構深度限制，沒有建立還原副本。';
+  if (code.includes('PB-FILE-004')) return 'Result JSON 在驗證期間發生變更，請重新選擇檔案。';
+  return 'Result JSON 完整性驗證失敗，沒有建立還原副本。';
+}
+
 async function allocateResultRoot(outputParent: string, jobId: string): Promise<string> {
   await mkdir(outputParent, { recursive: true, mode: 0o700 });
   for (let suffix = 1; suffix <= 100; suffix += 1) {
@@ -85,22 +143,11 @@ async function publishFile(root: string, name: string, bytes: Uint8Array): Promi
 
 /** Validates one structured Result JSON and publishes a new Result Vault. */
 export async function restoreSafeResultFile(input: RestoreSafeResultFileInput): Promise<string> {
-  if (extname(input.sourcePath).toLowerCase() !== '.json')
-    throw new Error('只接受符合 result-package.schema.json 的 UTF-8 JSON。');
-  const source = await openReadOnlySource(input.sourcePath, { maxBytes: RESULT_LIMIT });
-  const bytes = new Uint8Array(await source.read());
-  const validated = validateResultBytes(bytes, {
-    jobId: input.job.jobId,
-    packageHash: input.job.packageHash,
-    tokenKey: input.job.tokenKey,
-    documentIds: new Set(input.job.documentIds),
-    knownTokens: new Set(input.job.entities.map((entity) => entity.token)),
-  });
-  if (!validated.ok) throw new Error(`還原驗證失敗：${validated.error.code}`);
-  await source.recheck('before-staging-write');
+  const validated = await validateRestoreSource(input);
+  const { source, bytes } = validated;
 
-  const markdown = new TextEncoder().encode(renderFindingsMarkdown(validated.value, input.job));
-  const findingsJson = new TextEncoder().encode(`${canonicalStringify(validated.value)}\n`);
+  const markdown = new TextEncoder().encode(renderFindingsMarkdown(validated.result, input.job));
+  const findingsJson = new TextEncoder().encode(`${canonicalStringify(validated.result)}\n`);
   const manifest = new TextEncoder().encode(
     `${canonicalStringify({
       schemaVersion: '1.0.0',
