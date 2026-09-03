@@ -99,6 +99,11 @@ describe('E14 Obsidian workflow integration', () => {
     expect(workspace).toContain('privacy-bridge-type-filter');
     expect(workspace).not.toContain('privacy-bridge-copy-status');
     expect(workspace).toContain('privacy-bridge-primary-actions');
+    const setScanResult = workspace.slice(
+      workspace.indexOf('setScanResult('),
+      workspace.indexOf('setDictionaryState('),
+    );
+    expect(setScanResult).toContain("this.addressPrivacyMode = 'FULL_REDACTION'");
     const renderBody = workspace.slice(workspace.indexOf('private render(): void'));
     expect(renderBody.indexOf('this.renderPrimaryActions')).toBeGreaterThan(-1);
     expect(renderBody.indexOf('this.renderPrimaryActions')).toBeLessThan(

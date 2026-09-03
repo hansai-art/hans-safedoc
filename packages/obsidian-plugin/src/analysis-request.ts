@@ -74,6 +74,19 @@ function analysisFindingContract(documentId: string): Record<string, unknown> {
   };
 }
 
+function matchesExactAddressPrivacyPolicy(
+  value: unknown,
+  expectedMode: AddressPrivacyMode,
+): boolean {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const keys = Object.keys(value);
+  return (
+    keys.length === 1 &&
+    keys[0] === 'addressMode' &&
+    (value as { addressMode?: unknown }).addressMode === expectedMode
+  );
+}
+
 export function verifyAnalysisHandoff(
   packageBytes: Uint8Array,
   requestBytes: Uint8Array,
@@ -95,9 +108,7 @@ export function verifyAnalysisHandoff(
     const value = request as Record<string, unknown>;
     const manifest = inspected.value.manifest;
     const files = manifest.files as readonly { documentId?: unknown }[];
-    const packagePolicy = manifest.privacyPolicy as { addressMode?: unknown } | undefined;
     const allowed = value.allowedDocumentIds;
-    const policy = value.privacyPolicy as { addressMode?: unknown } | undefined;
     const template = parseResultPackage(value.resultTemplate);
     if (
       Object.keys(value).length !== ANALYSIS_REQUEST_KEYS.size ||
@@ -106,7 +117,7 @@ export function verifyAnalysisHandoff(
       manifest.packageHash !== expected.packageHash ||
       files.length !== 1 ||
       files[0]?.documentId !== expected.documentId ||
-      packagePolicy?.addressMode !== expected.addressPrivacyMode ||
+      !matchesExactAddressPrivacyPolicy(manifest.privacyPolicy, expected.addressPrivacyMode) ||
       value.jobId !== expected.jobId ||
       value.sourcePackageHash !== expected.packageHash ||
       !Array.isArray(allowed) ||
@@ -114,7 +125,7 @@ export function verifyAnalysisHandoff(
       allowed[0] !== expected.documentId ||
       value.schemaVersion !== '1.0.0' ||
       value.resultSchema !== 'result-package.schema.json' ||
-      policy?.addressMode !== expected.addressPrivacyMode ||
+      !matchesExactAddressPrivacyPolicy(value.privacyPolicy, expected.addressPrivacyMode) ||
       !template.ok ||
       template.value.jobId !== expected.jobId ||
       template.value.sourcePackageHash !== expected.packageHash ||

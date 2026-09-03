@@ -145,6 +145,7 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
       ...new Map(mandatoryReviewRecords.map((record) => [record.id, record])).values(),
     ];
     this.mandatoryReviewIds.clear();
+    this.addressPrivacyMode = 'FULL_REDACTION';
     this.clearPreview();
     this.clearOutputState();
     this.statusMessage = `找到 ${candidates.length} 個敏感項目與 ${this.mandatoryReviewRecords.length} 個強制人工確認項目。`;

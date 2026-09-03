@@ -70,6 +70,26 @@ describe('E20 analysis Safe Package bundle', () => {
         },
       ).ok,
     ).toBe(false);
+    expect(
+      verifyAnalysisHandoff(
+        packageBytes,
+        new TextEncoder().encode(
+          JSON.stringify({
+            ...request,
+            privacyPolicy: {
+              addressMode: prepared.value.addressPrivacyMode,
+              mapping: ['raw-value'],
+            },
+          }),
+        ),
+        {
+          jobId: prepared.value.jobId,
+          packageHash: bundle.packageHash,
+          documentId: prepared.value.documentId,
+          addressPrivacyMode: prepared.value.addressPrivacyMode,
+        },
+      ).ok,
+    ).toBe(false);
     if (process.platform !== 'win32') {
       expect((await stat(bundle.safePackageFile)).mode & 0o777).toBe(0o600);
       expect((await stat(bundle.analysisRequestFile)).mode & 0o777).toBe(0o600);
