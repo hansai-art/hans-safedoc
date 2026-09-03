@@ -1,6 +1,6 @@
 import type { CandidateType } from '@privacy-bridge/core';
 
-export const SECURITY_NOTICE_VERSION = '1.3.0';
+export const SECURITY_NOTICE_VERSION = '1.4.0';
 
 export type FileSupportMode = 'SUPPORTED_READ_ONLY' | 'LOCAL_AGENT_TO_MD_ONLY' | 'BLOCKED';
 

@@ -17,15 +17,14 @@ import {
   type CsvDialectCandidate,
 } from '../../document-formats/src/csv/adapter.js';
 import {
-  DICTIONARY_LIMITS,
   defaultSecureStorePath,
   listSafeJobRecords,
   loadSafeJobRecord,
   matchDictionary,
   mergeCandidateDetections,
   saveSafeJobRecord,
-  validateDictionaryImport,
   validateSecureStorePath,
+  type AddressPrivacyMode,
   type DesktopPlatform,
   type DetectedCandidate,
   type Dictionary,
@@ -39,9 +38,15 @@ import {
 } from './external-format-workflow.js';
 import { assertDesktopRuntime } from './index.js';
 import { createAnalysisBundle, type AnalysisBundle } from './analysis-request.js';
-import { restoreSafeResultFile } from './restore-workflow.js';
+import {
+  dryRunSafeResultFile,
+  explainRestoreError,
+  restoreSafeResultFile,
+} from './restore-workflow.js';
+import { RestoreDryRunModal } from './restore-dry-run-modal.js';
 import { PrivacyBridgePreviewView, PRIVACY_BRIDGE_PREVIEW_VIEW } from './preview-view.js';
 import { PrivacyBridgeDiffModal } from './diff-modal.js';
+import { DictionaryImportModal } from './dictionary-import-modal.js';
 import { PrivacyBridgeFirstRunModal } from './first-run-modal.js';
 import {
   PrivacyBridgeHelpView,
@@ -73,6 +78,7 @@ interface ReviewSession {
   readonly sourcePath: string;
   readonly sourceContent: string;
   readonly candidates: readonly DetectedCandidate[];
+  addressPrivacyMode: AddressPrivacyMode;
   decisions: CandidateDecisions;
   mandatoryReviewIds: Set<string>;
   prepared: PreparedReviewedDocument | undefined;
@@ -244,6 +250,7 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
           chooseFile: () => this.chooseExternalFile(),
           importDictionary: () => this.importDictionary(),
           restoreResult: () => this.restoreResult(),
+          setAddressPrivacyMode: (mode) => this.setAddressPrivacyMode(mode),
           scanCurrentNote: async () => {
             await this.scanCurrentNote();
           },
@@ -426,16 +433,25 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
       return;
     }
     try {
-      const output = await restoreSafeResultFile({
+      const restoreInput = {
         sourcePath,
         outputParent: resolve(dirname(vaultRoot), 'Hans SafeDoc Restored'),
         job: loaded.value,
+      };
+      const dryRun = await dryRunSafeResultFile(restoreInput);
+      const confirmed = await new Promise<boolean>((resolveConfirmation) =>
+        new RestoreDryRunModal(this.app, dryRun, resolveConfirmation).open(),
+      );
+      if (!confirmed) return;
+      const output = await restoreSafeResultFile({
+        ...restoreInput,
       });
       const view = await this.activateWorkspace();
       view?.setRestoredOutputResult(output, loaded.value.jobId);
       new Notice('安全代碼與 Job 完整性驗證通過，已建立新的還原副本。');
     } catch (cause) {
-      const message = cause instanceof Error ? cause.message : '未知錯誤';
+      const code = cause instanceof Error ? cause.message : '未知錯誤';
+      const message = explainRestoreError(code);
       const view = await this.activateWorkspace();
       view?.setError(`沒有建立還原檔：${message}`);
       new Notice('還原驗證未通過，沒有建立任何結果檔。');
@@ -445,37 +461,18 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
   }
   private async importDictionary(): Promise<void> {
     if (!this.ensureSecurityNoticeAccepted()) return;
-    const input = document.body.createEl('input');
-    input.type = 'file';
-    input.accept = '.json,application/json';
-    input.hidden = true;
-    try {
-      const selected = await new Promise<File | undefined>((resolveSelection) => {
-        input.addEventListener('change', () => resolveSelection(input.files?.[0]), { once: true });
-        input.addEventListener('cancel', () => resolveSelection(undefined), { once: true });
-        input.click();
-      });
-      if (!selected) return;
-      if (selected.size > DICTIONARY_LIMITS.bytes) {
-        new Notice('字典超過 25 MB，未讀取檔案。');
-        return;
-      }
-      const parsed = validateDictionaryImport(new Uint8Array(await selected.arrayBuffer()));
-      if (!parsed.ok) {
-        new Notice(`字典格式或安全限制驗證失敗：${parsed.error.code}。`);
-        return;
-      }
-      this.clearReviewSession();
-      this.sessionDictionary = parsed.value;
-      const view = await this.activateWorkspace();
-      view?.resetSelection();
-      view?.setDictionaryState(parsed.value.entries.length);
-      new Notice(
-        `已載入 ${parsed.value.entries.length} 筆客戶字典；只保留於本次工作階段，請重新掃描文件。`,
-      );
-    } finally {
-      input.remove();
-    }
+    const dictionary = await new Promise<Dictionary | undefined>((resolveDictionary) =>
+      new DictionaryImportModal(this.app, resolveDictionary).open(),
+    );
+    if (!dictionary) return;
+    this.clearReviewSession();
+    this.sessionDictionary = dictionary;
+    const view = await this.activateWorkspace();
+    view?.resetSelection();
+    view?.setDictionaryState(dictionary.entries.length);
+    new Notice(
+      `已載入 ${dictionary.entries.length} 筆客戶字典；只保留於本次工作階段，請重新掃描文件。`,
+    );
   }
   private async bindPublishedOutput(input: {
     readonly outputFile: string;
@@ -625,6 +622,7 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
         sourcePath: opened.document.path,
         sourceContent: opened.document.sourceContent,
         candidates: opened.document.candidates,
+        addressPrivacyMode: 'FULL_REDACTION',
         decisions: {},
         mandatoryReviewIds: new Set(),
         prepared: undefined,
@@ -677,6 +675,7 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
       sourcePath: active.file.path,
       sourceContent: active.content,
       candidates,
+      addressPrivacyMode: 'FULL_REDACTION',
       decisions: {},
       mandatoryReviewIds: new Set(),
       prepared: undefined,
@@ -694,6 +693,15 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
     session.exported = false;
     const view = await this.activateWorkspace();
     view?.setReviewDecision(candidateId, decision);
+  }
+  private async setAddressPrivacyMode(mode: AddressPrivacyMode): Promise<void> {
+    const session = this.reviewSession;
+    if (!session || session.addressPrivacyMode === mode) return;
+    session.addressPrivacyMode = mode;
+    this.discardPrepared(session);
+    session.exported = false;
+    const view = await this.activateWorkspace();
+    view?.setAddressPrivacyMode(mode);
   }
   private async acknowledgeMandatoryReview(recordId: string): Promise<void> {
     const session = this.reviewSession;
@@ -766,6 +774,7 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
       session.sourceContent,
       session.candidates,
       session.decisions,
+      { addressPrivacyMode: session.addressPrivacyMode },
     );
     if (!prepared.ok) {
       view.setError(
@@ -830,6 +839,7 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
           session.prepared.jobId,
           bundle.safePackageFile,
           bundle.analysisRequestFile,
+          bundle.handoff,
         );
         session.exported = true;
         try {
@@ -890,6 +900,7 @@ export default class ObsidianPrivacyBridgePlugin extends Plugin {
         session.prepared.jobId,
         bundle.safePackageFile,
         bundle.analysisRequestFile,
+        bundle.handoff,
       );
       session.exported = true;
       try {

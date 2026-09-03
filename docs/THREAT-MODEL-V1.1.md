@@ -83,6 +83,22 @@
 - 威脅：stale dist、版本漂移、缺SBOM、ZIP損壞、工作樹未提交。
 - 控制：dirty-tree先阻擋；root／plugin source／dist manifest、root／plugin package及versions一致；build後manifest byte equality；artifact manifest綁定payload hash；ZIP以獨立parser逐entry回讀。
 
+### T10 地址分級造成詳細地址殘留
+
+- 威脅：保留縣市或行政區時，拆分失敗或邊界錯誤使道路、巷弄、門牌或樓層留在安全輸出。
+- 控制：只有固定規則已接受的 `TW_ADDRESS` 可進入分級；完整保護為預設，缺少要求的行政層級或私密尾段時 fail closed 回到整段 Token；預覽、artifact reopen 與 residual scan 不得略過。
+- 殘餘：即使只保留縣市或行政區，搭配其他屬性仍可能重新識別；UI 必須明示此風險。
+
+### T11 使用者上傳錯誤檔案
+
+- 威脅：使用者把原始檔、原生安全副本、Mapping、Job Store 或還原結果誤交給雲端工具。
+- 控制：只有配對 Safe Package 與 analysis request 完成重讀驗證後顯示 `Safe to Upload`；完成卡逐項列出允許與禁止交付的檔案，不加入直接雲端 API 或剪貼簿能力。
+
+### T12 Dry Run 後 Result 被替換
+
+- 威脅：Result JSON 在 Dry Run 通過後、實際還原前被替換。
+- 控制：Dry Run 不寫檔；確認後重新開啟、重新驗證 Schema、Job、Package、Document ID、Token HMAC、Mapping 與來源快照，再以新 Result Vault 發布。
+
 ## 5. 人工與外部Gate
 
 下列項目不能由作者或自動測試代簽：

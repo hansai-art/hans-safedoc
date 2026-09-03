@@ -2,7 +2,11 @@ import { mkdtemp, readFile, readdir, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { restoreSafeResultFile } from '../../packages/obsidian-plugin/src/restore-workflow.js';
+import {
+  dryRunSafeResultFile,
+  explainRestoreError,
+  restoreSafeResultFile,
+} from '../../packages/obsidian-plugin/src/restore-workflow.js';
 import {
   prepareReviewedDocument,
   scanSyntheticDocument,
@@ -74,11 +78,19 @@ describe('E20 structured Result restore workflow', () => {
     const sourceJson = JSON.stringify(result);
     await writeFile(resultPath, sourceJson, 'utf8');
 
-    const first = await restoreSafeResultFile({
+    const input = {
       sourcePath: resultPath,
       outputParent,
       job: job(prepared, packageHash),
+    };
+    const dryRun = await dryRunSafeResultFile(input);
+    expect(dryRun).toMatchObject({
+      status: 'READY_TO_RESTORE',
+      jobId: prepared.jobId,
+      findingCount: 1,
     });
+    await expect(readdir(outputParent)).rejects.toThrow();
+    const first = await restoreSafeResultFile(input);
     const second = await restoreSafeResultFile({
       sourcePath: resultPath,
       outputParent,
@@ -121,5 +133,6 @@ describe('E20 structured Result restore workflow', () => {
       }),
     ).rejects.toThrow('PB-IMPORT-003');
     await expect(readdir(outputParent)).rejects.toThrow();
+    expect(explainRestoreError('PB-IMPORT-003')).toContain('未知、被修改、偽造或來自其他 Job');
   });
 });

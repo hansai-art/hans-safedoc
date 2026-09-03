@@ -101,13 +101,13 @@ describe('novice pre-install product contract', () => {
     expect(
       normalizeNoviceSettings({
         securityNoticeAccepted: true,
-        securityNoticeVersion: '1.3.0',
+        securityNoticeVersion: '1.4.0',
         onboardingCompleted: true,
         sourceText: 'must not survive',
       }),
     ).toEqual({
       securityNoticeAccepted: true,
-      securityNoticeVersion: '1.3.0',
+      securityNoticeVersion: '1.4.0',
       onboardingCompleted: true,
       localModelEnabled: false,
     });
@@ -132,7 +132,7 @@ describe('novice installed guidance contract', () => {
     expect(modal).not.toContain('匯入離線模型包');
     expect(modal).not.toContain('GPL-3.0');
     expect(modal).toContain('建立安全練習筆記');
-    expect(modal).toContain('目前 Hans SafeDoc v1.3 可用');
+    expect(modal).toContain('目前 Hans SafeDoc v1.4 可用');
     expect(modal).toContain("attr: { tabindex: '-1' }");
     expect(modal).toContain('queueMicrotask(() => title.focus())');
     expect(modal).toContain('正在儲存固定規則設定');
@@ -159,7 +159,7 @@ describe('novice installed guidance contract', () => {
     expect(readme.indexOf('安裝前先看')).toBeLessThan(readme.indexOf('安裝步驟'));
     expect(readme).toContain('Ollama（離線模型執行工具）');
     expect(readme).toContain('LLM（大型語言模型）');
-    expect(readme).toContain('v1.3 支援下列唯讀來源');
+    expect(readme).toContain('v1.4 支援下列唯讀來源');
     expect(readme).toContain('公式、註解、外部資料');
     expect(readme).toContain('未列格式都會阻擋');
 

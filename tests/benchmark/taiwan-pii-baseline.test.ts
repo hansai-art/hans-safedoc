@@ -33,6 +33,66 @@ const POSITIVE_PROBES: readonly PositiveProbe[] = [
     surface: '臺北市信義區松仁路2之2號5樓',
   },
   {
+    id: 'address-tai-alias-section-floor',
+    text: '地址：台北市大安區基隆路二段172之1號8樓',
+    type: 'TW_ADDRESS',
+    surface: '台北市大安區基隆路二段172之1號8樓',
+  },
+  {
+    id: 'address-new-taipei-basement',
+    text: '地址：新北市板橋區文化路1段100號B2',
+    type: 'TW_ADDRESS',
+    surface: '新北市板橋區文化路1段100號B2',
+  },
+  {
+    id: 'address-taoyuan-floor-suffix',
+    text: '地址：桃園市中壢區中央西路2段30號12F',
+    type: 'TW_ADDRESS',
+    surface: '桃園市中壢區中央西路2段30號12F',
+  },
+  {
+    id: 'address-taichung-avenue',
+    text: '地址：臺中市西屯區臺灣大道三段99號',
+    type: 'TW_ADDRESS',
+    surface: '臺中市西屯區臺灣大道三段99號',
+  },
+  {
+    id: 'address-tainan',
+    text: '地址：臺南市中西區民生路一段10號',
+    type: 'TW_ADDRESS',
+    surface: '臺南市中西區民生路一段10號',
+  },
+  {
+    id: 'address-kaohsiung',
+    text: '地址：高雄市苓雅區四維三路2號',
+    type: 'TW_ADDRESS',
+    surface: '高雄市苓雅區四維三路2號',
+  },
+  {
+    id: 'address-hualien-county-city',
+    text: '地址：花蓮縣花蓮市中山路100號',
+    type: 'TW_ADDRESS',
+    surface: '花蓮縣花蓮市中山路100號',
+  },
+  {
+    id: 'address-kinmen-town',
+    text: '地址：金門縣金城鎮民生路5號',
+    type: 'TW_ADDRESS',
+    surface: '金門縣金城鎮民生路5號',
+  },
+  {
+    id: 'address-penghu-city',
+    text: '地址：澎湖縣馬公市中正路10號',
+    type: 'TW_ADDRESS',
+    surface: '澎湖縣馬公市中正路10號',
+  },
+  {
+    id: 'address-lane-alley',
+    text: '地址：新竹市東區光復路2段101巷3弄8號',
+    type: 'TW_ADDRESS',
+    surface: '新竹市東區光復路2段101巷3弄8號',
+  },
+  {
     id: 'known-passport',
     text: '護照：D12345678',
     type: 'TW_PASSPORT',
@@ -100,6 +160,11 @@ const BENIGN_PROBES = [
   '訂單號：123456789',
   '日期：2026-09-01，滿意度 3.6 / 5。',
   '專案代號 AURORA-2026，北區 21 件、中區 14 件、南區 13 件。',
+  '臺北市本季完成 18 場企業培訓。',
+  '大安區與信義區的活動數量相同。',
+  '松仁路專案已進入第二階段。',
+  '第 2 號提案預計下週確認。',
+  '會議改到 5 樓的大型會議室。',
 ] as const;
 
 describe('Taiwan Traditional Chinese synthetic PII baseline', () => {
@@ -117,7 +182,7 @@ describe('Taiwan Traditional Chinese synthetic PII baseline', () => {
       );
       if (!match || (probe.handling && match.handling !== probe.handling)) missed.push(probe.id);
     }
-    expect({ total: POSITIVE_PROBES.length, missed }).toEqual({ total: 19, missed: [] });
+    expect({ total: POSITIVE_PROBES.length, missed }).toEqual({ total: 29, missed: [] });
   });
 
   it('produces no candidates for the versioned benign business-text probes', () => {
@@ -127,7 +192,7 @@ describe('Taiwan Traditional Chinese synthetic PII baseline', () => {
       return detected.value.map((candidate) => `${candidate.primaryType}:${candidate.surfaceText}`);
     });
     expect({ total: BENIGN_PROBES.length, falsePositives }).toEqual({
-      total: 5,
+      total: 10,
       falsePositives: [],
     });
   });

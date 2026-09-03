@@ -1,5 +1,13 @@
 import { createHash } from 'node:crypto';
-import { canonicalStringify, err, error, ok, parseExportManifest, type Result } from './index.js';
+import {
+  canonicalStringify,
+  err,
+  error,
+  ok,
+  parseExportManifest,
+  type ExportManifest,
+  type Result,
+} from './index.js';
 
 /** v1 deliberately does not split packages: a larger export must be refused. */
 export const SAFE_PACKAGE_LIMIT = 2 * 1024 * 1024 * 1024;
@@ -33,6 +41,9 @@ export interface SafePackageInput {
   readonly documents: readonly SafePackageDocument[];
   readonly entities: readonly SafePackageEntity[];
   readonly estimatedBytes?: number;
+  readonly privacyPolicy?: {
+    readonly addressMode: 'FULL_REDACTION' | 'KEEP_CITY' | 'KEEP_DISTRICT';
+  };
 }
 export interface SafePackage {
   readonly bytes: Uint8Array;
@@ -285,6 +296,7 @@ export function buildSafePackage(input: SafePackageInput): Result<SafePackage> {
     files,
     tokenTypeCounts,
     exclusions: { unsupported: 0, system: 0, user: 0 },
+    ...(input.privacyPolicy ? { privacyPolicy: input.privacyPolicy } : {}),
   };
   if (!parseExportManifest(baseManifest).ok) return err(error('PB-EXPORT-005'));
   const schema = JSON.stringify({
@@ -325,7 +337,12 @@ function isStringRecord(value: unknown): value is Record<string, string> {
   );
 }
 
-export function validateSafePackage(bytes: Uint8Array): Result<true> {
+export interface SafePackageInspection {
+  readonly manifest: ExportManifest;
+}
+
+/** Validates the whole archive and returns only its non-sensitive, schema-checked manifest. */
+export function inspectSafePackage(bytes: Uint8Array): Result<SafePackageInspection> {
   if (bytes.length > SAFE_PACKAGE_LIMIT) return err(error('PB-EXPORT-005'));
   const parsed = readZip(bytes);
   if (!parsed.ok) return err(parsed.error);
@@ -354,8 +371,13 @@ export function validateSafePackage(bytes: Uint8Array): Result<true> {
         return err(error('PB-EXPORT-005'));
     if (packageDigest(parsed.value) !== manifest.value.packageHash)
       return err(error('PB-EXPORT-005'));
+    return ok({ manifest: manifest.value });
   } catch {
     return err(error('PB-EXPORT-005'));
   }
-  return ok(true);
+}
+
+export function validateSafePackage(bytes: Uint8Array): Result<true> {
+  const inspected = inspectSafePackage(bytes);
+  return inspected.ok ? ok(true) : err(inspected.error);
 }

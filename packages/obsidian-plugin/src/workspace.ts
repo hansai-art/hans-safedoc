@@ -5,7 +5,7 @@ import {
   type ClientUiState,
   type WorkflowBlockers,
 } from './ui-state.js';
-import type { DetectedCandidate } from '@privacy-bridge/core';
+import type { AddressPrivacyMode, DetectedCandidate } from '@privacy-bridge/core';
 import {
   displayTypeName,
   type CandidateDecision,
@@ -16,6 +16,7 @@ import type {
   ExternalMandatoryReviewRecord,
   ExternalReviewDocument,
 } from './external-format-workflow.js';
+import type { SafeHandoffReport } from './analysis-request.js';
 
 export const PRIVACY_BRIDGE_VIEW = 'privacy-bridge-workspace';
 
@@ -27,6 +28,7 @@ export interface PrivacyBridgeWorkspaceActions {
   chooseFile(): Promise<void>;
   importDictionary(): Promise<void>;
   restoreResult(): Promise<void>;
+  setAddressPrivacyMode(mode: AddressPrivacyMode): Promise<void>;
   scanCurrentNote(): Promise<void>;
   reviewCandidate(candidateId: string, decision: CandidateDecision): Promise<void>;
   acknowledgeMandatoryReview(recordId: string): Promise<void>;
@@ -70,6 +72,8 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
   private errorMessage: string | undefined;
   private batchConfirmation = false;
   private dictionaryEntries = 0;
+  private addressPrivacyMode: AddressPrivacyMode = 'FULL_REDACTION';
+  private safeHandoff: SafeHandoffReport | undefined;
 
   constructor(
     leaf: WorkspaceLeaf,
@@ -98,13 +102,10 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
       this.mandatoryReviewRecords = [];
       this.mandatoryReviewIds.clear();
       this.clearPreview();
-      this.outputFile = undefined;
-      this.outputKind = undefined;
-      this.outputJobId = undefined;
-      this.analysisRequestFile = undefined;
-      this.safePackageFile = undefined;
+      this.clearOutputState();
       this.errorMessage = undefined;
       this.dictionaryEntries = 0;
+      this.addressPrivacyMode = 'FULL_REDACTION';
     }
     this.render();
   }
@@ -120,14 +121,11 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
     this.mandatoryReviewRecords = [];
     this.mandatoryReviewIds.clear();
     this.clearPreview();
-    this.outputFile = undefined;
-    this.outputKind = undefined;
-    this.outputJobId = undefined;
-    this.analysisRequestFile = undefined;
-    this.safePackageFile = undefined;
+    this.clearOutputState();
     this.statusMessage = undefined;
     this.errorMessage = undefined;
     this.batchConfirmation = false;
+    this.addressPrivacyMode = 'FULL_REDACTION';
     this.render();
   }
   setScanResult(
@@ -147,8 +145,9 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
       ...new Map(mandatoryReviewRecords.map((record) => [record.id, record])).values(),
     ];
     this.mandatoryReviewIds.clear();
+    this.addressPrivacyMode = 'FULL_REDACTION';
     this.clearPreview();
-    this.outputFile = undefined;
+    this.clearOutputState();
     this.statusMessage = `找到 ${candidates.length} 個敏感項目與 ${this.mandatoryReviewRecords.length} 個強制人工確認項目。`;
     this.errorMessage = undefined;
     this.render();
@@ -158,10 +157,18 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
     this.dictionaryEntries = entries;
     this.render();
   }
+  setAddressPrivacyMode(mode: AddressPrivacyMode): void {
+    if (this.addressPrivacyMode === mode) return;
+    this.addressPrivacyMode = mode;
+    this.clearPreview();
+    this.clearOutputState();
+    this.statusMessage = '地址保護層級已變更，請重新建立轉換預覽。';
+    this.render();
+  }
   setReviewDecision(candidateId: string, decision: CandidateDecision): void {
     this.decisions.set(candidateId, decision);
     this.clearPreview();
-    this.outputFile = undefined;
+    this.clearOutputState();
     const pending = this.candidates.filter(
       (candidate) =>
         candidate.handling !== 'BLOCK_EXPORT' && !this.decisions.has(candidate.candidateId),
@@ -174,7 +181,7 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
     if (!this.mandatoryReviewRecords.some((record) => record.id === recordId)) return;
     this.mandatoryReviewIds.add(recordId);
     this.clearPreview();
-    this.outputFile = undefined;
+    this.clearOutputState();
     const pending = this.mandatoryReviewRecords.length - this.mandatoryReviewIds.size;
     this.statusMessage =
       pending === 0
@@ -186,7 +193,7 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
     for (const candidateId of candidateIds) this.decisions.set(candidateId, 'ACCEPTED');
     this.batchConfirmation = false;
     this.clearPreview();
-    this.outputFile = undefined;
+    this.clearOutputState();
     this.statusMessage = '所有可處理項目都已接受，正在建立預覽。';
     this.render();
   }
@@ -201,7 +208,7 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
     this.previewChanges = changes;
     this.previewHunks = hunks;
     this.activeHunkIndex = 0;
-    this.outputFile = undefined;
+    this.clearOutputState();
     this.statusMessage = '預覽已建立，確認後可輸出到 Obsidian 資料庫外。';
     this.render();
   }
@@ -210,12 +217,14 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
     jobId?: string,
     safePackageFile?: string,
     analysisRequestFile?: string,
+    handoff?: SafeHandoffReport,
   ): void {
     this.outputFile = outputFile;
     this.outputKind = 'SAFE';
     this.outputJobId = jobId;
     this.analysisRequestFile = analysisRequestFile;
     this.safePackageFile = safePackageFile;
+    this.safeHandoff = handoff;
     this.statusMessage = '安全代碼化輸出已完成，來源文件未修改。';
     this.errorMessage = undefined;
     this.render();
@@ -226,6 +235,7 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
     this.outputJobId = jobId;
     this.analysisRequestFile = undefined;
     this.safePackageFile = undefined;
+    this.safeHandoff = undefined;
     this.statusMessage = '驗證與還原完成，輸入結果檔未修改。';
     this.errorMessage = undefined;
     this.render();
@@ -259,6 +269,15 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
     this.activeHunkIndex = 0;
     this.selectedType = 'ALL';
     this.expandedGaps.clear();
+  }
+
+  private clearOutputState(): void {
+    this.outputFile = undefined;
+    this.outputKind = undefined;
+    this.outputJobId = undefined;
+    this.analysisRequestFile = undefined;
+    this.safePackageFile = undefined;
+    this.safeHandoff = undefined;
   }
 
   private moveToHunk(index: number): void {
@@ -529,6 +548,28 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
           ? '安全代碼與本機 Job 完整性已驗證；AI 回傳檔沒有修改，原文只寫入這份新副本。'
           : '來源文件未修改。你現在可以先預覽安全檔案，或直接找到輸出位置。',
       });
+      if (!restored && this.safeHandoff?.status === 'SAFE_TO_UPLOAD')
+        output.createEl(
+          'aside',
+          {
+            cls: 'privacy-bridge-safe-handoff',
+            attr: { 'aria-label': 'Safe to Upload 安全交接預檢通過' },
+          },
+          (handoff) => {
+            handoff.createEl('h4', { text: 'Safe to Upload：安全交接預檢通過' });
+            handoff.createEl('p', {
+              text: '只交付下方配對的 Safe Package ZIP 與 analysis-request.json。原始檔、原生安全副本、Mapping、Job Store 和還原結果都不要上傳。',
+            });
+            handoff.createEl('ul', { attr: { 'aria-label': '已通過的安全交接檢查' } }, (list) =>
+              this.safeHandoff?.checks.forEach((check) =>
+                list.createEl('li', { text: `通過：${check.label}` }),
+              ),
+            );
+            handoff.createEl('p', {
+              text: `Job：${this.safeHandoff?.jobId} · Package Hash：${this.safeHandoff?.packageHash.slice(0, 12)}…`,
+            });
+          },
+        );
       output.createDiv({ cls: 'privacy-bridge-output-actions' }, (actions) => {
         const another = actions.createEl('button', {
           text: restored ? '還原另一份 AI 結果' : '處理另一份檔案',
@@ -545,6 +586,8 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
           preview.addEventListener('click', () => void this.actions.openSafeOutputPreview());
           const restore = actions.createEl('button', { text: '還原 AI 結果' });
           restore.addEventListener('click', () => void this.actions.restoreResult());
+          const instructions = actions.createEl('button', { text: '查看 AI 交接指令' });
+          instructions.addEventListener('click', () => void this.actions.openTutorial());
         }
         const nativeOpen = actions.createEl('button', {
           text: restored ? '用預設程式開啟還原副本' : '用預設程式開啟安全檔案',
@@ -680,10 +723,42 @@ export class PrivacyBridgeWorkspaceView extends ItemView {
           this.dictionaryEntries > 0
             ? `更換客戶字典（${this.dictionaryEntries} 筆）`
             : '匯入客戶字典',
-        attr: { 'aria-label': '匯入只保留於本次工作階段的 JSON 客戶字典' },
+        attr: { 'aria-label': '建立或匯入只保留於本次工作階段的客戶字典' },
       });
       dictionary.addEventListener('click', () => void this.actions.importDictionary());
     });
+    if (
+      this.candidates.some((candidate) => candidate.primaryType === 'TW_ADDRESS') &&
+      !this.preview
+    )
+      section.createEl(
+        'aside',
+        {
+          cls: 'privacy-bridge-address-policy',
+          attr: { 'aria-label': '地址隱私層級' },
+        },
+        (policy) => {
+          policy.createEl('strong', { text: '地址隱私層級' });
+          policy.createEl('p', {
+            text: '預設完整保護。保留的地理資訊越多，重新識別個人的風險越高；無法安全拆分時會自動改為完整保護。',
+          });
+          const label = policy.createEl('label', { text: '這個 Job 的地址處理方式' });
+          const select = label.createEl('select', {
+            attr: { 'aria-label': '選擇這個 Job 的地址隱私層級' },
+          });
+          const options: readonly [AddressPrivacyMode, string][] = [
+            ['FULL_REDACTION', '完整保護（建議）'],
+            ['KEEP_CITY', '保留縣市'],
+            ['KEEP_DISTRICT', '保留縣市與行政區'],
+          ];
+          for (const [value, text] of options) select.createEl('option', { value, text });
+          select.value = this.addressPrivacyMode;
+          select.addEventListener(
+            'change',
+            () => void this.actions.setAddressPrivacyMode(select.value as AddressPrivacyMode),
+          );
+        },
+      );
     if (this.batchConfirmation) {
       section.createDiv({ cls: 'privacy-bridge-batch-confirmation' }, (confirmation) => {
         confirmation.createEl('p', {

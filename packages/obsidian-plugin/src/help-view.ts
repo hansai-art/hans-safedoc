@@ -103,14 +103,15 @@ export class PrivacyBridgeHelpView extends ItemView {
       for (const step of [
         '點 Hans SafeDoc 的「選擇檔案」處理 MD、TXT 或 CSV；已打開的 MD 筆記也可點左側盾牌。',
         '檢查偵測結果。你可以逐項決定，或選擇「全部安全代碼化並預覽」。',
+        '如果找到臺灣地址，確認這個 Job 的地址隱私層級；預設完整保護，變更為保留縣市或行政區後必須重新建立預覽。',
         '確認批次處理後，用「只看變更」檢查每個變更位置的前後內容。需要左右完整比較時，點「開啟完整比較」。',
         '在右側預覽按 Alt+← 或 Alt+→，可以快速移到上一處或下一處變更。',
         '按「建立安全代碼化輸出」，設定至少 12 個字元且不會被儲存的還原密碼。原始檔不會被修改。',
         '按「顯示輸出位置」，先用原生安全副本在本機確認版面；這份副本不作為 Result JSON 的信任來源。',
-        '上傳前再次確認 .safe-package.zip 與 .analysis-request.json 位於 Hans SafeDoc Outputs 資料夾，不要上傳原始檔、代碼對照資料、字典或金鑰。',
+        '確認畫面顯示「Safe to Upload」，再核對 .safe-package.zip 與 .analysis-request.json 位於 Hans SafeDoc Outputs 資料夾；不要上傳原始檔、原生安全副本、代碼對照資料、字典或金鑰。',
         '把下方提示詞貼給其他工具，要求它完整保留安全代碼。',
         '把同時產生的 .safe-package.zip 與 .analysis-request.json 一起交給其他工具，只接受符合 result-package.schema.json 的單一 UTF-8 JSON 回傳；原生安全副本只用於本機版面檢查。',
-        '按「還原 AI 結果」，選擇 Result JSON、原本的 Job 並輸入密碼。只有 schema、Job、安全分析包雜湊、不含原文的文件 ID 與每個安全代碼都驗證通過，才會在 Hans SafeDoc Restored 建立新 Result Vault。',
+        '按「還原 AI 結果」，選擇 Result JSON、原本的 Job 並輸入密碼。Dry Run 會先驗證 schema、Job、安全分析包雜湊、不含原文的文件 ID 與每個安全代碼；再次確認後才會在 Hans SafeDoc Restored 建立新 Result Vault。',
       ])
         steps.createEl('li', { text: step });
     });
@@ -127,7 +128,8 @@ export class PrivacyBridgeHelpView extends ItemView {
         '確認 AI 只回傳一個符合 result-package.schema.json 的 UTF-8 JSON object，沒有程式碼圍欄或額外文字。',
         '在 Hans SafeDoc 按「還原 AI 結果」，選擇 Result JSON。',
         '從本機清單選擇建立安全輸出時的 Job，輸入當時設定的密碼。',
-        'Hans SafeDoc 會驗證加密對照表、schema、Job、安全分析包雜湊、不含原文的文件 ID、每一個安全代碼與輸出重開結果；未知、缺損或偽造代碼會使整包流程停止。',
+        'Hans SafeDoc 先執行不寫檔的 Dry Run，驗證加密對照表、schema、Job、安全分析包雜湊、不含原文的文件 ID 與每一個安全代碼；未知、缺損或偽造代碼會使整包流程停止。',
+        '確認 Dry Run 報告後，Hans SafeDoc 會重新讀取並驗證 Result JSON，避免檔案在驗證後遭到替換。',
         '驗證通過後只會在 Obsidian 資料庫旁的 Hans SafeDoc Restored 建立 findings.md、findings.json 與 restore-manifest.json，不覆寫 AI 回傳檔、原始檔或安全輸出。',
       ])
         steps.createEl('li', { text: step });
